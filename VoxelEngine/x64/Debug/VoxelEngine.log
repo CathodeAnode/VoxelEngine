@@ -1,0 +1,9 @@
+﻿  main.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(130,9): warning C4005: 'APIENTRY': macro redefinition
+  (compiling source file 'main.cpp')
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\Linking\include\glad\glad.h(32,9):
+      see previous definition of 'APIENTRY'
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(207,24): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(208,15): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+  VoxelEngine.vcxproj -> C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\x64\Debug\VoxelEngine.exe
