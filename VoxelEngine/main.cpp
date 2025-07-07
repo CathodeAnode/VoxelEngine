@@ -176,6 +176,7 @@ void displayFPSOnWindow(float frameFPS, int numOfFrames) {
 	if (countFPS > numOfFrames) {
 		screen.setTitle(("VoxelEngine - FPS: " + std::to_string(sumFPS/ countFPS)).c_str());
 		countFPS = 0;
+		sumFPS = 0;
 
 	}
 	else
