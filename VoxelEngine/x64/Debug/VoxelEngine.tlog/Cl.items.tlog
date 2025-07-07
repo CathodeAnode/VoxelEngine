@@ -1,13 +1,11 @@
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\camera.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\camera.obj
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\chunk.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\chunk.obj
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\glad.c;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\glad.obj
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\joystick.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\joystick.obj
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\keyboard.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\keyboard.obj
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\main.obj
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\mouse.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\mouse.obj
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\renderer.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\renderer.obj
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\voxel_renderer.obj
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\screen.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\screen.obj
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\shader.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\shader.obj
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\stb.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\stb.obj
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\texture.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\texture.obj
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_geometry.cpp;C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\x64\Debug\voxel_geometry.obj

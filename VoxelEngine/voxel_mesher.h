@@ -1,0 +1,381 @@
+#ifndef VOXELMESHER_H
+#define VOXELMESHER_H
+
+#include <vector>
+#include <iostream>
+#include <unordered_map>
+#include <stdexcept>
+
+#include <glm/glm.hpp>
+
+#include <bitset>
+#include <chrono>
+
+#include "chunk.h"
+#include "types.h"
+#include "chunk_grid.h"
+
+
+template<typename ChunkType> class VoxelMesher
+{
+private:
+	using uintC_t = typename ChunkType::ValueType;
+
+	static constexpr int CS = ChunkType::Size;
+	static constexpr int CS_P = CS + 2;
+	static constexpr int CS_2 = CS * CS;
+	static constexpr int CS_P2 = CS_P * CS_P;
+	static constexpr int CS_P3 = CS_P2 * CS_P;
+
+	static uintC_t getPaddedColumnRowBits(ChunkGrid<ChunkType>& world, int x, int y, const glm::ivec3& chunkLocation) {
+		// Reject completely invalid or corner out-of-bounds accesses
+		if ((x <= 0 && y <= 0) || x < 0 || y < 0 ||
+			(x >= CS_P && y >= CS_P) ||
+			(x == 0 && y == CS_P - 1) ||
+			(x == CS_P - 1 && y == 0)) {
+			throw std::out_of_range("Invalid coordinates");
+		}
+
+		glm::ivec3 offset(0);
+		int chunkX = x - 1;
+		int chunkY = y - 1;
+
+		if (y == 0) {
+			offset.x = -1; // left chunk
+			chunkX = x - 1;
+			chunkY = CS - 1;
+		}
+		else if (y == CS_P - 1) {
+			offset.x = 1; // right chunk
+			chunkX = x - 1;
+			chunkY = 0;
+		}
+		else if (x == 0) {
+			offset.z = -1; // back chunk
+			chunkX = 0;
+			chunkY = y - 1;
+		}
+		else if (x == CS_P - 1) {
+			offset.z = 1; // front chunk
+			chunkX = CS - 1;
+			chunkY = y - 1;
+		}
+
+		ChunkType* chunk = world.getChunk(chunkLocation + offset);
+		if (chunk) {
+			return chunk->getColumnRow(chunkX, chunkY);
+		}
+
+		return 0;
+	}
+
+	static glm::ivec3 getAxisIndex(const int axis, const int a, const int b, const int c) {
+		glm::ivec3 voxelCoords;
+		switch (axis) {
+		case 0:
+			voxelCoords = glm::ivec3(b, a,c);
+			break;
+		case 1:
+			voxelCoords = glm::ivec3(b, c, a);
+			break;
+		default:
+			voxelCoords = glm::ivec3(c, a, b);
+			break;
+		}
+
+		return voxelCoords;
+	}
+
+public:
+
+	// TODO implement voxel type support for tan tan greedy meshing (faces 0-4)
+	ChunkQuads meshChunk(ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation) {
+		ChunkQuads mesh;
+
+		ChunkType* chunk = chunkGrid.getChunk(chunkLocation);
+		if (chunk == nullptr || chunk->isEmpty()) {
+			return mesh;
+		}
+
+		std::vector<uintC_t> faceMasks(CS_2 * 6, 0);
+		std::vector<uint8_t> forwardMerged(CS_2, 0);
+		std::vector<uint8_t> rightMerged(CS, 0);
+
+		// face culling
+		for (int a = 1; a < CS_P - 1; a++) {
+			for (int b = 1; b < CS_P - 1; b++) {
+				const uintC_t columnBits = getPaddedColumnRowBits(chunkGrid, b, a, chunkLocation);
+				const int baIndex = (b - 1) + (a - 1) * CS;
+				const int abIndex = (a - 1) + (b - 1) * CS;
+
+
+				// +ve, -ve z
+				faceMasks[baIndex + 0 * CS_2] = (columnBits & ~getPaddedColumnRowBits(chunkGrid, b, a + 1, chunkLocation));
+				faceMasks[baIndex + 1 * CS_2] = (columnBits & ~getPaddedColumnRowBits(chunkGrid, b, a - 1, chunkLocation));
+
+				// +ve, -ve x
+				faceMasks[abIndex + 2 * CS_2] = (columnBits & ~getPaddedColumnRowBits(chunkGrid, b + 1, a, chunkLocation));
+				faceMasks[abIndex + 3 * CS_2] = (columnBits & ~getPaddedColumnRowBits(chunkGrid, b - 1, a, chunkLocation));
+
+				// TODO: fix me, adjacent chunk padding
+				// +ve, -ve y
+				faceMasks[baIndex + 4 * CS_2] = columnBits & ~(columnBits >> 1);
+				faceMasks[baIndex + 5 * CS_2] = columnBits & ~(columnBits << 1);
+			}
+		}
+
+
+		//for (int faces = 0; faces < 6; faces++) {
+		//	std::cout << "Face " << faces << std::endl;
+		//	for (int x = 0; x < CS; x++) {
+		//		std::cout << "layer " << x << std::endl;
+		//		for (int y = 0; y < CS; y++) {
+		//			std::cout << std::bitset<8>(faceMasks[y + x * CS + faces * CS_2]) << std::endl;
+		//		}
+		//	
+		//	}
+		//}
+
+
+		// TAN TAN Greedy Mesher (face 0-3)
+		unsigned long bitPos;
+		uintC_t tempCol;
+		uint8_t x, y, w, h;
+
+		for (int axis = 0; axis < 4; axis++) {
+			for (int layer = 0; layer < CS; layer++) {
+				const int bitsLocation = layer * CS + axis * CS_2;
+				for (uint8_t row = 0; row < CS; row++) {
+					uintC_t col = faceMasks[row + bitsLocation];
+					if (col == 0) continue;
+					y = 0;
+
+					while (y < CS) {
+						tempCol = col >> y;
+
+						// get trailing zeros
+						#ifdef _MSC_VER
+						_BitScanForward64(&bitPos, tempCol);
+						if (tempCol == 0) bitPos = CS;
+						#else
+						bitPos = __builtin_ctzll(tempCol);
+						#endif
+
+						y += bitPos;
+
+						if (y >= CS) break;
+
+						tempCol = col >> y;
+						// get trailling ones
+						#ifdef _MSC_VER
+						_BitScanForward64(&bitPos, ~tempCol);
+						if (~tempCol == 0) bitPos = CS;
+						#else
+						bitPos = __builtin_ctzll(~tempCol);
+						#endif
+
+						h = bitPos;
+
+						uintC_t hMask = (1ull << h) - 1;
+						uintC_t mask = hMask << y;
+
+						w = 1;
+
+						while (row + w < CS) {
+							// fetch bits spanning height, in the next row
+							uintC_t nextRowH = (faceMasks[row + w + bitsLocation] >> y) & hMask;
+							if (nextRowH != hMask) {
+								break; // can no longer expand horizontally
+							}
+
+							faceMasks[row + w + bitsLocation] &= ~mask;
+							w++;
+						}
+
+						switch (axis) {
+						case 0:
+						case 1:
+							mesh.addQuad(row, y, layer, w, h, axis, 0);
+							break;
+						case 2:
+						case 3:
+							mesh.addQuad(layer, y, row, w, h, axis, 0);
+							break;
+						}
+
+
+						y += h;
+
+					}
+
+					
+					
+				}
+			}
+		}
+
+
+		//// Greedy meshing face 0-3
+		//for (int face = 0; face < 4; face++)
+		//{
+		//	const int axis = face / 2;
+		//	
+		//	for (int layer = 0; layer < CS; layer++) {
+		//		const int bitsLocation = layer * CS + face * CS_2;
+
+		//		for (int forward = 0; forward < CS; forward++) {
+		//			uintC_t bitsHere = faceMasks[forward + bitsLocation];
+		//			if (bitsHere == 0) {
+		//				continue;
+		//			}
+
+		//			const uintC_t bitsNext = forward + 1 < CS ? faceMasks[(forward + 1) + bitsLocation] : 0;
+		//			uint8_t _rightMerged = 1;
+		//			while (bitsHere) {
+		//				unsigned long bitPos;
+		//				#ifdef _MSC_VER
+		//				_BitScanForward64(&bitPos, bitsHere);
+		//				#else
+		//				bitPos = __builtin_ctzll(bitsHere);
+		//				#endif
+		//				const uint16_t type = chunk->getVoxelData(getAxisIndex(axis, forward, bitPos, layer));
+		//				uint8_t& forwardMergedRef = forwardMerged[bitPos];
+
+		//				if ((bitsNext >> bitPos & 1) &&
+		//					type == chunk->getVoxelData(getAxisIndex(axis, forward + 1, bitPos, layer))) {
+		//					forwardMergedRef++;
+		//					bitsHere &= ~(1ull << bitPos);
+		//					continue;
+		//				}
+
+		//				for (int right = bitPos + 1; right < CS; right++) {
+		//					if (!(bitsHere >> right & 1) || forwardMergedRef != forwardMerged[right] ||
+		//						type != chunk->getVoxelData(getAxisIndex(axis, forward, right, layer))) {
+		//						break;
+		//					}
+
+		//					forwardMerged[right] = 0;
+		//					_rightMerged++;
+		//				}
+
+		//				bitsHere &= ~((1ull << (bitPos + _rightMerged)) - 1);
+
+		//				const uint8_t meshFront = forward - forwardMergedRef;
+		//				const uint8_t meshLeft = bitPos;
+		//				const uint8_t meshUp = layer;
+
+		//				const uint8_t meshWidth = _rightMerged;
+		//				const uint8_t meshLength = forwardMergedRef + 1;
+
+		//				forwardMergedRef = 0;
+		//				_rightMerged = 1;
+
+	
+
+		//				switch (face) {
+		//				case 0:
+		//				case 1:
+		//					mesh.addQuad(meshFront, meshLeft, meshUp, meshLength, meshWidth, face, type);
+		//					break;
+		//				case 2:
+		//				case 3:
+		//					mesh.addQuad(meshUp, meshFront, meshLeft, meshLength, meshWidth, face, type);
+		//					break;
+		//				}
+
+		//			}
+		//		}
+		//	}
+		//}
+
+		// Greedy meshing faces 4-5
+		for (int face = 4; face < 6; face++) {
+			const int axis = face / 2;
+
+			for (int forward = 0; forward < CS; forward++) {
+				const int bitsLocation = forward * CS + face * CS_2;
+				const int bitsForwardLocation = (forward + 1) * CS + face * CS_2;
+
+				for (int right = 0; right < CS; right++) {
+					uintC_t bitsHere = faceMasks[right + bitsLocation];
+					if (bitsHere == 0) continue;
+
+					const uintC_t bitsForward = forward < CS - 1 ? faceMasks[right + bitsForwardLocation] : 0;
+					const uintC_t bitsRight = right < CS - 1 ? faceMasks[right + 1 + bitsLocation] : 0;
+					const int rightCS = right * CS;
+
+					while (bitsHere) {
+						unsigned long bitPos;
+						#ifdef _MSC_VER
+						_BitScanForward64(&bitPos, bitsHere);
+						#else
+						bitPos = __builtin_ctzll(bitsHere);
+						#endif
+	
+						bitsHere &= ~(1ull << bitPos);
+
+						const uint16_t type = chunk->getVoxelData(getAxisIndex(axis, right , forward, bitPos));
+						uint8_t& forwardMergedRef = forwardMerged[rightCS + bitPos];
+						uint8_t& rightMergedRef = rightMerged[bitPos];
+
+						if (rightMergedRef == 0 && (bitsForward >> bitPos & 1) &&
+							type == chunk->getVoxelData(getAxisIndex(axis, right, forward + 1, bitPos))) {
+							forwardMergedRef++;
+							continue;
+						}
+
+						if ((bitsRight >> bitPos & 1) && forwardMergedRef == forwardMerged[(rightCS + CS) + bitPos]
+							&& type == chunk->getVoxelData(getAxisIndex(axis, right + 1, forward, bitPos))) {
+							forwardMergedRef = 0;
+							rightMergedRef++;
+							continue;
+						}
+
+						const uint8_t meshLeft = right - rightMergedRef;
+						const uint8_t meshFront = forward - forwardMergedRef;
+						const uint8_t meshUp = bitPos;
+
+						const uint8_t meshWidth = 1 + rightMergedRef;
+						const uint8_t meshLength = 1 + forwardMergedRef;
+
+						forwardMergedRef = 0;
+						rightMergedRef = 0;
+
+						mesh.addQuad(meshLeft, meshUp, meshFront, meshWidth, meshLength, face, type);
+
+					}
+				}
+			}
+		}
+		
+
+		return mesh;
+	}
+
+	//std::unordered_map<uint64_t, ChunkQuads> meshChunkGrid(ChunkGrid<ChunkType>& chunkGrid) {
+	//	std::unordered_map<uint64_t, ChunkQuads> meshes;
+	//	
+	//	std::unordered_map<uint64_t, ChunkType>& chunks = chunkGrid.getChunksGrid();
+
+	//	glm::ivec3 gridCoords;
+	//	ChunkQuads mesh;
+	//	for (const auto& [index, _] : chunks) {
+	//		gridCoords = ChunkGrid<ChunkType>::getChunkCoords(index);
+	//		mesh = meshChunk(chunkGrid, gridCoords);
+
+	//		meshes[index] = mesh;
+	//	}
+
+
+	//	return meshes;
+	//}
+};
+
+
+typedef VoxelMesher<Chunk8> VoxelMesher8;
+typedef VoxelMesher<Chunk16> VoxelMesher16;
+typedef VoxelMesher<Chunk32> VoxelMesher32;
+
+#endif
+
+

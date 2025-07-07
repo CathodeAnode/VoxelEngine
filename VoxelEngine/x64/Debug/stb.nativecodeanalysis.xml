@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<DEFECTS>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\Linking\include\stb\</FILEPATH>
+      <FILENAME>stb_image.h</FILENAME>
+      <LINE>5747</LINE>
+      <COLUMN>11</COLUMN>
+    </SFA>
+    <DEFECTCODE>26819</DEFECTCODE>
+    <DESCRIPTION>Unannotated fallthrough between switch labels (es.78).</DESCRIPTION>
+    <FUNCTION>stbi__tga_get_comp</FUNCTION>
+    <DECORATED>?stbi__tga_get_comp@@YAHHHPEAH@Z</DECORATED>
+    <FUNCLINE>5739</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\Linking\include\stb\</FILEPATH>
+      <FILENAME>stb_image.h</FILENAME>
+      <LINE>6963</LINE>
+      <COLUMN>13</COLUMN>
+    </SFA>
+    <DEFECTCODE>6262</DEFECTCODE>
+    <DESCRIPTION>Function uses '35036' bytes of stack.  Consider moving some data to heap.</DESCRIPTION>
+    <FUNCTION>stbi__load_gif_main</FUNCTION>
+    <DECORATED>?stbi__load_gif_main@@YAPEAXPEAUstbi__context@@PEAPEAHPEAH222H@Z</DECORATED>
+    <FUNCLINE>6963</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\Linking\include\stb\</FILEPATH>
+      <FILENAME>stb_image.h</FILENAME>
+      <LINE>7048</LINE>
+      <COLUMN>13</COLUMN>
+    </SFA>
+    <DEFECTCODE>6262</DEFECTCODE>
+    <DESCRIPTION>Function uses '34980' bytes of stack.  Consider moving some data to heap.</DESCRIPTION>
+    <FUNCTION>stbi__gif_load</FUNCTION>
+    <DECORATED>?stbi__gif_load@@YAPEAXPEAUstbi__context@@PEAH11HPEAUstbi__result_info@@@Z</DECORATED>
+    <FUNCLINE>7048</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\Linking\include\stb\</FILEPATH>
+      <FILENAME>stb_image.h</FILENAME>
+      <LINE>7149</LINE>
+      <COLUMN>14</COLUMN>
+    </SFA>
+    <DEFECTCODE>26819</DEFECTCODE>
+    <DESCRIPTION>Unannotated fallthrough between switch labels (es.78).</DESCRIPTION>
+    <FUNCTION>stbi__hdr_convert</FUNCTION>
+    <DECORATED>?stbi__hdr_convert@@YAXPEAMPEAEH@Z</DECORATED>
+    <FUNCLINE>7131</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+  <DEFECT>
+    <SFA>
+      <FILEPATH>C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\Linking\include\stb\</FILEPATH>
+      <FILENAME>stb_image.h</FILENAME>
+      <LINE>7152</LINE>
+      <COLUMN>14</COLUMN>
+    </SFA>
+    <DEFECTCODE>26819</DEFECTCODE>
+    <DESCRIPTION>Unannotated fallthrough between switch labels (es.78).</DESCRIPTION>
+    <FUNCTION>stbi__hdr_convert</FUNCTION>
+    <DECORATED>?stbi__hdr_convert@@YAXPEAMPEAEH@Z</DECORATED>
+    <FUNCLINE>7131</FUNCLINE>
+    <PATH></PATH>
+  </DEFECT>
+</DEFECTS>

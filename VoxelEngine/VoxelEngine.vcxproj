@@ -108,6 +108,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <LanguageStandard>stdcpp20</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -133,18 +134,16 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
-    <ClCompile Include="chunk.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="joystick.cpp" />
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mouse.cpp" />
-    <ClCompile Include="renderer.cpp" />
+    <ClCompile Include="voxel_renderer.cpp" />
     <ClCompile Include="screen.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="stb.cpp" />
     <ClCompile Include="texture.cpp" />
-    <ClCompile Include="voxel_geometry.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="core_fragment_shader.glsl" />
@@ -155,13 +154,15 @@
     <ClInclude Include="chunk.h" />
     <ClInclude Include="joystick.h" />
     <ClInclude Include="keyboard.h" />
+    <ClInclude Include="world.h" />
+    <ClInclude Include="voxel_mesher.h" />
     <ClInclude Include="mouse.h" />
-    <ClInclude Include="renderer.h" />
+    <ClInclude Include="voxel_renderer.h" />
     <ClInclude Include="screen.h" />
     <ClInclude Include="shader.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="types.h" />
-    <ClInclude Include="voxel_geometry.h" />
+    <ClInclude Include="chunk_grid.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

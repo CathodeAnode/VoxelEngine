@@ -23,6 +23,7 @@ public:
 
 	void close();
 	bool isOpen();
+	void setTitle(const char* _title);
 
 
 	GLFWwindow* getWindow() const { return window; }

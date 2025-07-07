@@ -48,13 +48,7 @@
     <ClCompile Include="screen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="chunk.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="voxel_geometry.cpp">
+    <ClCompile Include="voxel_renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -88,16 +82,22 @@
     <ClInclude Include="screen.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="renderer.h">
+    <ClInclude Include="voxel_renderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="chunk.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="voxel_geometry.h">
+    <ClInclude Include="types.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="types.h">
+    <ClInclude Include="chunk_grid.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="voxel_mesher.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="world.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

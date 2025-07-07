@@ -25,8 +25,8 @@ bool Screen::init() {
 	}
 
 	// set version
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
 #ifdef __APPLE__
@@ -81,6 +81,15 @@ void Screen::close() {
 }
 bool Screen::isOpen() {
 	return !glfwWindowShouldClose(window);
+}
+
+void Screen::setTitle(const char* newTitle)
+{
+	title = newTitle;
+
+	if (window) {
+		glfwSetWindowTitle(window, newTitle);
+	}
 }
 
 void Screen::framebuffer_size_callback(GLFWwindow* window, int _width, int _height) {
