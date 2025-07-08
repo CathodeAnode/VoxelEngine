@@ -149,8 +149,9 @@ void VoxelRenderer::uploadIndirectCommands(std::vector<IndirectDrawCommand> indi
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 }
 
-void VoxelRenderer::uploadPositionData(glm::vec3* positionData, int size)
+void VoxelRenderer::uploadPositionData(std::vector<glm::vec3> positionData)
 {
+    int size = positionData.size();
     std::vector<glm::vec4> paddedPositionData;
     paddedPositionData.resize(size);
     for (int i = 0; i < size; i++) {
@@ -163,12 +164,6 @@ void VoxelRenderer::uploadPositionData(glm::vec3* positionData, int size)
 
 }
 
-void VoxelRenderer::updatePositionData(glm::vec3 positionData, int index)
-{
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, positionSSBO);
-    glBufferSubData(GL_SHADER_STORAGE_BUFFER, index, sizeof(glm::vec3), &positionData);
-    glBindBuffer(GL_SHADER_STORAGE_BUFFER, 0);
-}
 
 void VoxelRenderer::toggleDrawLines()
 {

@@ -121,35 +121,38 @@ public:
 		if (x < -MAX_GRID_INT - 1 || x > MAX_GRID_INT ||
 			y < -MAX_GRID_INT - 1 || y > MAX_GRID_INT ||
 			z < -MAX_GRID_INT - 1 || z > MAX_GRID_INT) {
-			throw std::out_of_range("Chunk coordinate out of supported range [-1048575, 1048575]");
+			throw std::out_of_range("Chunk coordinate out of supported range [-1048576, 1048575]");
 		}
 
 		
-		uint64_t index = z & 0x1FFFFF;
+		uint64_t index = ((uint64_t)(z) + (MAX_GRID_INT + 1)) & 0x1FFFFF;
 		index <<= 21;
-		index |= y & 0x1FFFFF;
+		index |= ((uint64_t)(y) + (MAX_GRID_INT + 1)) & 0x1FFFFF;
 		index <<= 21;
-		index |= x & 0x1FFFFF;
+		index |= ((uint64_t)(x) + (MAX_GRID_INT + 1)) & 0x1FFFFF;
 
 		return index;
 	}
 
+	static uint64_t getChunkIndex(const glm::ivec3& chunkGridLocation) { return getChunkIndex(chunkGridLocation.x, chunkGridLocation.y, chunkGridLocation.z); };
+
+
 	static glm::ivec3 getChunkCoords(uint64_t index) {
 		glm::ivec3 coords;
 
-		coords.x = index & 0x1FFFFF;
-		index >>= 21;
-		coords.y = index & 0x1FFFFF;
-		index >>= 21;
-		coords.z = index & 0x1FFFFF;
+
+		coords.x = (int)((index & 0x1FFFFF) - (MAX_GRID_INT + 1));
 		index >>= 21;
 
-		if (coords.x & 0x100000) coords.x |= 0xFFE00000;
-		if (coords.y & 0x100000) coords.y |= 0xFFE00000;
-		if (coords.z & 0x100000) coords.z |= 0xFFE00000;
+		coords.y = (int)((index & 0x1FFFFF) - (MAX_GRID_INT + 1));
+		index >>= 21;
+
+		coords.z = (int)((index & 0x1FFFFF) - (MAX_GRID_INT + 1));
+		index >>= 21;
 
  		return coords;
 	}
+
 
 	std::unordered_map<uint64_t, ChunkType>::iterator begin() const { return chunks.begin(); }
 	std::unordered_map<uint64_t, ChunkType>::iterator end() const { return chunks.end(); }
@@ -157,7 +160,6 @@ public:
 	std::unordered_map<uint64_t, ChunkType>::iterator begin() { return chunks.begin(); }
 	std::unordered_map<uint64_t, ChunkType>::iterator end() { return chunks.end(); }
 
-	static uint64_t getChunkIndex(const glm::ivec3& chunkGridLocation) { return getChunkIndex(chunkGridLocation.x, chunkGridLocation.y, chunkGridLocation.z); };
 
 private:
 	int size; // size of world

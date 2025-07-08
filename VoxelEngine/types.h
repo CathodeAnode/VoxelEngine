@@ -32,8 +32,8 @@ struct ChunkQuads {
 
 
 	void addQuad(int x, int y, int z, int w, int h, int dir, uint16_t voxelData) {
-		//std::cout << "Face: " << dir << " pos: (" << x << "," << y << "," << z << ") "
-		//	<< "size: (" << w << "x" << h << ")\n";
+		std::cout << "Face: " << dir << " pos: (" << x << "," << y << "," << z << ") "
+			<< "size: (" << w << "x" << h << ")\n";
 		uint32_t quadVal = 0;
 		quadVal |= (x & 0x1F) << 0;
 		quadVal |= (y & 0x1F) << 5;

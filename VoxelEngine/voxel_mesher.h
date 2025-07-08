@@ -41,23 +41,23 @@ private:
 		int chunkY = y - 1;
 
 		if (y == 0) {
-			offset.x = -1; // left chunk
+			offset.z = 1; 
 			chunkX = x - 1;
 			chunkY = CS - 1;
 		}
 		else if (y == CS_P - 1) {
-			offset.x = 1; // right chunk
+			offset.z = -1;
 			chunkX = x - 1;
 			chunkY = 0;
 		}
 		else if (x == 0) {
-			offset.z = -1; // back chunk
-			chunkX = 0;
+			offset.x = -1;
+			chunkX = CS - 1;
 			chunkY = y - 1;
 		}
 		else if (x == CS_P - 1) {
-			offset.z = 1; // front chunk
-			chunkX = CS - 1;
+			offset.x = 1;
+			chunkX = 0;
 			chunkY = y - 1;
 		}
 

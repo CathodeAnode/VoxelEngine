@@ -4,20 +4,23 @@ C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(1
       C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\Linking\include\glad\glad.h(32,9):
       see previous definition of 'APIENTRY'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(97,24): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(99,15): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(47,77): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(98,24): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(100,15): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(57,77): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
   (compiling source file 'main.cpp')
-      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(47,77):
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(57,77):
       the template instantiation context (the oldest one first) is
-          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(83,9):
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(84,9):
           see reference to class template instantiation 'World<Chunk8>' being compiled
           C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(27,2):
           while compiling class template member function 'World<Chunk8>::World(int)'
-              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(83,14):
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(84,14):
               see the first reference to 'World<Chunk8>::World' in 'main'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,32): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(59,65): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
+  (compiling source file 'main.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(62,32): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
   (compiling source file 'main.cpp')
   
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(164,12): warning C4244: '+=': conversion from 'unsigned long' to 'uint8_t', possible loss of data
@@ -28,9 +31,9 @@ C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(16
           see reference to class template instantiation 'VoxelMesher<Chunk8>' being compiled
           C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(92,13):
           while compiling class template member function 'ChunkQuads VoxelMesher<Chunk8>::meshChunk(ChunkGrid<Chunk8> &,const glm::ivec3 &)'
-              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(42,9):
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(52,9):
               see the first reference to 'VoxelMesher<Chunk8>::meshChunk' in 'World<Chunk8>::World'
-              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(83,14):
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(84,14):
               see the first reference to 'World<Chunk8>::World' in 'main'
   
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(177,11): warning C4244: '=': conversion from 'unsigned long' to 'uint8_t', possible loss of data
@@ -53,9 +56,9 @@ C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\chunk.h(27,20): w
           see reference to class template instantiation 'Chunk<uint8_t,8>' being compiled
           C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\chunk.h(22,2):
           while compiling class template member function 'Chunk<uint8_t,8>::Chunk(bool)'
-              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(32,20):
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(33,20):
               see the first reference to 'Chunk<uint8_t,8>::Chunk' in 'World<Chunk8>::World'
-              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(83,14):
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(84,14):
               see the first reference to 'World<Chunk8>::World' in 'main'
   
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\chunk.h(27,20): warning C4309: '=': truncation of constant value

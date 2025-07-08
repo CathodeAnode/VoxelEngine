@@ -6,6 +6,7 @@
 #include <sstream>
 #include <streambuf>
 #include <string>
+#include <memory>
 
 #include <windows.h>
 
@@ -35,13 +36,13 @@ Joystick mainJ(0);
 
 unsigned int SCREEN_WIDTH = 800, SCREEN_HEIGHT = 600;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 0.0f));
+Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 100.0f);
 
 float deltaTime = 0.0f;
 float fps = 0.0f;
 float lastFrame = 0.0f;
 
-Screen screen(800, 600, "VoxelEngine");
+Screen screen(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
 
 
 int main() {
@@ -80,15 +81,15 @@ int main() {
 		Shaders
 	-----------------------
 	*/
-	World8 world(10);
+	World8 world(6);
 
 	Shader shaderPrgm = Shader("core_vertex_shader.glsl", "core_fragment_shader.glsl");
 
 	shaderPrgm.use();
 
 	// create transformation for screen
-	glm::mat4 view = glm::mat4(1.0f);
-	glm::mat4 projection = glm::mat4(1.0f);
+	std::weak_ptr<glm::mat4> view = camera.getViewMatrixPtr();
+	std::weak_ptr<glm::mat4> projection = camera.getProjMatrixPtr();
 
 	double lastToggleTime = 0.0;
 	int i = 0;
@@ -99,25 +100,24 @@ int main() {
 		lastFrame = currTime;
 
 		// process input
-		processInput(screen, deltaTime * 5);
+		processInput(screen, deltaTime);
 
 		// render
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		view = camera.getViewMatrix();
-		projection = glm::perspective(glm::radians(camera.zoom), (float)SCREEN_WIDTH / SCREEN_HEIGHT, 0.1f, 100.0f);
+		camera.update();
 
 		// draw
 		shaderPrgm.use();
-		shaderPrgm.setMat4("view", view);
-		shaderPrgm.setMat4("projection", projection);
+		shaderPrgm.setMat4("view", *view.lock());
+		shaderPrgm.setMat4("projection", *projection.lock());
 		world.render();
 
 
 		// send back buffer to front buffer
 		screen.update();
-		displayFPSOnWindow(fps, 1000);
+		displayFPSOnWindow(fps, 100);
 	}
 
 	GLenum err;

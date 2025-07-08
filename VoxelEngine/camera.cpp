@@ -1,16 +1,25 @@
 #include "camera.h"
 
 
-Camera::Camera(glm::vec3 position)
+Camera::Camera(glm::vec3 position, int _screenWidth, int _screenHeight, float _zNear, float _zFar)
 	: pos(position),
+		screenWidth(_screenWidth),
+		screenHeight(_screenHeight),
+		zNear(_zNear),
+		zFar(_zFar),
 		worldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
 		yaw(-90.0f),
 		pitch(0.0f),
-		speed(1.5f),
+		speed(8.0f),
 		zoom(45.0f),
 		front(glm::vec3(0.0f, 0.0f, -1.0f)) {
+
+	viewMatrix = std::make_shared<glm::mat4>(1.0f);
+	projectionMatrix = std::make_shared<glm::mat4>(glm::perspective(glm::radians(zoom), 
+		(float)screenWidth / screenHeight, zNear, zFar));
 	updateCameraVectors();
 }
+
 
 void Camera::updateCameraDirection(double dx, double dy) {
 	yaw += dx;
@@ -66,8 +75,20 @@ void Camera::updateCameraZoom(double dy) {
 	}
 }
 
-glm::mat4 Camera::getViewMatrix() {
-	return glm::lookAt(pos, pos + front, up);
+void Camera::update()
+{
+	*viewMatrix = glm::lookAt(pos, pos + front, up);
+	*projectionMatrix = glm::perspective(glm::radians(zoom), (float)screenWidth / screenHeight, zNear, zFar);
+}
+
+std::weak_ptr<glm::mat4> Camera::getViewMatrixPtr()
+{
+	return viewMatrix;
+}
+
+std::weak_ptr<glm::mat4> Camera::getProjMatrixPtr()
+{
+	return projectionMatrix;
 }
 
 void Camera::updateCameraVectors() {

@@ -35,7 +35,7 @@ public:
 	 *
 	 * @param dataBufferSize Size for data buffer (in bytes).
 	 * @param indirectCommandBufferSize Size for indirect command buffer (in indirect commands number).
-	 * @param positionBufferSize Size for position SSBO buffer (num * glm::vec3).
+	 * @param positionBufferSize Size for position SSBO buffer (num * glm::vec3 bytes).
 	 */
 	void allocBuffers(int dataBufferSize, int indirectCommandBufferSize, int positionBufferSize);
 
@@ -76,9 +76,7 @@ public:
 	void addData(uint32_t* data, int size);
 	void uploadIndirectCommands(std::vector<IndirectDrawCommand> indirectDrawCommands);
 
-	void uploadPositionData(glm::vec3* positionData, int size);
-	void updatePositionData(glm::vec3 positionData, int index);
-	void addPositionData(glm::vec3* positionData, int numOfPositions);
+	void uploadPositionData(std::vector<glm::vec3> positionData);
 
 	void toggleDrawLines();
 
