@@ -27,9 +27,6 @@ public:
 	VoxelRenderer(float quadScale = 1.0f);
 	~VoxelRenderer();
 
-	void uploadQuadData(ChunkQuads quads);
-	
-
 	/**
 	 * Allocates memory for buffers in VRAM.
 	 *

@@ -39,27 +39,6 @@ VoxelRenderer::~VoxelRenderer()
     glDeleteBuffers(1, &quadVBO);
 }
 
-void VoxelRenderer::uploadQuadData(ChunkQuads quads)
-{
-    glGenBuffers(1, &dataVBO);
-    glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-    glBufferData(GL_ARRAY_BUFFER, quads.quadData.size() * sizeof(uint32_t), quads.quadData.data(), GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, dataVBO);
-    glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(uint32_t), (void*)0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glVertexAttribDivisor(2, 1);
-
-    //glGenBuffers(1, &typeVBO);
-    //glBindBuffer(GL_ARRAY_BUFFER, typeVBO);
-    //glBufferData(GL_ARRAY_BUFFER, quads.voxelType.size() * sizeof(uint16_t), quads.voxelType.data(), GL_STATIC_DRAW);
-    //glEnableVertexAttribArray(3);
-    //glVertexAttribPointer(3, 1, GL_UNSIGNED_SHORT, GL_FALSE, sizeof(uint16_t), (void*)0);
-    //glVertexAttribDivisor(3, 1);
-}
-
 void VoxelRenderer::allocBuffers(int dataBufferSize, int indirectCommandBufferSize, int positionBufferSize)
 {
     glGenBuffers(1, &dataVBO);
