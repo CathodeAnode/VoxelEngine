@@ -11,8 +11,8 @@ template<typename T>
 class GPUBufferAllocator
 {
 public:
-	GPUBufferAllocator(GLenum bufferType, GLenum usage, const std::vector<T>& data);
-	GPUBufferAllocator(GLenum bufferType, GLenum usage, unsigned int size);
+	GPUBufferAllocator(GLenum bufferType, GLenum bufferUsage, const std::vector<T>& data);
+	GPUBufferAllocator(GLenum bufferType, GLenum bufferUsage, unsigned int size);
 	~GPUBufferAllocator();
 
 	void upload(const std::vector<T>& data);
@@ -34,6 +34,11 @@ private:
 	unsigned int currentSize;
 
 	GLenum type;
+	GLenum usage;
+
+	// assumes move is valid in buffer, i.e. endIndex + size < buffersize and startIndex < buffersize
+	// does not change currentSize
+	void move(unsigned int startIndex, unsigned int endIndex, unsigned int size);
 
 
 

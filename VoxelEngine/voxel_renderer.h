@@ -11,7 +11,7 @@
 #include "chunk_grid.h"
 #include "types.h"
 
-struct IndirectDrawCommand {
+struct Page {
 	unsigned int index;
 	unsigned int size;
 };
@@ -71,7 +71,7 @@ public:
 	 * @param size The size (in bytes) of the data to be added. This should match the size of the `data` array.
 	 */
 	void addData(uint32_t* data, int size);
-	void uploadIndirectCommands(std::vector<IndirectDrawCommand> indirectDrawCommands);
+	void uploadIndirectCommands(std::vector<Page> indirectDrawCommands);
 
 	void uploadPositionData(std::vector<glm::vec3> positionData);
 

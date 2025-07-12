@@ -12,7 +12,7 @@ private:
 	ChunkGrid<ChunkType> chunks;
 	VoxelMesher<ChunkType> mesher;
 	VoxelRenderer renderer;
-	std::unordered_map<uint64_t, IndirectDrawCommand> GPUChunkMeshIndex;
+	std::unordered_map<uint64_t, Page> GPUChunkMeshIndex;
 	int maxChunks;
 
 
@@ -54,7 +54,7 @@ public:
 
 		int offset = 0;
 		std::vector<glm::vec3> pos;
-		std::vector<IndirectDrawCommand> test;
+		std::vector<Page> test;
 		for (const auto& [index, _] : chunks) {
 			glm::ivec3 coords = ChunkGrid<ChunkType>::getChunkCoords(index);
 			mesh = mesher.meshChunk(chunks, coords);
@@ -62,9 +62,9 @@ public:
 
 			std::cout << "(" << coords.x << ", " << coords.y << ", " << coords.z << "): ";
 			std::cout << offset << " " << mesh.quadData.size() << std::endl;
-			GPUChunkMeshIndex[index] = IndirectDrawCommand(offset, mesh.quadData.size());
+			GPUChunkMeshIndex[index] = Page(offset, mesh.quadData.size());
 
-			test.push_back(IndirectDrawCommand(offset, mesh.quadData.size()));
+			test.push_back(Page(offset, mesh.quadData.size()));
 			pos.push_back(glm::vec3(coords.x, coords.y, coords.z) * (float)ChunkType::Size);
 
 			offset += mesh.quadData.size();

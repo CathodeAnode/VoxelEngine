@@ -2,19 +2,20 @@
 
 
 template<typename T>
-GPUBufferAllocator<T>::GPUBufferAllocator(GLenum bufferType, GLenum usage, const std::vector<T>& data)
-	: bufferSize(data.size()), type(bufferType)
+GPUBufferAllocator<T>::GPUBufferAllocator(GLenum bufferType, GLenum bufferUsage, const std::vector<T>& data)
+	: bufferSize(data.size()), type(bufferType), usage(bufferUsage)
 {
 	glGenBuffers(1, &bufferID);
 	glBindBuffer(bufferType, bufferID);
-	glBufferData(bufferType, bufferSize * sizeof(T), data, usage);
+	glBufferData(bufferType, bufferSize * sizeof(T), data, bufferUsage);
 	glBindBuffer(bufferType, 0);
 
 	currentSize = bufferSize;
 }
 
 template<typename T>
-GPUBufferAllocator<T>::GPUBufferAllocator(GLenum bufferType, GLenum usage, unsigned int size)
+GPUBufferAllocator<T>::GPUBufferAllocator(GLenum bufferType, GLenum bufferUsage, unsigned int size)
+	: bufferSize(size), type(bufferType), usage(bufferUsage)
 {
 	if (bufferType == GL_STATIC_DRAW || bufferType == GL_STATIC_COPY || bufferType == GL_STATIC_READ) {
 		std::logic_error("Static buffers must be initialized with data");
@@ -22,7 +23,7 @@ GPUBufferAllocator<T>::GPUBufferAllocator(GLenum bufferType, GLenum usage, unsig
 
 	glGenBuffers(1, &bufferID);
 	glBindBuffer(bufferType, bufferID);
-	glBufferData(bufferType, bufferSize * sizeof(T), nullptr, usage);
+	glBufferData(bufferType, bufferSize * sizeof(T), nullptr, bufferUsage);
 	glBindBuffer(bufferType, 0);
 
 	currentSize = 0;
@@ -45,9 +46,9 @@ void GPUBufferAllocator<T>::upload(const std::vector<T>& data)
 		resize(data.size());
 	}
 
-	glBindBuffer(bufferType, bufferID);
-	glBufferSubData(bufferType, 0, data.size() * sizeof(T), data.data());
-	glBindBuffer(bufferType, 0);
+	glBindBuffer(type, bufferID);
+	glBufferSubData(type, 0, data.size() * sizeof(T), data.data());
+	glBindBuffer(type, 0);
 
 	currentSize = data.size();
 }
@@ -58,9 +59,9 @@ void GPUBufferAllocator<T>::append(T data)
 	if (currentSize + 1 > bufferSize) {
 		resize(bufferSize * 2 + 1); // grow strategy
 	}
-	glBindBuffer(bufferType, bufferID);
-	glBufferSubData(bufferType, currentSize * sizeof(T), sizeof(T), *data);
-	glBindBuffer(bufferType, 0);
+	glBindBuffer(type, bufferID);
+	glBufferSubData(type, currentSize * sizeof(T), sizeof(T), *data);
+	glBindBuffer(type, 0);
 	
 	currentSize++;
 }
@@ -72,9 +73,9 @@ void GPUBufferAllocator<T>::append(const std::vector<T>& data)
 		resize(bufferSize * 2  + 1);
 	}
 
-	glBindBuffer(bufferType, bufferID);
-	glBufferSubData(bufferType, currentSize * sizeof(T), data.size() * sizeof(T), data.data());
-	glBindBuffer(bufferType, 0);
+	glBindBuffer(type, bufferID);
+	glBufferSubData(type, currentSize * sizeof(T), data.size() * sizeof(T), data.data());
+	glBindBuffer(type, 0);
 
 	currentSize += data.size();
 }
@@ -86,16 +87,11 @@ void GPUBufferAllocator<T>::insert(T data, unsigned int index)
 		resize(bufferSize * 2 + 1); // grow strategy
 	}
 
-	glBindBuffer(GL_COPY_READ_BUFFER, bufferID);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, bufferID);
-	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, index * sizeof(T), (index + 1) * sizeof(T), sizeof(T) * (currentSize - index));
-	glBindBuffer(GL_COPY_READ_BUFFER, 0);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+	move(index, index + 1, currentSize - index);
 
-
-	glBindBuffer(bufferType, bufferID);
-	glBufferSubData(bufferType, index * sizeof(T), sizeof(T), *data);
-	glBindBuffer(bufferType, 0);
+	glBindBuffer(type, bufferID);
+	glBufferSubData(type, index * sizeof(T), sizeof(T), *data);
+	glBindBuffer(type, 0);
 
 	currentSize++;
 }
@@ -107,16 +103,11 @@ void GPUBufferAllocator<T>::insert(const std::vector<T>& data, unsigned int inde
 		resize(bufferSize * 2 + 1);
 	}
 
-	glBindBuffer(GL_COPY_READ_BUFFER, bufferID);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, bufferID);
-	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, index * sizeof(T), (index + data.size()) * sizeof(T), sizeof(T) * (currentSize - index));
-	glBindBuffer(GL_COPY_READ_BUFFER, 0);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+	move(index, index + data.size().currentSize - index);
 
-
-	glBindBuffer(bufferType, bufferID);
-	glBufferSubData(bufferType, index * sizeof(T), sizeof(T) * data.size(), data.data());
-	glBindBuffer(bufferType, 0);
+	glBindBuffer(type, bufferID);
+	glBufferSubData(type, index * sizeof(T), sizeof(T) * data.size(), data.data());
+	glBindBuffer(type, 0);
 
 	currentSize += data.size();
 }
@@ -128,15 +119,11 @@ void GPUBufferAllocator<T>::replace(const std::vector<T>& data, unsigned int ind
 		resize(bufferSize * 2 + 1);
 	}
 
-	glBindBuffer(GL_COPY_READ_BUFFER, bufferID);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, bufferID);
-	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, (index + oldSize) * sizeof(T), (index + data.size()) * sizeof(T), sizeof(T) * (currentSize - index + oldSize));
-	glBindBuffer(GL_COPY_READ_BUFFER, 0);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+	move(index + oldSize, index + data.size(), currentSize - index + oldSize);
 
-	glBindBuffer(bufferType, bufferID);
-	glBufferSubData(bufferType, index * sizeof(T), sizeof(T) * data.size(), data.data());
-	glBindBuffer(bufferType, 0);
+	glBindBuffer(type, bufferID);
+	glBufferSubData(type, index * sizeof(T), sizeof(T) * data.size(), data.data());
+	glBindBuffer(type, 0);
 
 	currentSize += (data.size() - oldSize);
 
@@ -145,7 +132,40 @@ void GPUBufferAllocator<T>::replace(const std::vector<T>& data, unsigned int ind
 template<typename T>
 void GPUBufferAllocator<T>::resize(unsigned int newSize)
 {
-	
+	if (newSize == bufferSize)
+		return;
+
+	// create temp buffer to copy current data into
+	unsigned int copyBuffer;
+	glGenBuffers(1, &copyBuffer);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
+	glBufferData(GL_COPY_WRITE_BUFFER, currentSize * sizeof(T), nullptr, GL_STATIC_COPY);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+
+	// copy data into temp copy buffer
+	glBindBuffer(GL_COPY_READ_BUFFER, bufferID);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
+	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, currentSize * sizeof(T));
+	glBindBuffer(GL_COPY_READ_BUFFER, 0);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+
+	// expand main buffer to new size
+	glGenBuffers(1, &bufferID);
+	glBindBuffer(type, bufferID);
+	glBufferData(type, newSize * sizeof(T), nullptr, usage);
+	glBindBuffer(type, 0);
+
+	// copy old data into newly resized buffer
+	glBindBuffer(GL_COPY_READ_BUFFER, copyBuffer);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, bufferID);
+	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, currentSize * sizeof(T));
+	glBindBuffer(GL_COPY_READ_BUFFER, 0);
+	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+
+	// delete temp copy buffer & set new size on object
+	glDeleteBuffers(1, &copyBuffer);
+	bufferSize = newSize;
+
 }
 
 template<typename T>
@@ -158,4 +178,43 @@ template<typename T>
 GLuint GPUBufferAllocator<T>::getBufferID() const
 {
 	return bufferID;
+}
+
+template<typename T>
+void GPUBufferAllocator<T>::move(unsigned int startIndex, unsigned int endIndex, unsigned int size)
+{
+	// if intervial ranges overlap
+	if (std::max(startIndex, endIndex) <= std::min(startIndex + size , endIndex + size)) {
+
+		// create temp buffer to copy current data into
+		unsigned int copyBuffer;
+		glGenBuffers(1, &copyBuffer);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
+		glBufferData(GL_COPY_WRITE_BUFFER, size * sizeof(T), nullptr, GL_STATIC_COPY);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+
+		// copy data into temp copy buffer
+		glBindBuffer(GL_COPY_READ_BUFFER, bufferID);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
+		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, startIndex * sizeof(T), 0, size * sizeof(T));
+		glBindBuffer(GL_COPY_READ_BUFFER, 0);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+
+		// copy from temp buffer to move location
+		glBindBuffer(GL_COPY_READ_BUFFER, copyBuffer);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, bufferID);
+		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, endIndex * sizeof(T), size * sizeof(T));
+		glBindBuffer(GL_COPY_READ_BUFFER, 0);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+
+		// delete temp copy buffer
+		glDeleteBuffers(1, &copyBuffer);
+	}
+	else {
+		glBindBuffer(GL_COPY_READ_BUFFER, bufferID);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, bufferID);
+		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, startIndex * sizeof(T), endIndex * sizeof(T), sizeof(T) * size);
+		glBindBuffer(GL_COPY_READ_BUFFER, 0);
+		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+	}
 }

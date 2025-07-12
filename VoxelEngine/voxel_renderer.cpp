@@ -105,7 +105,7 @@ void VoxelRenderer::addData(uint32_t* data, int size)
     dataSize += size;
 }
 
-void VoxelRenderer::uploadIndirectCommands(std::vector<IndirectDrawCommand> indirectDrawCommands)
+void VoxelRenderer::uploadIndirectCommands(std::vector<Page> indirectDrawCommands)
 {
     std::vector<DrawArraysIndirectCommand> drawCommands;
     indirectCmdCount = indirectDrawCommands.size();
