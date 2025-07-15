@@ -47,7 +47,7 @@ public:
 	}
 
 	bool isVoxelSolid(int x, int y, int z) const {
-		int ChunkSize = ChunkType::Size;
+		const int ChunkSize = ChunkType::Size;
 
 		int chunkX = (x < 0) ? (x - ChunkSize + 1) / ChunkSize : x / ChunkSize;
 		int chunkY = (y < 0) ? (y - ChunkSize + 1) / ChunkSize : y / ChunkSize;
@@ -70,7 +70,7 @@ public:
 	}
 
 	uint16_t getVoxelData(int x, int y, int z) const {
-		int ChunkSize = ChunkType::Size;
+		const int ChunkSize = ChunkType::Size;
 
 		int chunkX = (x < 0) ? (x - ChunkSize + 1) / ChunkSize : x / ChunkSize;
 		int chunkY = (y < 0) ? (y - ChunkSize + 1) / ChunkSize : y / ChunkSize;

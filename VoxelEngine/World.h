@@ -41,24 +41,34 @@ public:
 		lastPlayerGridCoords = glm::ivec3(MAX_GRID_INT, MAX_GRID_INT, MAX_GRID_INT) + 100;
 	}
 
+	~World() {
+		delete chunks;
+		delete mesher;
+		delete renderer;
+	}
+
 	World(const char* filePath);
 
 	void updateVisibleChunksByDistance(const glm::vec3& playerWorldCoords) {
 
 		// step 1: convert player world coordinates to grid coordinates
-		const glm::ivec3 playerGridCoords = playerWorldCoords / (float)ChunkType::Size;
+		const int ChunkSize = ChunkType::Size;
+
+		int chunkX = playerWorldCoords.x / ChunkSize;
+		int chunkY = playerWorldCoords.y / ChunkSize;
+		int chunkZ = playerWorldCoords.z / ChunkSize;
+		const glm::ivec3 playerGridCoords(chunkX, chunkY, chunkZ);
+		//std::cout << chunkX << ", " << chunkY << ", " << chunkZ << std::endl;
 
 		// step 2: check if player grid coords has changed since last call
 		if (playerGridCoords == lastPlayerGridCoords) {
 			return; //exit early
 		}
 
-		std::cout << "executed\n";
-
 		// step 3: compute chunks to be rendered around player in sphereical volume
 		const int renderDistRadius_2 = renderDistance * renderDistance;
 
-		std::vector<Page> GPUChunkPages;
+		std::vector<Page> GPUChunkDataLocations;
 		std::vector<glm::vec3> chunkPositions;
 
 		for (int x = -renderDistance; x <= renderDistance; x++) {
@@ -67,30 +77,30 @@ public:
 					if (x * x + y * y + z * z > renderDistRadius_2) continue; // outside sphere
 
 					glm::ivec3 chunkCoords = playerGridCoords + glm::ivec3(x, y, z); // relative to player
+					//std::cout << chunkCoords.x << ", " << chunkCoords.y << ", " << chunkCoords.z << std::endl;
 					uint64_t index = ChunkGrid<ChunkType>::getChunkIndex(chunkCoords);
 
 					if (chunks->getChunk(chunkCoords) == nullptr) continue;
 
-					auto it = GPUChunkMeshIndex.find(index);
 					// if not already meshed, mesh chunk (conditional should never be executed in theory)
-					if (it == GPUChunkMeshIndex.end()) {
+					if (!GPUChunkMeshIndex.contains(index)) {
 						const int dataBufferSize = renderer->getDataBufferSize();
 						const ChunkQuads mesh = mesher->meshChunk(*chunks, chunkCoords);
 						GPUChunkMeshIndex[index] = Page(dataBufferSize, mesh.quadData.size());
 						renderer->addData(mesh.quadData);
 					}
 
-					const Page& page = it->second;
-					GPUChunkPages.push_back(page);
+					const Page& page = GPUChunkMeshIndex[index];
+					GPUChunkDataLocations.push_back(page);
 
-					chunkPositions.push_back(glm::vec3(chunkCoords) * (float)ChunkType::Size);
+					chunkPositions.push_back(glm::vec3(chunkCoords) * (float)ChunkSize);
 				}
 			}
 		}
 		lastPlayerGridCoords = playerGridCoords;
 
 		// step 4: upload data to gpu
-		renderer->uploadIndirectCommands(GPUChunkPages);
+		renderer->uploadIndirectCommands(GPUChunkDataLocations);
 		renderer->uploadPositionData(chunkPositions);
 	}
 

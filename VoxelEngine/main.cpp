@@ -134,7 +134,7 @@ int main() {
 		shaderPrgm.setMat4("projection", *projection.lock());
 		world.updateVisibleChunksByDistance(camera.pos);
 		world.render();
-		std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;
+		//std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;
 
 
 		// send back buffer to front buffer
