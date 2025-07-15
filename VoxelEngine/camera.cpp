@@ -8,7 +8,7 @@ Camera::Camera(glm::vec3 position, int _screenWidth, int _screenHeight, float _z
 		zNear(_zNear),
 		zFar(_zFar),
 		worldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
-		yaw(-90.0f),
+		yaw(90.0f),
 		pitch(0.0f),
 		speed(8.0f),
 		zoom(45.0f),

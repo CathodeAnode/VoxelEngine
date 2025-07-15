@@ -65,6 +65,7 @@ public:
 			return; //exit early
 		}
 
+
 		// step 3: compute chunks to be rendered around player in sphereical volume
 		const int renderDistRadius_2 = renderDistance * renderDistance;
 

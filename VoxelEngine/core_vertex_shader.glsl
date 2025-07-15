@@ -86,7 +86,7 @@ void main() {
     }
 
     
-    quadPos += vec3(positions[gl_DrawID].x, positions[gl_DrawID].y, -positions[gl_DrawID].z);
+    quadPos += positions[gl_DrawID].xyz;
 
 
 	gl_Position = projection * view * vec4(quadPos, 1.0f);
