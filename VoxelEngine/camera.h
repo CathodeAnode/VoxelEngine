@@ -3,6 +3,7 @@
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/matrix_access.hpp>
 #include <memory>
 
 enum CameraDirection {
@@ -13,6 +14,64 @@ enum CameraDirection {
 	RIGHT,
 	UP,
 	DOWN
+};
+
+struct Frustum {
+	glm::vec4 leftClipPlane;
+	glm::vec4 rightClipPlane;
+	glm::vec4 bottomClipPlane;
+	glm::vec4 topClipPlane;
+	glm::vec4 nearClipPlane;
+	glm::vec4 farClipPlane;
+
+	glm::vec3 minCorner;
+	glm::vec3 maxCorner;
+
+	bool isPointInFrustum(const glm::vec3& coords) {
+		glm::vec4 paddedCoords(coords, 1.0f);
+
+		bool isInside =
+			glm::dot(leftClipPlane, paddedCoords) >= 0 &&
+			glm::dot(rightClipPlane, paddedCoords) <= 0 &&
+			glm::dot(topClipPlane, paddedCoords) <= 0 &&
+			glm::dot(bottomClipPlane, paddedCoords) >= 0 &&
+			glm::dot(nearClipPlane, paddedCoords) >= 0 &&
+			glm::dot(farClipPlane, paddedCoords) <= 0;
+
+		return isInside;
+	}
+
+	bool isAABBInFrustum(const glm::vec3& minPoint, const glm::vec3& maxPoint) {
+		glm::vec3 corners[8] = {
+		{minPoint.x, minPoint.y, minPoint.z},
+		{maxPoint.x, minPoint.y, minPoint.z},
+		{minPoint.x, maxPoint.y, minPoint.z},
+		{maxPoint.x, maxPoint.y, minPoint.z},
+		{minPoint.x, minPoint.y, maxPoint.z},
+		{maxPoint.x, minPoint.y, maxPoint.z},
+		{minPoint.x, maxPoint.y, maxPoint.z},
+		{maxPoint.x, maxPoint.y, maxPoint.z}
+		};
+
+		auto isOutsidePlane = [&](const glm::vec4& plane) -> bool {
+			for (const glm::vec3& corner : corners) {
+				if (glm::dot(plane, glm::vec4(corner, 1.0f)) >= 0.0f) {
+					return false;
+				}
+			}
+			return true;
+			};
+
+		// If the box is outside any one plane, it's outside the frustum
+		if (isOutsidePlane(leftClipPlane)) return false;
+		if (isOutsidePlane(rightClipPlane)) return false;
+		if (isOutsidePlane(bottomClipPlane)) return false;
+		if (isOutsidePlane(topClipPlane)) return false;
+		if (isOutsidePlane(nearClipPlane)) return false;
+		if (isOutsidePlane(farClipPlane)) return false;
+
+		return true;
+	}
 };
 
 class Camera {
@@ -39,16 +98,20 @@ public:
 
 	std::weak_ptr<glm::mat4> getViewMatrixPtr();
 	std::weak_ptr<glm::mat4> getProjMatrixPtr();
-
+	std::weak_ptr<Frustum> getFrustumPtr();
 
 private:
 	float zNear, zFar;
 	int screenWidth, screenHeight;
 
+	std::shared_ptr<Frustum> camFrustum;
 	std::shared_ptr<glm::mat4> viewMatrix;
 	std::shared_ptr<glm::mat4> projectionMatrix;
 
+
 	void updateCameraVectors();
+
+	void calculateFrustum();
 
 };
 

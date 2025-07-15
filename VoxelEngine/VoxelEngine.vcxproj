@@ -135,7 +135,6 @@
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="glad.c" />
-    <ClCompile Include="gpu_buffer_allocator.tpp" />
     <ClCompile Include="joystick.cpp" />
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="main.cpp" />
@@ -149,6 +148,7 @@
   <ItemGroup>
     <None Include="core_fragment_shader.glsl" />
     <None Include="core_vertex_shader.glsl" />
+    <None Include="gpu_buffer_allocator.tpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />

@@ -81,7 +81,26 @@ int main() {
 		Shaders
 	-----------------------
 	*/
-	World8 world(6);
+	auto start = std::chrono::high_resolution_clock::now();
+	World8 world(100, 10);
+	Chunk8 filledChunk(true);
+
+	for (int x = -20; x <= 20; x++) {
+		for (int z = -20; z <= 20; z++) {
+			world.addChunk(glm::ivec3(x, -1, z), filledChunk);
+		}
+	}
+
+	auto end = std::chrono::high_resolution_clock::now();
+	std::chrono::duration<double> duration = end - start;
+	std::cout << "Chunk insertion took " << duration.count() << " seconds.\n";
+
+	std::cout << "done inserting\n";
+	start = std::chrono::high_resolution_clock::now();
+	world.meshWorld();
+	end = std::chrono::high_resolution_clock::now();
+	duration = end - start;
+	std::cout << "Chunk meshing took " << duration.count() << " seconds.\n";
 
 	Shader shaderPrgm = Shader("core_vertex_shader.glsl", "core_fragment_shader.glsl");
 
@@ -90,6 +109,7 @@ int main() {
 	// create transformation for screen
 	std::weak_ptr<glm::mat4> view = camera.getViewMatrixPtr();
 	std::weak_ptr<glm::mat4> projection = camera.getProjMatrixPtr();
+	//std::weak_ptr<Frustum> camFrustum = camera.getFrustumPtr();
 
 	double lastToggleTime = 0.0;
 	int i = 0;
@@ -112,7 +132,9 @@ int main() {
 		shaderPrgm.use();
 		shaderPrgm.setMat4("view", *view.lock());
 		shaderPrgm.setMat4("projection", *projection.lock());
+		world.updateVisibleChunksByDistance(camera.pos);
 		world.render();
+		std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;
 
 
 		// send back buffer to front buffer

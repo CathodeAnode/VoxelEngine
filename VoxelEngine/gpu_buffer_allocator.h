@@ -24,8 +24,9 @@ public:
 
 	void resize(unsigned int size);
 
-	unsigned int getSize() const;
-	GLuint getBufferID() const;
+	inline unsigned int getMaxSize() { return bufferSize; };
+	inline unsigned int getSize() const { return currentSize; };
+	inline GLuint getBufferID() const { return bufferID; };
 
 
 private:
@@ -43,6 +44,9 @@ private:
 
 
 };
+
+
+#include "gpu_buffer_allocator.tpp"
 
 
 #endif

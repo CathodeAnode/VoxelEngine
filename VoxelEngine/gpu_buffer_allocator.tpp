@@ -1,13 +1,10 @@
-#include "gpu_buffer_allocator.h"
-
-
 template<typename T>
 GPUBufferAllocator<T>::GPUBufferAllocator(GLenum bufferType, GLenum bufferUsage, const std::vector<T>& data)
 	: bufferSize(data.size()), type(bufferType), usage(bufferUsage)
 {
 	glGenBuffers(1, &bufferID);
 	glBindBuffer(bufferType, bufferID);
-	glBufferData(bufferType, bufferSize * sizeof(T), data, bufferUsage);
+	glBufferData(bufferType, bufferSize * sizeof(T), data.data(), bufferUsage);
 	glBindBuffer(bufferType, 0);
 
 	currentSize = bufferSize;
@@ -17,8 +14,8 @@ template<typename T>
 GPUBufferAllocator<T>::GPUBufferAllocator(GLenum bufferType, GLenum bufferUsage, unsigned int size)
 	: bufferSize(size), type(bufferType), usage(bufferUsage)
 {
-	if (bufferType == GL_STATIC_DRAW || bufferType == GL_STATIC_COPY || bufferType == GL_STATIC_READ) {
-		std::logic_error("Static buffers must be initialized with data");
+	if (bufferUsage == GL_STATIC_DRAW || bufferUsage == GL_STATIC_COPY || bufferUsage == GL_STATIC_READ) {
+		throw std::logic_error("Static buffers must be initialized with data");
 	}
 
 	glGenBuffers(1, &bufferID);
@@ -39,7 +36,7 @@ template<typename T>
 void GPUBufferAllocator<T>::upload(const std::vector<T>& data)
 {
 	if (type == GL_STATIC_DRAW || type == GL_STATIC_COPY || type == GL_STATIC_READ) {
-		std::logic_error("Static buffers cannot be modifiy");
+		throw std::logic_error("Static buffers cannot be modifiy");
 	}
 
 	if (data.size() > bufferSize) {
@@ -60,7 +57,7 @@ void GPUBufferAllocator<T>::append(T data)
 		resize(bufferSize * 2 + 1); // grow strategy
 	}
 	glBindBuffer(type, bufferID);
-	glBufferSubData(type, currentSize * sizeof(T), sizeof(T), *data);
+	glBufferSubData(type, currentSize * sizeof(T), sizeof(T), &data);
 	glBindBuffer(type, 0);
 	
 	currentSize++;
@@ -90,7 +87,7 @@ void GPUBufferAllocator<T>::insert(T data, unsigned int index)
 	move(index, index + 1, currentSize - index);
 
 	glBindBuffer(type, bufferID);
-	glBufferSubData(type, index * sizeof(T), sizeof(T), *data);
+	glBufferSubData(type, index * sizeof(T), sizeof(T), &data);
 	glBindBuffer(type, 0);
 
 	currentSize++;
@@ -103,7 +100,11 @@ void GPUBufferAllocator<T>::insert(const std::vector<T>& data, unsigned int inde
 		resize(bufferSize * 2 + 1);
 	}
 
-	move(index, index + data.size().currentSize - index);
+	if (index >= bufferSize) {
+		throw std::logic_error("Index out of range.");
+	}
+
+	move(index, index + data.size(), currentSize - index);
 
 	glBindBuffer(type, bufferID);
 	glBufferSubData(type, index * sizeof(T), sizeof(T) * data.size(), data.data());
@@ -117,6 +118,10 @@ void GPUBufferAllocator<T>::replace(const std::vector<T>& data, unsigned int ind
 {
 	if (currentSize + (data.size() - oldSize) > bufferSize) {
 		resize(bufferSize * 2 + 1);
+	}
+
+	if (index >= bufferSize) {
+		throw std::logic_error("Index out of range.");
 	}
 
 	move(index + oldSize, index + data.size(), currentSize - index + oldSize);
@@ -150,6 +155,7 @@ void GPUBufferAllocator<T>::resize(unsigned int newSize)
 	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 
 	// expand main buffer to new size
+	glDeleteBuffers(1, &bufferID);
 	glGenBuffers(1, &bufferID);
 	glBindBuffer(type, bufferID);
 	glBufferData(type, newSize * sizeof(T), nullptr, usage);
@@ -166,18 +172,6 @@ void GPUBufferAllocator<T>::resize(unsigned int newSize)
 	glDeleteBuffers(1, &copyBuffer);
 	bufferSize = newSize;
 
-}
-
-template<typename T>
-unsigned int GPUBufferAllocator<T>::getSize() const
-{
-	return bufferSize;
-}
-
-template<typename T>
-GLuint GPUBufferAllocator<T>::getBufferID() const
-{
-	return bufferID;
 }
 
 template<typename T>

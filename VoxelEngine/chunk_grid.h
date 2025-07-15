@@ -21,23 +21,18 @@ public:
 	ChunkGrid(char* serializedData); // load from serialized data
 
 	// generate flat world with given size
-	ChunkGrid(int worldSize) : size(worldSize) {
-		for (int x = -size; x < size; x++) {
-			for (int z = -size; z < size; z++) {
-				uint64_t index = getChunkIndex(x, 0, z);
-				chunks[index] = ChunkType(true);
-			}
-		}
+	ChunkGrid(int worldSize) {
+		chunks.reserve(11000);
 	}
 
 	~ChunkGrid() {
-		chunks.clear(); // Ensures all Chunk destructors are called
+		chunks.clear();
 	}
 
-	ChunkGrid() : size(MAX_GRID_INT) {};
+	ChunkGrid() {};
 
 	//TODO: change to take pointers instead of making a copy of chunk (optmization)
-	void addChunk(const ChunkType& chunk, glm::ivec3 chunkGridLocation) {
+	void addChunk(const ChunkType& chunk, const glm::ivec3& chunkGridLocation) {
 		uint64_t chunkIndex = getChunkIndex(chunkGridLocation);
 		chunks[chunkIndex] = chunk;
 	}
@@ -162,7 +157,6 @@ public:
 
 
 private:
-	int size; // size of world
 	/* maps chunk coord to chunk data.
 	 * bits 0-20 of index are for (int) x coordinate of chunk in worldspace
 	 * bits 21-41 of index are for (int) y coordinate of chunk in worldspace

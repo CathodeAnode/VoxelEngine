@@ -10,6 +10,7 @@
 #include "chunk.h"
 #include "chunk_grid.h"
 #include "types.h"
+#include "gpu_buffer_allocator.h"
 
 struct Page {
 	unsigned int index;
@@ -24,17 +25,9 @@ public:
 	 *
 	 * @param quadScale Scale factor for the base quad vertices (default: 1.0f).
 	 */
-	VoxelRenderer(float quadScale = 1.0f);
+	VoxelRenderer(unsigned int quadBufferSize, unsigned int maxObjectsRendered);
 	~VoxelRenderer();
 
-	/**
-	 * Allocates memory for buffers in VRAM.
-	 *
-	 * @param dataBufferSize Size for data buffer (in bytes).
-	 * @param indirectCommandBufferSize Size for indirect command buffer (in indirect commands number).
-	 * @param positionBufferSize Size for position SSBO buffer (num * glm::vec3 bytes).
-	 */
-	void allocBuffers(int dataBufferSize, int indirectCommandBufferSize, int positionBufferSize);
 
 	/**
 	 * Overwrites the current data buffer with the provided quad data.
@@ -44,7 +37,7 @@ public:
 	 * @param data New quad data encoded in uint32_t, refer to ChunkQuads for encoding (array of uint32_t).
 	 * @param size Length of quad data array
 	 */
-	void uploadData(uint32_t* data, int size);
+	void uploadData(const std::vector<uint32_t>& data);
 
 	/**
 	 * Updates the data buffer by replacing a portion of the previous chunk/model data with new data.
@@ -58,7 +51,7 @@ public:
 	 * @param newSize Size of the new data (in bytes).
 	 * @param oldSize Size of the old data being replaced (in bytes).
 	 */
-	void updateData(uint32_t* data, int index, int newSize, int oldSize);
+	void updateData(const std::vector<uint32_t>& data, int index, int oldSize);
 
 	/**
 	 * Appends new data to the end of the current data buffer on the GPU.
@@ -70,10 +63,10 @@ public:
 	 * @param data Pointer to an array of `uint32_t` values representing the new quad data to be appended.
 	 * @param size The size (in bytes) of the data to be added. This should match the size of the `data` array.
 	 */
-	void addData(uint32_t* data, int size);
-	void uploadIndirectCommands(std::vector<Page> indirectDrawCommands);
+	void addData(const std::vector<uint32_t>& data);
+	void uploadIndirectCommands(const std::vector<Page>& indirectDrawCommands);
 
-	void uploadPositionData(std::vector<glm::vec3> positionData);
+	void uploadPositionData(const std::vector<glm::vec3>& positionData);
 
 	void toggleDrawLines();
 
@@ -82,10 +75,26 @@ public:
 	 */
 	void render();
 
+
+	inline unsigned int getDataBufferSize() const { return dataBuffer != nullptr ?  dataBuffer->getSize() : 0; }
+
 private:
-	int dataSize;
-	int indirectCmdCount;
-	unsigned int VAO, quadVBO, dataVBO, indirectCommandBuffer, positionSSBO;
+
+	struct DrawArraysIndirectCommand {
+		unsigned int count = 4;
+		unsigned int  instanceCount;
+		unsigned int first = 0;
+		unsigned int baseInstance;
+	};
+
+	unsigned int VAO, quadVBO;
+
+
+	GPUBufferAllocator<uint32_t>* dataBuffer = nullptr;
+	GPUBufferAllocator<DrawArraysIndirectCommand>* indirectCommandBuffer = nullptr;
+	GPUBufferAllocator<glm::vec4>* positionSSBO = nullptr;
+
+
 	float quadVertices[20] = {
 		// position             texture
 		0.0f,  0.0f, 0.0f,    0.0f, 1.0f,    // Bottom left
@@ -95,13 +104,6 @@ private:
 	};
 
 	bool drawLines;
-
-	struct DrawArraysIndirectCommand {
-		unsigned int count = 4;
-		unsigned int  instanceCount;
-		unsigned int first = 0;
-		unsigned int baseInstance;
-	};
 };
 
 #endif
