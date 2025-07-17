@@ -1,5 +1,182 @@
-﻿  camera.cpp
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\camera.cpp(25,9): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\camera.cpp(26,11): warning C4244: '+=': conversion from 'double' to 'float', possible loss of data
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\camera.cpp(68,11): warning C4244: '-=': conversion from 'double' to 'float', possible loss of data
+﻿  main.cpp
+C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(130,9): warning C4005: 'APIENTRY': macro redefinition
+  (compiling source file 'main.cpp')
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\Linking\include\glad\glad.h(32,9):
+      see previous definition of 'APIENTRY'
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(119,24): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(121,15): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244: '+=': conversion from 'T' to 'T', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:         with
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:         [
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:             T=float
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:         ]
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:         and
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:         [
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:             T=int
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:         ]
+  (compiling source file 'main.cpp')
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27):
+      the template instantiation context (the oldest one first) is
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(164,29):
+          see reference to class template instantiation 'VoxelRayCast<Chunk8>' being compiled
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(33,14):
+          while compiling class template member function 'bool VoxelRayCast<Chunk8>::cast(const Ray &,const ChunkGrid<Chunk8> &,glm::ivec3 &)'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(164,3):
+              see the first reference to 'VoxelRayCast<Chunk8>::cast' in 'processInput'
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244: '+=': conversion from 'T' to 'T', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:         with
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:         [
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:             T=float
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:         ]
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:         and
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:         [
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:             T=int
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:         ]
+  (compiling source file 'main.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244: '+=': conversion from 'T' to 'T', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:         with
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:         [
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:             T=float
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:         ]
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:         and
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:         [
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:             T=int
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:         ]
+  (compiling source file 'main.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(121,62): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
+  (compiling source file 'main.cpp')
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(121,62):
+      the template instantiation context (the oldest one first) is
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(87,9):
+          see reference to class template instantiation 'World<Chunk8>' being compiled
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(113,7):
+          while compiling class template member function 'void World<Chunk8>::meshWorld(void)'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(101,17):
+              see the first reference to 'World<Chunk8>::meshWorld' in 'main'
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(122,32): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
+  (compiling source file 'main.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,14): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,14): warning C4244:         with
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,14): warning C4244:         [
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,14): warning C4244:             T=float
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,14): warning C4244:         ]
+  (compiling source file 'main.cpp')
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,14):
+      the template instantiation context (the oldest one first) is
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(43,7):
+          while compiling class template member function 'void World<Chunk8>::updateVisibleChunksByDistance(const glm::vec3 &)'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(136,38):
+              see the first reference to 'World<Chunk8>::updateVisibleChunksByDistance' in 'main'
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(49,14): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(49,14): warning C4244:         with
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(49,14): warning C4244:         [
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(49,14): warning C4244:             T=float
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(49,14): warning C4244:         ]
+  (compiling source file 'main.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(50,14): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(50,14): warning C4244:         with
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(50,14): warning C4244:         [
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(50,14): warning C4244:             T=float
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(50,14): warning C4244:         ]
+  (compiling source file 'main.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(81,73): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
+  (compiling source file 'main.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(36,55): warning C4244: 'argument': conversion from 'double' to 'unsigned int', possible loss of data
+  (compiling source file 'main.cpp')
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(36,55):
+      the template instantiation context (the oldest one first) is
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(33,2):
+          while compiling class template member function 'World<Chunk8>::World(int,unsigned int)'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(87,14):
+              see the first reference to 'World<Chunk8>::World' in 'main'
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\chunk.h(27,20): warning C4305: '=': truncation from 'int' to 'unsigned short'
+  (compiling source file 'main.cpp')
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\chunk.h(27,20):
+      the template instantiation context (the oldest one first) is
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(86,9):
+          see reference to class template instantiation 'Chunk<uint8_t,8>' being compiled
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\chunk.h(22,2):
+          while compiling class template member function 'Chunk<uint8_t,8>::Chunk(bool)'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(86,20):
+              see the first reference to 'Chunk<uint8_t,8>::Chunk' in 'main'
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\chunk.h(27,20): warning C4309: '=': truncation of constant value
+  (compiling source file 'main.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(164,12): warning C4244: '+=': conversion from 'unsigned long' to 'uint8_t', possible loss of data
+  (compiling source file 'main.cpp')
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(164,12):
+      the template instantiation context (the oldest one first) is
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(17,25):
+          see reference to class template instantiation 'VoxelMesher<Chunk8>' being compiled
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(92,13):
+          while compiling class template member function 'ChunkQuads VoxelMesher<Chunk8>::meshChunk(ChunkGrid<Chunk8> &,const glm::ivec3 &)'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(120,9):
+              see the first reference to 'VoxelMesher<Chunk8>::meshChunk' in 'World<Chunk8>::meshWorld'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(101,17):
+              see the first reference to 'World<Chunk8>::meshWorld' in 'main'
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(177,11): warning C4244: '=': conversion from 'unsigned long' to 'uint8_t', possible loss of data
+  (compiling source file 'main.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(336,30): warning C4244: 'initializing': conversion from 'unsigned long' to 'uint8_t', possible loss of data
+  (compiling source file 'main.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(336,28): warning C4244: 'initializing': conversion from 'unsigned long' to 'const uint8_t', possible loss of data
+  (compiling source file 'main.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(143,11): warning C4101: 'x': unreferenced local variable
+  (compiling source file 'main.cpp')
+  
+  voxel_ray_cast.cpp
+  voxel_renderer.cpp
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(71,35): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(91,14): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.tpp(43,19): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
+  (compiling source file 'voxel_renderer.cpp')
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.tpp(43,19):
+      the template instantiation context (the oldest one first) is
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.h(93,31):
+          see reference to class template instantiation 'GPUBufferAllocator<uint32_t>' being compiled
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.tpp(37,1):
+          while compiling class template member function 'void GPUBufferAllocator<uint32_t>::upload(const std::vector<uint32_t,std::allocator<uint32_t>> &)'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(55,22):
+              see the first reference to 'GPUBufferAllocator<uint32_t>::upload' in 'VoxelRenderer::uploadData'
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.tpp(50,25): warning C4267: '=': conversion from 'size_t' to 'unsigned int', possible loss of data
+  (compiling source file 'voxel_renderer.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.tpp(77,26): warning C4267: '+=': conversion from 'size_t' to 'unsigned int', possible loss of data
+  (compiling source file 'voxel_renderer.cpp')
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.tpp(77,26):
+      the template instantiation context (the oldest one first) is
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.tpp(68,1):
+          while compiling class template member function 'void GPUBufferAllocator<uint32_t>::append(const std::vector<uint32_t,std::allocator<uint32_t>> &)'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(65,22):
+              see the first reference to 'GPUBufferAllocator<uint32_t>::append' in 'VoxelRenderer::addData'
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.tpp(127,30): warning C4267: 'argument': conversion from 'size_t' to 'unsigned int', possible loss of data
+  (compiling source file 'voxel_renderer.cpp')
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.tpp(127,30):
+      the template instantiation context (the oldest one first) is
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.tpp(118,1):
+          while compiling class template member function 'void GPUBufferAllocator<uint32_t>::replace(const std::vector<uint32_t,std::allocator<uint32_t>> &,unsigned int,unsigned int)'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(60,23):
+              see the first reference to 'GPUBufferAllocator<uint32_t>::replace' in 'VoxelRenderer::updateData'
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.tpp(133,30): warning C4267: '+=': conversion from 'size_t' to 'unsigned int', possible loss of data
+  (compiling source file 'voxel_renderer.cpp')
+  
+  Generating Code...
   VoxelEngine.vcxproj -> C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\x64\Debug\VoxelEngine.exe

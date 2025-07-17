@@ -76,7 +76,7 @@ public:
 	void render();
 
 
-	inline unsigned int getDataBufferSize() const { return dataBuffer != nullptr ?  dataBuffer->getSize() : 0; }
+	inline unsigned int getDataBufferSize() const { return dataBuffer.getSize(); }
 
 private:
 
@@ -90,9 +90,9 @@ private:
 	unsigned int VAO, quadVBO;
 
 
-	GPUBufferAllocator<uint32_t>* dataBuffer = nullptr;
-	GPUBufferAllocator<DrawArraysIndirectCommand>* indirectCommandBuffer = nullptr;
-	GPUBufferAllocator<glm::vec4>* positionSSBO = nullptr;
+	GPUBufferAllocator<uint32_t> dataBuffer;
+	GPUBufferAllocator<DrawArraysIndirectCommand> indirectCommandBuffer;
+	GPUBufferAllocator<glm::vec4> positionSSBO;
 
 
 	float quadVertices[20] = {

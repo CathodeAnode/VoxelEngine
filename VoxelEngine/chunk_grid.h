@@ -21,7 +21,9 @@ public:
 	ChunkGrid(char* serializedData); // load from serialized data
 
 	// generate flat world with given size
-	ChunkGrid(int worldSize) {
+	ChunkGrid(int worldSize, float _voxelScale = 1.0f) :
+		voxelScale(_voxelScale)
+	{
 		chunks.reserve(11000);
 	}
 
@@ -39,8 +41,12 @@ public:
 
 	ChunkType* getChunk(const glm::ivec3& chunkGridLocation) {
 		uint64_t chunkIndex = getChunkIndex(chunkGridLocation);
-		if (chunks.contains(chunkIndex)) {
-			return &chunks.at(chunkIndex);
+		return getChunk(chunkIndex);
+	}
+
+	ChunkType* getChunk(const uint64_t& index) {
+		if (chunks.contains(index)) {
+			return &chunks.at(index);
 		}
 
 		return nullptr;
@@ -95,19 +101,22 @@ public:
 	void toggleBlock(int x, int y, int z) {
 		int ChunkSize = ChunkType::Size;
 
-		int chunkX = (x < 0) ? (x - ChunkSize + 1) / ChunkSize : x / ChunkSize;
-		int chunkY = (y < 0) ? (y - ChunkSize + 1) / ChunkSize : y / ChunkSize;
-		int chunkZ = (z < 0) ? (z - ChunkSize + 1) / ChunkSize : z / ChunkSize;
+		int chunkX = x / ChunkSize;
+		int chunkY = y / ChunkSize;
+		int chunkZ = z / ChunkSize;
 
 		uint64_t chunkIndex = getChunkIndex(chunkX, chunkY, chunkZ);
-
-		if (chunks.contains(chunkIndex)) {
-			ChunkType chunk = chunks.at(chunkIndex);
+		ChunkType* chunk = getChunk(chunkIndex);
+		if (chunk) {
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
 			int yC = ((y % ChunkSize) + ChunkSize) % ChunkSize;
 			int zC = ((z % ChunkSize) + ChunkSize) % ChunkSize;
-			chunk.toggleBit(xC, yC, zC);
+			chunk->toggleBit(xC, yC, zC);
 		}
+	}
+
+	void toggleBlock(glm::ivec3 coords) {
+		toggleBlock(coords.x, coords.y, coords.z);
 	}
 
 	char* serialize();
@@ -148,6 +157,8 @@ public:
  		return coords;
 	}
 
+	inline float getVoxelScale() const { return voxelScale; };
+
 
 	std::unordered_map<uint64_t, ChunkType>::iterator begin() const { return chunks.begin(); }
 	std::unordered_map<uint64_t, ChunkType>::iterator end() const { return chunks.end(); }
@@ -165,6 +176,7 @@ private:
 	 * max supported world size: 2,097,152 (-1,048,576 to 1,048,576)
 	*/
 	std::unordered_map<uint64_t, ChunkType> chunks;
+	float voxelScale;
 };
 
 typedef ChunkGrid<Chunk8> ChunkGrid8;

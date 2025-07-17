@@ -35,7 +35,7 @@ GPUBufferAllocator<T>::~GPUBufferAllocator()
 template<typename T>
 void GPUBufferAllocator<T>::upload(const std::vector<T>& data)
 {
-	if (type == GL_STATIC_DRAW || type == GL_STATIC_COPY || type == GL_STATIC_READ) {
+	if (usage == GL_STATIC_DRAW || usage == GL_STATIC_COPY || usage == GL_STATIC_READ) {
 		throw std::logic_error("Static buffers cannot be modifiy");
 	}
 

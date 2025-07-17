@@ -1,12 +1,11 @@
 #include "voxel_renderer.h"
 
 
-VoxelRenderer::VoxelRenderer(unsigned int quadBufferSize, unsigned int maxObjectsRendered)
+VoxelRenderer::VoxelRenderer(unsigned int quadBufferSize, unsigned int maxObjectsRendered) :
+    dataBuffer(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, quadBufferSize),
+    indirectCommandBuffer(GL_DRAW_INDIRECT_BUFFER, GL_DYNAMIC_DRAW, maxObjectsRendered),
+    positionSSBO(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, maxObjectsRendered)
 {
-    dataBuffer = new GPUBufferAllocator<uint32_t>(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, quadBufferSize);
-    indirectCommandBuffer = new GPUBufferAllocator<DrawArraysIndirectCommand>(GL_DRAW_INDIRECT_BUFFER, GL_DYNAMIC_DRAW, maxObjectsRendered);
-    positionSSBO = new GPUBufferAllocator<glm::vec4>(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, maxObjectsRendered);
-
     drawLines = false;
 
     //for (int i = 0; i < 4; i += 5) { 
@@ -38,7 +37,7 @@ VoxelRenderer::VoxelRenderer(unsigned int quadBufferSize, unsigned int maxObject
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, dataBuffer->getBufferID());
+    glBindBuffer(GL_ARRAY_BUFFER, dataBuffer.getBufferID());
     glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(uint32_t), (void*)0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glVertexAttribDivisor(2, 1);
@@ -49,25 +48,21 @@ VoxelRenderer::~VoxelRenderer()
 {
     glDeleteVertexArrays(1, &VAO);
     glDeleteBuffers(1, &quadVBO);
-
-    delete dataBuffer;
-    delete indirectCommandBuffer;
-    delete positionSSBO;
 }
 
 void VoxelRenderer::uploadData(const std::vector<uint32_t>& data)
 {
-    dataBuffer->upload(data);
+    dataBuffer.upload(data);
 }
 
 void VoxelRenderer::updateData(const std::vector<uint32_t>& data, int index, int oldSize)
 {
-    dataBuffer->replace(data, index, oldSize);
+    dataBuffer.replace(data, index, oldSize);
 }
 
 void VoxelRenderer::addData(const std::vector<uint32_t>& data) 
 {
-    dataBuffer->append(data);
+    dataBuffer.append(data);
 }
 
 void VoxelRenderer::uploadIndirectCommands(const std::vector<Page>& indirectDrawCommands)
@@ -88,7 +83,7 @@ void VoxelRenderer::uploadIndirectCommands(const std::vector<Page>& indirectDraw
         drawCommands[i] = cmd;
     }
 
-    indirectCommandBuffer->upload(drawCommands);
+    indirectCommandBuffer.upload(drawCommands);
 }
 
 void VoxelRenderer::uploadPositionData(const std::vector<glm::vec3>& positionData)
@@ -100,7 +95,7 @@ void VoxelRenderer::uploadPositionData(const std::vector<glm::vec3>& positionDat
         paddedPositionData[i] = glm::vec4(positionData[i].x, positionData[i].y, positionData[i].z, 0.0f);
     }
 
-    positionSSBO->upload(paddedPositionData);
+    positionSSBO.upload(paddedPositionData);
 
 }
 
@@ -114,14 +109,14 @@ void VoxelRenderer::toggleDrawLines()
 void VoxelRenderer::render() 
 {
     glBindVertexArray(VAO);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, positionSSBO->getBufferID());
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, positionSSBO.getBufferID());
 
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectCommandBuffer->getBufferID());
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectCommandBuffer.getBufferID());
 
     if (drawLines) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
-    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr, indirectCommandBuffer->getSize(), 0);
+    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr, indirectCommandBuffer.getSize(), 0);
     //glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, 4, 2, 131);
     //glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, 4, 2, 153);
 

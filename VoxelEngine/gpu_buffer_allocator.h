@@ -24,7 +24,7 @@ public:
 
 	void resize(unsigned int size);
 
-	inline unsigned int getMaxSize() { return bufferSize; };
+	inline unsigned int getMaxSize() const { return bufferSize; };
 	inline unsigned int getSize() const { return currentSize; };
 	inline GLuint getBufferID() const { return bufferID; };
 

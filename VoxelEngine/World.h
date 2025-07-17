@@ -13,17 +13,14 @@
 
 template<typename ChunkType> class World {
 private:
-	ChunkGrid<ChunkType>* chunks;
-	VoxelMesher<ChunkType>* mesher;
-	VoxelRenderer* renderer;
+	ChunkGrid<ChunkType> chunks;
+	VoxelMesher<ChunkType> mesher;
+	VoxelRenderer renderer;
 	std::unordered_map<uint64_t, Page> GPUChunkMeshIndex;
 
 	int worldSize; // NxNxN chunks
 	int renderDistance;
 	glm::ivec3 lastPlayerGridCoords;
-
-	
-
 
 public:
 
@@ -33,18 +30,12 @@ public:
 	 *
 	 * @param worldSize Size of the flat world
 	 */
-	World(int _worldSize, unsigned int _renderDistance) : worldSize(_worldSize * _worldSize * _worldSize), renderDistance(_renderDistance) {
-		chunks = new ChunkGrid<ChunkType>();
-		mesher = new VoxelMesher<ChunkType>();
-		renderer = new VoxelRenderer(QUAD_FACES_PER_CHUNK * NUMBER_OF_CHUNKS, pow(renderDistance, 3));
-
+	World(int _worldSize, unsigned int _renderDistance) : 
+		worldSize(_worldSize * _worldSize * _worldSize), 
+		renderDistance(_renderDistance),
+		renderer(QUAD_FACES_PER_CHUNK* NUMBER_OF_CHUNKS, pow(renderDistance, 3))
+	{
 		lastPlayerGridCoords = glm::ivec3(MAX_GRID_INT, MAX_GRID_INT, MAX_GRID_INT) + 100;
-	}
-
-	~World() {
-		delete chunks;
-		delete mesher;
-		delete renderer;
 	}
 
 	World(const char* filePath);
@@ -81,14 +72,14 @@ public:
 					//std::cout << chunkCoords.x << ", " << chunkCoords.y << ", " << chunkCoords.z << std::endl;
 					uint64_t index = ChunkGrid<ChunkType>::getChunkIndex(chunkCoords);
 
-					if (chunks->getChunk(chunkCoords) == nullptr) continue;
+					if (chunks.getChunk(index) == nullptr) continue;
 
 					// if not already meshed, mesh chunk (conditional should never be executed in theory)
 					if (!GPUChunkMeshIndex.contains(index)) {
-						const int dataBufferSize = renderer->getDataBufferSize();
-						const ChunkQuads mesh = mesher->meshChunk(*chunks, chunkCoords);
+						const int dataBufferSize = renderer.getDataBufferSize();
+						const ChunkQuads mesh = mesher.meshChunk(chunks, chunkCoords);
 						GPUChunkMeshIndex[index] = Page(dataBufferSize, mesh.quadData.size());
-						renderer->addData(mesh.quadData);
+						renderer.addData(mesh.quadData);
 					}
 
 					const Page& page = GPUChunkMeshIndex[index];
@@ -101,19 +92,23 @@ public:
 		lastPlayerGridCoords = playerGridCoords;
 
 		// step 4: upload data to gpu
-		renderer->uploadIndirectCommands(GPUChunkDataLocations);
-		renderer->uploadPositionData(chunkPositions);
+		renderer.uploadIndirectCommands(GPUChunkDataLocations);
+		renderer.uploadPositionData(chunkPositions);
 	}
 
 	void render() {
-		renderer->render();
+		renderer.render();
 	}
 
 	void setBlock(const glm::ivec3& coords, uint16_t type);
-	void removeBlock(const glm::ivec3& coords);
+	void removeBlock(const glm::ivec3& coords) {
+		chunks.toggleBlock(coords);
+		
+		// TODO: remesh chunk
+	}
 
 	void addChunk(const glm::ivec3& chunkCoords, const ChunkType& chunk, bool doMesh = false) {
-		chunks->addChunk(chunk, chunkCoords);
+		chunks.addChunk(chunk, chunkCoords);
 	}
 	void removeChunk(const glm::ivec3& chunkCoords);
 
@@ -122,18 +117,20 @@ public:
 		std::vector<uint32_t> worldData;
 
 		int offset = 0;
-		for (const auto& [index, _] : *chunks) {
+		for (const auto& [index, _] : chunks) {
 			glm::ivec3 coords = ChunkGrid<ChunkType>::getChunkCoords(index);
-			mesh = mesher->meshChunk(*chunks, coords);
+			mesh = mesher.meshChunk(chunks, coords);
 			GPUChunkMeshIndex[index] = Page(offset, mesh.quadData.size());
 			offset += mesh.quadData.size();
 			worldData.insert(worldData.end(), mesh.quadData.begin(), mesh.quadData.end());
 		}
 
-		renderer->uploadData(worldData);
+		renderer.uploadData(worldData);
 	}
 
 	void saveModel(const char* filePath);
+
+	inline ChunkGrid<ChunkType> getGrid() const { return chunks; };
 
 };
 

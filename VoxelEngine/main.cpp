@@ -23,10 +23,11 @@
 #include "voxel_renderer.h"
 #include "voxel_mesher.h"
 #include "world.h"
+#include "voxel_ray_cast.h"
 
 
 
-void processInput(Screen& screen, double dt);
+void processInput(Screen& screen, double dt, World8& world);
 void displayFPSOnWindow(float frameFPS, int numOfFrames);
 
 int countFPS = 0;
@@ -82,8 +83,8 @@ int main() {
 	-----------------------
 	*/
 	auto start = std::chrono::high_resolution_clock::now();
-	World8 world(100, 10);
 	Chunk8 filledChunk(true);
+	World8 world(100, 10);
 
 	for (int x = -20; x <= 20; x++) {
 		for (int z = -20; z <= 20; z++) {
@@ -106,6 +107,7 @@ int main() {
 
 	shaderPrgm.use();
 
+
 	// create transformation for screen
 	std::weak_ptr<glm::mat4> view = camera.getViewMatrixPtr();
 	std::weak_ptr<glm::mat4> projection = camera.getProjMatrixPtr();
@@ -120,7 +122,7 @@ int main() {
 		lastFrame = currTime;
 
 		// process input
-		processInput(screen, deltaTime);
+		processInput(screen, deltaTime, world);
 
 		// render
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -139,7 +141,7 @@ int main() {
 
 		// send back buffer to front buffer
 		screen.update();
-		displayFPSOnWindow(fps, 100);
+		displayFPSOnWindow(fps, 400);
 	}
 
 	GLenum err;
@@ -152,9 +154,22 @@ int main() {
 	return 0;
 }
 
-void processInput(Screen& screen, double dt) {
+void processInput(Screen& screen, double dt, World8& world) {
 	if (Keyboard::key(GLFW_KEY_ESCAPE)) {
 		screen.close();
+	}
+
+	if (Mouse::buttonUp(GLFW_MOUSE_BUTTON_LEFT)) {
+		glm::ivec3 voxel;
+		Ray camRay(camera.pos, camera.front, 999);
+		if (VoxelRayCast<Chunk8>::cast(camRay, world.getGrid(), voxel)) {
+			std::cout << voxel.x << ", " << voxel.y << ", " << voxel.z << std::endl;
+			world.removeBlock(voxel);
+		}
+		else {
+			std::cout << "miss" << std::endl;
+		}
+		
 	}
 
 	if (Keyboard::key(GLFW_KEY_W)) {
