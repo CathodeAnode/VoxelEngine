@@ -1,214 +1,182 @@
-template<typename T>
-GPUBufferAllocator<T>::GPUBufferAllocator(GLenum bufferType, GLenum bufferUsage, const std::vector<T>& data)
-	: bufferSize(data.size()), type(bufferType), usage(bufferUsage)
+#include "gpu_buffer_allocator.h"
+template<typename Atom>
+GPUBuffer<Atom>::GPUBuffer(bool _cpuUpdates)
+	: lockManager(_cpuUpdates)
+	, bufferContents()
+	, name()
+	, target()
+	, BufferStorage(BufferStorage::SystemMemory)
+{}
+template<typename Atom>
+GPUBuffer<Atom>::~GPUBuffer()
 {
-	glGenBuffers(1, &bufferID);
-	glBindBuffer(bufferType, bufferID);
-	glBufferData(bufferType, bufferSize * sizeof(T), data.data(), bufferUsage);
-	glBindBuffer(bufferType, 0);
-
-	currentSize = bufferSize;
+	Destroy();
 }
 
-template<typename T>
-GPUBufferAllocator<T>::GPUBufferAllocator(GLenum bufferType, GLenum bufferUsage, unsigned int size)
-	: bufferSize(size), type(bufferType), usage(bufferUsage)
+template<typename Atom>
+bool GPUBuffer<Atom>::Create(BufferStorage _storage, GLenum _target, GLuint _count, GLbitfield _createFlags, GLbitfield _mapFlags)
 {
-	if (bufferUsage == GL_STATIC_DRAW || bufferUsage == GL_STATIC_COPY || bufferUsage == GL_STATIC_READ) {
-		throw std::logic_error("Static buffers must be initialized with data");
+	if (bufferContents) {
+		Destroy();
 	}
 
-	glGenBuffers(1, &bufferID);
-	glBindBuffer(bufferType, bufferID);
-	glBufferData(bufferType, bufferSize * sizeof(T), nullptr, bufferUsage);
-	glBindBuffer(bufferType, 0);
+	bufferStorage = _storage;
+	target = _target;
 
-	currentSize = 0;
+	switch (bufferStorage) {
+		case BufferStorage::SystemMemory: {
+			bufferContents = new Atom[_count];
+			break;
+		}
+
+		case BufferStorage::PersistentlyMappedBuffer: {
+			// This code currently doesn't care about the alignment of the returned memory. This could potentially
+			// cause a crash, but since implementations are likely to return us memory that is at lest aligned
+			// on a 64-byte boundary we're okay with this for now. 
+			// A robust implementation would ensure that the memory returned had enough slop that it could deal
+			// with it's own alignment issues, at least. That's more work than I want to do right this second.
+
+			glGenBuffers(1, &mName);
+			glBindBuffer(mTarget, mName);
+			glBufferStorage(mTarget, sizeof(Atom) * _count, nullptr, _createFlags);
+			mBufferContents = reinterpret_cast<Atom*>(glMapBufferRange(mTarget, 0, sizeof(Atom) * _atomCount, _mapFlags));
+			if (!mBufferContents) {
+				std::cout << "glMapBufferRange failed, probable bug.\n";
+				return false;
+			}
+			break;
+		}
+
+		default: {
+			std::cout << "Error: need to update GPUBuffer::Create logic to account for new buffer storage type.\n";
+			break;
+		}
+	};
+
+	return true;
 }
 
-template<typename T>
-GPUBufferAllocator<T>::~GPUBufferAllocator()
+template<typename Atom>
+void GPUBuffer<Atom>::Destroy()
 {
-	glDeleteBuffers(1, &bufferID);
+	switch (mBufferStorage) {
+		case BufferStorage::SystemMemory: {
+			if (bufferContents) delete[] bufferContents;
+			break;
+		}
+
+		case BufferStorage::PersistentlyMappedBuffer: {
+			glBindBuffer(mTarget, mName);
+			glUnmapBuffer(mTarget);
+			glDeleteBuffers(1, &mName);
+
+			mBufferContents = nullptr;
+			mName = 0;
+			break;
+		}
+
+		default: {
+			std::cout << "Error: need to update GPUBuffer::Destroy logic to account for new buffer storage type.\n";
+			break;
+		}
+	};
 }
 
-template<typename T>
-void GPUBufferAllocator<T>::upload(const std::vector<T>& data)
+template<typename Atom>
+void GPUBuffer<Atom>::WaitForLockedRange(size_t _lockBegin, size_t _lockLength)
 {
-	if (usage == GL_STATIC_DRAW || usage == GL_STATIC_COPY || usage == GL_STATIC_READ) {
-		throw std::logic_error("Static buffers cannot be modifiy");
-	}
-
-	if (data.size() > bufferSize) {
-		resize(data.size());
-	}
-
-	glBindBuffer(type, bufferID);
-	glBufferSubData(type, 0, data.size() * sizeof(T), data.data());
-	glBindBuffer(type, 0);
-
-	currentSize = data.size();
+	lockManager.WaitForLockedRange(_lockBegin, _lockLength);
 }
 
-template<typename T>
-void GPUBufferAllocator<T>::append(T data)
+template<typename Atom>
+void GPUBuffer<Atom>::LockRange(size_t _lockBegin, size_t _lockLength)
 {
-	if (currentSize + 1 > bufferSize) {
-		resize(bufferSize * 2 + 1); // grow strategy
-	}
-	glBindBuffer(type, bufferID);
-	glBufferSubData(type, currentSize * sizeof(T), sizeof(T), &data);
-	glBindBuffer(type, 0);
-	
-	currentSize++;
+	lockManager.LockRange(_lockBegin, _lockLength);
 }
 
-template<typename T>
-void GPUBufferAllocator<T>::append(const std::vector<T>& data)
+template<typename Atom>
+void GPUBuffer<Atom>::BindBuffer()
 {
-	if (currentSize + data.size() > bufferSize) {
-		resize(bufferSize * 2  + 1);
-	}
-
-	glBindBuffer(type, bufferID);
-	glBufferSubData(type, currentSize * sizeof(T), data.size() * sizeof(T), data.data());
-	glBindBuffer(type, 0);
-
-	currentSize += data.size();
+	glBindBuffer(target, name);
 }
 
-template<typename T>
-void GPUBufferAllocator<T>::insert(T data, unsigned int index)
+template<typename Atom>
+void GPUBuffer<Atom>::BindBufferBase(GLuint _index)
 {
-	if (currentSize + 1 > bufferSize) {
-		resize(bufferSize * 2 + 1); // grow strategy
-	}
-
-	move(index, index + 1, currentSize - index);
-
-	glBindBuffer(type, bufferID);
-	glBufferSubData(type, index * sizeof(T), sizeof(T), &data);
-	glBindBuffer(type, 0);
-
-	currentSize++;
+	glBindBufferBase(target, _index, name);
 }
 
-template<typename T>
-void GPUBufferAllocator<T>::insert(const std::vector<T>& data, unsigned int index)
+template<typename Atom>
+void GPUBuffer<Atom>::BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _count)
 {
-	if (currentSize + data.size() > bufferSize) {
-		resize(bufferSize * 2 + 1);
-	}
-
-	if (index >= bufferSize) {
-		throw std::logic_error("Index out of range.");
-	}
-
-	move(index, index + data.size(), currentSize - index);
-
-	glBindBuffer(type, bufferID);
-	glBufferSubData(type, index * sizeof(T), sizeof(T) * data.size(), data.data());
-	glBindBuffer(type, 0);
-
-	currentSize += data.size();
+	glBindBufferRange(target, _index, _head * sizeof(Atom), _count * sizeof(Atom));
 }
 
-template<typename T>
-void GPUBufferAllocator<T>::replace(const std::vector<T>& data, unsigned int index, unsigned int oldSize)
+// ------------------------------------------------------------------------------------------------------------------
+
+template<typename Atom>
+GPUCircularBuffer<Atom>::GPUCircularBuffer(bool _cpuUpdates)
+	: buffer(_cpuUpdates)
+{}
+
+template<typename Atom>
+bool GPUCircularBuffer<Atom>::Create(BufferStorage _storage, GLenum _target, GLuint _count, GLbitfield _createFlags, GLbitfield _mapFlags)
 {
-	if (currentSize + (data.size() - oldSize) > bufferSize) {
-		resize(bufferSize * 2 + 1);
-	}
-
-	if (index >= bufferSize) {
-		throw std::logic_error("Index out of range.");
-	}
-
-	move(index + oldSize, index + data.size(), currentSize - index + oldSize);
-
-	glBindBuffer(type, bufferID);
-	glBufferSubData(type, index * sizeof(T), sizeof(T) * data.size(), data.data());
-	glBindBuffer(type, 0);
-
-	currentSize += (data.size() - oldSize);
-
+	head = 0;
+	return buffer.Create(_storage, _target, _count, _createFlags, _mapsFlags);
 }
 
-template<typename T>
-void GPUBufferAllocator<T>::resize(unsigned int newSize)
+template<typename Atom>
+void GPUCircularBuffer<Atom>::Destroy()
 {
-	if (newSize == bufferSize)
-		return;
-
-	// create temp buffer to copy current data into
-	unsigned int copyBuffer;
-	glGenBuffers(1, &copyBuffer);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
-	glBufferData(GL_COPY_WRITE_BUFFER, currentSize * sizeof(T), nullptr, GL_STATIC_COPY);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-
-	// copy data into temp copy buffer
-	glBindBuffer(GL_COPY_READ_BUFFER, bufferID);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
-	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, currentSize * sizeof(T));
-	glBindBuffer(GL_COPY_READ_BUFFER, 0);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-
-	// expand main buffer to new size
-	glDeleteBuffers(1, &bufferID);
-	glGenBuffers(1, &bufferID);
-	glBindBuffer(type, bufferID);
-	glBufferData(type, newSize * sizeof(T), nullptr, usage);
-	glBindBuffer(type, 0);
-
-	// copy old data into newly resized buffer
-	glBindBuffer(GL_COPY_READ_BUFFER, copyBuffer);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, bufferID);
-	glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, 0, currentSize * sizeof(T));
-	glBindBuffer(GL_COPY_READ_BUFFER, 0);
-	glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-
-	// delete temp copy buffer & set new size on object
-	glDeleteBuffers(1, &copyBuffer);
-	bufferSize = newSize;
-
+	buffer.Destroy();
+	head = 0;
 }
 
-template<typename T>
-void GPUBufferAllocator<T>::move(unsigned int startIndex, unsigned int endIndex, unsigned int size)
+template<typename Atom>
+Atom* GPUCircularBuffer<Atom>::Reserve(GLsizeiptr _count)
 {
-	// if intervial ranges overlap
-	if (std::max(startIndex, endIndex) <= std::min(startIndex + size , endIndex + size)) {
-
-		// create temp buffer to copy current data into
-		unsigned int copyBuffer;
-		glGenBuffers(1, &copyBuffer);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
-		glBufferData(GL_COPY_WRITE_BUFFER, size * sizeof(T), nullptr, GL_STATIC_COPY);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-
-		// copy data into temp copy buffer
-		glBindBuffer(GL_COPY_READ_BUFFER, bufferID);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
-		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, startIndex * sizeof(T), 0, size * sizeof(T));
-		glBindBuffer(GL_COPY_READ_BUFFER, 0);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-
-		// copy from temp buffer to move location
-		glBindBuffer(GL_COPY_READ_BUFFER, copyBuffer);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, bufferID);
-		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, endIndex * sizeof(T), size * sizeof(T));
-		glBindBuffer(GL_COPY_READ_BUFFER, 0);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-
-		// delete temp copy buffer
-		glDeleteBuffers(1, &copyBuffer);
+	if (_count > buffer.getSize()) {
+		std::cout << ("Requested an update of size " << _count << " for a buffer of size " << buffer.getSize() << " atoms.\n";
 	}
-	else {
-		glBindBuffer(GL_COPY_READ_BUFFER, bufferID);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, bufferID);
-		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, startIndex * sizeof(T), endIndex * sizeof(T), sizeof(T) * size);
-		glBindBuffer(GL_COPY_READ_BUFFER, 0);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+
+	GLsizeiptr lockStart = head;
+
+	if (lockStart + _atomCount > buffer.getSize()) {
+		// Need to wrap here.
+		lockStart = 0;
 	}
+
+	buffer.WaitForLockedRange(lockStart, _atomCount);
+	return &buffer.GetContents()[lockStart];
 }
+
+template<typename Atom>
+void GPUCircularBuffer<Atom>::OnUsageComplete(GLsizeiptr _count)
+{
+	buffer.LockRange(head, _count);
+	head = (head + _count) % buffer.getSize();
+}
+
+template<typename Atom>
+void GPUCircularBuffer<Atom>::BindBuffer()
+{
+	buffer.BindBuffer();
+}
+
+template<typename Atom>
+void GPUCircularBuffer<Atom>::BindBufferBase(GLuint _index)
+{
+	buffer.BindBufferBase(_index);
+}
+
+template<typename Atom>
+void GPUCircularBuffer<Atom>::BindBufferRange(GLuint _index, GLsizeiptr _count)
+{
+	buffer.BindBufferRange(_index, head, _count);
+}
+
+// ------------------------------------------------------------------------------------------------------------------
+
+
+

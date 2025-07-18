@@ -101,9 +101,9 @@ public:
 	void toggleBlock(int x, int y, int z) {
 		int ChunkSize = ChunkType::Size;
 
-		int chunkX = x / ChunkSize;
-		int chunkY = y / ChunkSize;
-		int chunkZ = z / ChunkSize;
+		int chunkX = (x < 0) ? (x - ChunkSize + 1) / ChunkSize : x / ChunkSize;
+		int chunkY = (y < 0) ? (y - ChunkSize + 1) / ChunkSize : y / ChunkSize;
+		int chunkZ = (z < 0) ? (z - ChunkSize + 1) / ChunkSize : z / ChunkSize;
 
 		uint64_t chunkIndex = getChunkIndex(chunkX, chunkY, chunkZ);
 		ChunkType* chunk = getChunk(chunkIndex);
