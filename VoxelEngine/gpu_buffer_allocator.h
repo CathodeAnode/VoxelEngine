@@ -114,27 +114,32 @@ public:
     GPUPagedBuffer();
     ~GPUPagedBuffer();
 
-    bool Create(GLenum _target, GLuint _count);
-    void Destroy();
+    bool Create(GLenum _target, GLuint _count) noexcept;
+    void Destroy() noexcept;
 
-    void AllocatePage(const KeyType& pageKey, size_t size);
-    void UploadPageData(const KeyType& pageKey, const std::vector<Atom>& data);
-    bool UpdatePage(const KeyType& pageKey, const std::vector<Atom>& data);
+    void UploadPageData(const KeyType& pageKey, const std::vector<Atom>& data) noexcept;
+    bool UpdatePage(const KeyType& pageKey, const std::vector<Atom>& data) noexcept;
 
-    Page GetPageOffset(const KeyType& pageKey) const;
+    Page GetPageOffset(const KeyType& pageKey) noexcept;
+    size_t GetCurrentSize() const { return atomCount; };
+    size_t GetMaxSize() const { return maxAtomCount; };
+    size_t GetPageSize() const { return pageCount; };
+
 
 private:
-    // Page information stored for each key (the key type is now generic)
     std::unordered_map<KeyType, Page> pageTable;
+    std::vector<int> pendingPageOffsets;
 
     GLuint name;
     GLenum target;
 
     size_t atomCount;
     size_t pageCount;
-    size_t maxCount;
+    size_t maxAtomCount;
 
     void move(size_t srcIndex, size_t dstIndex, size_t length);
+
+    const int kInitialPendingPageOffsetsCapacity = 200
 
 };
 

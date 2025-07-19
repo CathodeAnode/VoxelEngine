@@ -36,8 +36,6 @@ public:
 	 */
 	void uploadData(const std::vector<uint32_t>& data);
 
-	bool Write
-
 	void toggleDrawLines();
 
 	/**

@@ -153,7 +153,9 @@ template<typename Atom, typename KeyType>
 GPUPagedBuffer<Atom, KeyType>::GPUPagedBuffer()
 	: atomCount(0)
 	, pageCount(0)
-	, maxCount(0)
+	, maxAtomCount(0)
+	, name(0)
+	, pendingPageOffsets(kInitialPendingPageOffsetsCapacity, 0)
 {}
 
 template<typename Atom, typename KeyType>
@@ -166,7 +168,7 @@ template<typename Atom, typename KeyType>
 bool GPUPagedBuffer<Atom, KeyType>::Create(GLenum _target, GLuint _count)
 {
 	target = _target;
-	maxCount = _count;
+	maxAtomCount = _count;
 	
 	if (name != 0) return false;
 
@@ -185,11 +187,6 @@ void GPUPagedBuffer<Atom, KeyType>::Destroy()
 }
 
 template<typename Atom, typename KeyType>
-void GPUPagedBuffer<Atom, KeyType>::AllocatePage(const KeyType& pageKey, size_t size)
-{
-}
-
-template<typename Atom, typename KeyType>
 void GPUPagedBuffer<Atom, KeyType>::UploadPageData(const KeyType& pageKey, const std::vector<Atom>& data)
 {
 	const size_t count = data.size();
@@ -197,9 +194,13 @@ void GPUPagedBuffer<Atom, KeyType>::UploadPageData(const KeyType& pageKey, const
 	glBufferSubData(target, atomCount * sizeof(Atom), count * sizeof(Atom), data.data());
 	glBindBuffer(target, 0);
 
-	pageTable[pageKey] = { pageCount, atomCount, count };
 	pageCount++;
+	pageTable[pageKey] = { pageCount, atomCount, count };
 	atomCount += count;
+
+	if (pageCount > pendingPageOffsets.size()) {
+		pendingPageOffsets.resize(pendingPageOffsets.size() * 2, 0);
+	}
 }
 
 template<typename Atom, typename KeyType>
@@ -208,11 +209,10 @@ bool GPUPagedBuffer<Atom, KeyType>::UpdatePage(const KeyType& pageKey, const std
 	const size_t newPageCount = data.size();
 
 	//get page offsets
-	auto it = pageTable.find(pageKey);
-	if (it == pageTable.end()) {
+	Page page = GetPageOffset(pageKey);
+	if (page.id == 0) {
 		return false;
 	}
-	Page& page = it->second;
 
 	// shift subsequent pages according to new page update
 	const size_t oldNextPageIndex = page.index + page.size;
@@ -220,23 +220,40 @@ bool GPUPagedBuffer<Atom, KeyType>::UpdatePage(const KeyType& pageKey, const std
 	const size_t subsequentPagesAtomCount = (atomCount - page.index) + page.size;
 	move(oldNextPageIndex, newNextPageIndex, subsequentPagesAtomCount);
 
-	// update page data
+	// update page data on gpu
 	glBindBuffer(target, name);
 	glBufferSubData(target, page.index * sizeof(Atom), newPageCount * sizeof(Atom), data.data());
 	glBindBuffer(target, 0);
 
-	// update buffer state
-	// TODO: update offsets of subsequent pages
-	atomCount += (newPageCount - page.size);
-	page.size = newPageCount;
+	// update buffer state in data structure
+	const size_t countDelta = newPageCount - page.size;
+	for (int i = page.id + 1; i <= pageCount; i++)
+	{
+		pendingPageOffsets[i] += countDelta; 
+	}
+
+	atomCount += countDelta;
+	pageTable[pageKey].size = newPageCount;
 	
 	return true;
 }
 
 template<typename Atom, typename KeyType>
-Page GPUPagedBuffer<Atom, KeyType>::GetPageOffset(const KeyType& pageKey) const
+Page GPUPagedBuffer<Atom, KeyType>::GetPageOffset(const KeyType& pageKey)
 {
-	return Page();
+	auto it = pageTable.find(pageKey);
+	
+	// page does not exisit
+	if (it == pageTable.end())
+	{
+		return Page(0, 0, 0);
+	}
+
+	Page& page = it->second;
+	page.index += pendingPageOffsets[page.id];
+	pendingPageOffsets[page.id] = 0; // clear pending offset
+
+	return page;
 }
 
 template<typename Atom, typename KeyType>
