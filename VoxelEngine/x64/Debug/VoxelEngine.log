@@ -4,139 +4,114 @@ C:\Program Files (x86)\Windows Kits\10\Include\10.0.26100.0\shared\minwindef.h(1
       C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\Linking\include\glad\glad.h(32,9):
       see previous definition of 'APIENTRY'
   
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.h(41,2): error C2144: syntax error: 'void' should be preceded by ';'
+  (compiling source file 'main.cpp')
+  
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.h(49,57): error C2065: 'dataBuffer': undeclared identifier
+  (compiling source file 'main.cpp')
+  
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(120,24): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
 C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(122,15): warning C4244: '=': conversion from 'double' to 'float', possible loss of data
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244: '+=': conversion from 'T' to 'T', possible loss of data
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:         with
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:         [
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:             T=float
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:         ]
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:         and
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:         [
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:             T=int
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27): warning C4244:         ]
-  (compiling source file 'main.cpp')
-      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(60,27):
-      the template instantiation context (the oldest one first) is
-          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(165,29):
-          see reference to class template instantiation 'VoxelRayCast<Chunk8>' being compiled
-          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(33,14):
-          while compiling class template member function 'bool VoxelRayCast<Chunk8>::cast(const Ray &,const ChunkGrid<Chunk8> &,glm::ivec3 &)'
-              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(165,3):
-              see the first reference to 'VoxelRayCast<Chunk8>::cast' in 'processInput'
+  voxel_renderer.cpp
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.h(41,2): error C2144: syntax error: 'void' should be preceded by ';'
+  (compiling source file 'voxel_renderer.cpp')
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244: '+=': conversion from 'T' to 'T', possible loss of data
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:         with
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:         [
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:             T=float
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:         ]
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:         and
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:         [
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:             T=int
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(65,27): warning C4244:         ]
-  (compiling source file 'main.cpp')
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.h(49,57): error C2065: 'dataBuffer': undeclared identifier
+  (compiling source file 'voxel_renderer.cpp')
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244: '+=': conversion from 'T' to 'T', possible loss of data
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:         with
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:         [
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:             T=float
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:         ]
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:         and
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:         [
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:             T=int
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_ray_cast.h(70,27): warning C4244:         ]
-  (compiling source file 'main.cpp')
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(51,35): error C2065: 'dataBuffer': undeclared identifier
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(51,5): error C2198: 'PFNGLBINDBUFFERPROC': too few arguments for call
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(60,5): error C2065: 'dataBuffer': undeclared identifier
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(63,21): error C2039: 'updateData': is not a member of 'VoxelRenderer'
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.h(16,7):
+      see declaration of 'VoxelRenderer'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(123,62): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
-  (compiling source file 'main.cpp')
-      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(123,62):
-      the template instantiation context (the oldest one first) is
-          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(87,9):
-          see reference to class template instantiation 'World<Chunk8>' being compiled
-          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(115,7):
-          while compiling class template member function 'void World<Chunk8>::meshWorld(void)'
-              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(101,17):
-              see the first reference to 'World<Chunk8>::meshWorld' in 'main'
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(65,5): error C2065: 'dataBuffer': undeclared identifier
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(68,21): error C2039: 'addData': is not a member of 'VoxelRenderer'
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.h(16,7):
+      see declaration of 'VoxelRenderer'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(124,32): warning C4267: '+=': conversion from 'size_t' to 'int', possible loss of data
-  (compiling source file 'main.cpp')
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(70,5): error C2065: 'dataBuffer': undeclared identifier
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(73,21): error C2039: 'uploadIndirectCommands': is not a member of 'VoxelRenderer'
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.h(16,7):
+      see declaration of 'VoxelRenderer'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,14): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,14): warning C4244:         with
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,14): warning C4244:         [
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,14): warning C4244:             T=float
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,14): warning C4244:         ]
-  (compiling source file 'main.cpp')
-      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(48,14):
-      the template instantiation context (the oldest one first) is
-          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(43,7):
-          while compiling class template member function 'void World<Chunk8>::updateVisibleChunksByDistance(const glm::vec3 &)'
-              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(137,38):
-              see the first reference to 'World<Chunk8>::updateVisibleChunksByDistance' in 'main'
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(75,17): error C2065: 'DrawArraysIndirectCommand': undeclared identifier
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(75,10): error C2923: 'std::vector': 'DrawArraysIndirectCommand' is not a valid template type argument for parameter '_Ty'
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(75,17):
+      see declaration of 'DrawArraysIndirectCommand'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(49,14): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(49,14): warning C4244:         with
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(49,14): warning C4244:         [
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(49,14): warning C4244:             T=float
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(49,14): warning C4244:         ]
-  (compiling source file 'main.cpp')
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(75,10): error C2976: 'std::vector': too few template arguments
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.41.34120\include\vector(429,7):
+      see declaration of 'std::vector'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(50,14): warning C4244: 'initializing': conversion from 'T' to 'int', possible loss of data
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(50,14): warning C4244:         with
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(50,14): warning C4244:         [
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(50,14): warning C4244:             T=float
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(50,14): warning C4244:         ]
-  (compiling source file 'main.cpp')
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(75,44): error C2641: cannot deduce template arguments for 'std::vector'
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(75,44): error C2783: 'std::vector<_Ty,_Alloc> std::vector(void) noexcept(<expr>)': could not deduce template argument for '_Ty'
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.41.34120\include\vector(601,5):
+      see declaration of 'std::vector'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(81,73): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
-  (compiling source file 'main.cpp')
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(75,44): error C2780: 'std::vector<_Ty,_Alloc> std::vector(std::vector<_Ty,_Alloc>)': expects 1 arguments - 0 provided
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.41.34120\include\vector(429,7):
+      see declaration of 'std::vector'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(36,55): warning C4244: 'argument': conversion from 'double' to 'unsigned int', possible loss of data
-  (compiling source file 'main.cpp')
-      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(36,55):
-      the template instantiation context (the oldest one first) is
-          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(33,2):
-          while compiling class template member function 'World<Chunk8>::World(int,unsigned int)'
-              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(87,14):
-              see the first reference to 'World<Chunk8>::World' in 'main'
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(76,35): warning C4267: 'initializing': conversion from 'size_t' to 'unsigned int', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(77,18): error C2663: 'std::vector<_Ty,_Alloc>::resize': no overloaded function has valid conversion for 'this' pointer
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.41.34120\include\vector(1584,23):
+      could be 'void std::vector<_Ty,_Alloc>::resize(const allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type)'
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(77,18):
+          'void std::vector<_Ty,_Alloc>::resize(const allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type)': cannot convert 'this' pointer from 'std::vector' to 'std::vector<_Ty,_Alloc> &'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(77,5):
+              Reason: cannot convert from 'std::vector' to 'std::vector<_Ty,_Alloc>'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(77,5):
+              Conversion requires a second user-defined-conversion operator or constructor
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(77,18):
+      while trying to match the argument list '(unsigned int)'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\chunk.h(27,20): warning C4305: '=': truncation from 'int' to 'unsigned short'
-  (compiling source file 'main.cpp')
-      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\chunk.h(27,20):
-      the template instantiation context (the oldest one first) is
-          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(86,9):
-          see reference to class template instantiation 'Chunk<uint8_t,8>' being compiled
-          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\chunk.h(22,2):
-          while compiling class template member function 'Chunk<uint8_t,8>::Chunk(bool)'
-              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(86,20):
-              see the first reference to 'Chunk<uint8_t,8>::Chunk' in 'main'
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(79,5): error C2065: 'DrawArraysIndirectCommand': undeclared identifier
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(79,31): error C2146: syntax error: missing ';' before identifier 'cmd'
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(79,31): error C2065: 'cmd': undeclared identifier
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(83,9): error C2065: 'cmd': undeclared identifier
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(84,9): error C2065: 'cmd': undeclared identifier
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(88,9): error C2678: binary '[': no operator found which takes a left-hand operand of type 'std::vector' (or there is no acceptable conversion)
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.41.34120\include\vector(1895,40):
+      could be 'const _Ty &std::vector<_Ty,_Alloc>::operator [](const allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type) noexcept const'
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(88,9):
+          'const _Ty &std::vector<_Ty,_Alloc>::operator [](const allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type) noexcept const': cannot convert 'this' pointer from 'std::vector' to 'const std::vector<_Ty,_Alloc> &'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(88,9):
+              Reason: cannot convert from 'std::vector' to 'const std::vector<_Ty,_Alloc>'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(88,9):
+              Conversion requires a second user-defined-conversion operator or constructor
+      C:\Program Files\Microsoft Visual Studio\2022\Community\VC\Tools\MSVC\14.41.34120\include\vector(1885,34):
+      or       '_Ty &std::vector<_Ty,_Alloc>::operator [](const allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type) noexcept'
+          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(88,9):
+          '_Ty &std::vector<_Ty,_Alloc>::operator [](const allocator_traits<allocator_traits<_Alloc>::rebind_alloc<_Ty>>::size_type) noexcept': cannot convert 'this' pointer from 'std::vector' to 'std::vector<_Ty,_Alloc> &'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(88,9):
+              Reason: cannot convert from 'std::vector' to 'std::vector<_Ty,_Alloc>'
+              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(88,9):
+              Conversion requires a second user-defined-conversion operator or constructor
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(88,9):
+      while trying to match the argument list '(std::vector, unsigned int)'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\chunk.h(27,20): warning C4309: '=': truncation of constant value
-  (compiling source file 'main.cpp')
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(88,27): error C2065: 'cmd': undeclared identifier
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(91,5): error C2065: 'indirectCommandBuffer': undeclared identifier
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(94,21): error C2039: 'uploadPositionData': is not a member of 'VoxelRenderer'
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.h(16,7):
+      see declaration of 'VoxelRenderer'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(164,12): warning C4244: '+=': conversion from 'unsigned long' to 'uint8_t', possible loss of data
-  (compiling source file 'main.cpp')
-      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(164,12):
-      the template instantiation context (the oldest one first) is
-          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(17,25):
-          see reference to class template instantiation 'VoxelMesher<Chunk8>' being compiled
-          C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(92,13):
-          while compiling class template member function 'ChunkQuads VoxelMesher<Chunk8>::meshChunk(ChunkGrid<Chunk8> &,const glm::ivec3 &)'
-              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\world.h(122,9):
-              see the first reference to 'VoxelMesher<Chunk8>::meshChunk' in 'World<Chunk8>::meshWorld'
-              C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\main.cpp(101,17):
-              see the first reference to 'World<Chunk8>::meshWorld' in 'main'
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(96,14): warning C4267: 'initializing': conversion from 'size_t' to 'int', possible loss of data
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(103,5): error C2065: 'positionSSBO': undeclared identifier
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(122,89): error C2059: syntax error: ','
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(130,27): error C2660: 'GPUCircularBuffer<VoxelRenderer::DrawArraysIndirectCommand>::OnUsageComplete': function does not take 0 arguments
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.h(95,10):
+      see declaration of 'GPUCircularBuffer<VoxelRenderer::DrawArraysIndirectCommand>::OnUsageComplete'
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(130,27):
+      while trying to match the argument list '()'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(177,11): warning C4244: '=': conversion from 'unsigned long' to 'uint8_t', possible loss of data
-  (compiling source file 'main.cpp')
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(131,18): error C2660: 'GPUCircularBuffer<glm::vec4>::OnUsageComplete': function does not take 0 arguments
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\gpu_buffer_allocator.h(95,10):
+      see declaration of 'GPUCircularBuffer<glm::vec4>::OnUsageComplete'
+      C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(131,18):
+      while trying to match the argument list '()'
   
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(336,30): warning C4244: 'initializing': conversion from 'unsigned long' to 'uint8_t', possible loss of data
-  (compiling source file 'main.cpp')
-  
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(336,28): warning C4244: 'initializing': conversion from 'unsigned long' to 'const uint8_t', possible loss of data
-  (compiling source file 'main.cpp')
-  
-C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_mesher.h(143,11): warning C4101: 'x': unreferenced local variable
-  (compiling source file 'main.cpp')
-  
-  VoxelEngine.vcxproj -> C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\x64\Debug\VoxelEngine.exe
+C:\Omar\dumb stuff\Project_VoxelEngine\VoxelEngine\VoxelEngine\voxel_renderer.cpp(132,5): error C2146: syntax error: missing ';' before identifier 'glad_glBindVertexArray'
+  Generating Code...

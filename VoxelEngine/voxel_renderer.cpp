@@ -1,22 +1,33 @@
 #include "voxel_renderer.h"
 
 
-VoxelRenderer::VoxelRenderer(unsigned int quadBufferSize, unsigned int maxObjectsRendered) :
-    dataBuffer(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, quadBufferSize),
-    indirectCommandBuffer(GL_DRAW_INDIRECT_BUFFER, GL_DYNAMIC_DRAW, maxObjectsRendered),
-    positionSSBO(GL_SHADER_STORAGE_BUFFER, GL_DYNAMIC_DRAW, maxObjectsRendered)
+VoxelRenderer::VoxelRenderer()
+    : indirectCommandBuffer(true)
+    , positionSSBO(true)
+    , drawLines(false)
 {
-    drawLines = false;
+}
+
+VoxelRenderer::~VoxelRenderer() 
+{
+    glDeleteVertexArrays(1, &VAO);
+    glDeleteBuffers(1, &quadVBO);
+}
+
+void VoxelRenderer::Init(unsigned int quadBufferSize, unsigned int maxObjectsRendered)
+{
+    indirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, kTripleBuffer * maxObjectsRendered);
+    positionSSBO.Create(GL_SHADER_STORAGE_BUFFER, kTripleBuffer * maxObjectsRendered);
 
     //for (int i = 0; i < 4; i += 5) { 
     //    quadVertices[i] *= quadScale;
     //    quadVertices[i + 1] *= quadScale;
     //    quadVertices[i + 2] *= quadScale;
     //}
-    
 
 
-    // setup default quad that will be instanced
+
+// setup default quad that will be instanced
     glGenVertexArrays(1, &VAO);
     glBindVertexArray(VAO);
 
@@ -33,7 +44,7 @@ VoxelRenderer::VoxelRenderer(unsigned int quadBufferSize, unsigned int maxObject
     // TexCoord attribute
     glEnableVertexAttribArray(1);
     glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
-    
+
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glEnableVertexAttribArray(2);
@@ -42,12 +53,6 @@ VoxelRenderer::VoxelRenderer(unsigned int quadBufferSize, unsigned int maxObject
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glVertexAttribDivisor(2, 1);
     glBindVertexArray(0);
-}
-
-VoxelRenderer::~VoxelRenderer() 
-{
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &quadVBO);
 }
 
 void VoxelRenderer::uploadData(const std::vector<uint32_t>& data)
@@ -109,14 +114,12 @@ void VoxelRenderer::toggleDrawLines()
 void VoxelRenderer::render() 
 {
     glBindVertexArray(VAO);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, positionSSBO.getBufferID());
 
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, indirectCommandBuffer.getBufferID());
 
     if (drawLines) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
-    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, nullptr, indirectCommandBuffer.getSize(), 0);
+    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, indirectCommandBuffer.GetHeadOffset(), , 0);
     //glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, 4, 2, 131);
     //glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, 4, 2, 153);
 
@@ -124,8 +127,8 @@ void VoxelRenderer::render()
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, 0);
+    indirectCommandBuffer.OnUsageComplete();
+    positionSSBO.OnUsageComplete()
     glBindVertexArray(0);
 }
 

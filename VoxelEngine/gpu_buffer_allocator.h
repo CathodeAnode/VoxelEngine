@@ -47,20 +47,20 @@
 //
 //};
 
-enum class BufferStorage
-{
-    SystemMemory,
-    PersistentlyMappedBuffer
+struct Page {
+    size_t id;
+    size_t index;
+    size_t size;
 };
 
 template<typename Atom>
-class GPUBuffer
+class GPUPersistentlyMappedBuffer
 {
 public:
-    GPUBuffer(bool _cpuUpdates);
-    ~GPUBuffer();
+    GPUPersistentlyMappedBuffer(bool _cpuUpdates);
+    ~GPUPersistentlyMappedBuffer();
 
-    bool Create(BufferStorage _storage, GLenum _target, GLuint _count, GLbitfield _createFlags, GLbitfield _mapFlags);
+    bool Create(GLenum _target, GLuint _count);
     void Destroy();
 
     void WaitForLockedRange(size_t _lockBegin, size_t _lockLength);
@@ -71,7 +71,8 @@ public:
     void BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _count);
 
     Atom* GetContents() { return bufferContents; };
-    GLsizeiptr getSize() const { return sizeAtoms; };
+    GLsizeiptr GetSize() const { return sizeAtoms; };
+    GLuint GetName() const { return name; };
 
 private:
     GPUBufferLockManager lockManager;
@@ -79,9 +80,6 @@ private:
     GLuint name;
     GLenum target;
     GLsizeiptr sizeAtoms;
-
-
-    BufferStorage bufferStorage;
 };
 
 template<typename Atom>
@@ -90,7 +88,7 @@ class GPUCircularBuffer
 public:
     GPUCircularBuffer(bool _cpuUpdates = true);
 
-    bool Create(BufferStorage _storage, GLenum _target, GLuint _count, GLbitfield _createFlags, GLbitfield _mapFlags);
+    bool Create(GLenum _target, GLuint _count);
     void Destroy();
 
     Atom* Reserve(GLsizeiptr _count);
@@ -100,18 +98,43 @@ public:
     void BindBufferBase(GLuint _index);
     void BindBufferRange(GLuint _index, GLsizeiptr _count);
 
-    GLsizeiptr GetHead() const { return mHead; }
-    void* GetHeadOffset() const { return (void*)(mHead * sizeof(Atom)); }
-    GLsizeiptr GetSize() const { return buffer.getSize(); }
+    GLsizeiptr GetHead() const { return head; }
+    void* GetHeadOffset() const { return (void*)(head * sizeof(Atom)); }
+    GLsizeiptr GetSize() const { return buffer.GetSize(); }
 
 private:
-    GPUBuffer<Atom> buffer;
+    GPUPersistentlyMappedBuffer<Atom> buffer;
     GLsizeiptr head;
 };
 
 template<typename Atom, typename KeyType>
 class GPUPagedBuffer 
 {
+public:
+    GPUPagedBuffer();
+    ~GPUPagedBuffer();
+
+    bool Create(GLenum _target, GLuint _count);
+    void Destroy();
+
+    void AllocatePage(const KeyType& pageKey, size_t size);
+    void UploadPageData(const KeyType& pageKey, const std::vector<Atom>& data);
+    bool UpdatePage(const KeyType& pageKey, const std::vector<Atom>& data);
+
+    Page GetPageOffset(const KeyType& pageKey) const;
+
+private:
+    // Page information stored for each key (the key type is now generic)
+    std::unordered_map<KeyType, Page> pageTable;
+
+    GLuint name;
+    GLenum target;
+
+    size_t atomCount;
+    size_t pageCount;
+    size_t maxCount;
+
+    void move(size_t srcIndex, size_t dstIndex, size_t length);
 
 };
 
@@ -119,3 +142,5 @@ class GPUPagedBuffer
 
 
 #endif
+
+

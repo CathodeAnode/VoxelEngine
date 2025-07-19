@@ -12,10 +12,6 @@
 #include "types.h"
 #include "gpu_buffer_allocator.h"
 
-struct Page {
-	unsigned int index;
-	unsigned int size;
-};
 
 class VoxelRenderer {
 public:
@@ -25,9 +21,10 @@ public:
 	 *
 	 * @param quadScale Scale factor for the base quad vertices (default: 1.0f).
 	 */
-	VoxelRenderer(unsigned int quadBufferSize, unsigned int maxObjectsRendered);
+	VoxelRenderer();
 	~VoxelRenderer();
 
+	void Init(unsigned int quadBufferSize, unsigned int maxObjectsRendered);
 
 	/**
 	 * Overwrites the current data buffer with the provided quad data.
@@ -39,34 +36,7 @@ public:
 	 */
 	void uploadData(const std::vector<uint32_t>& data);
 
-	/**
-	 * Updates the data buffer by replacing a portion of the previous chunk/model data with new data.
-	 *
-	 * This function overwrites the data in the buffer between `baseIndex` and `baseIndex + oldSize`
-	 * with the provided new data. It ensures that adjacent data remains intact and handles shifting of
-	 * other data in the buffer as necessary to avoid overwriting.
-	 *
-	 * @param data New data to upload.
-	 * @param baseIndex Starting index for the update.
-	 * @param newSize Size of the new data (in bytes).
-	 * @param oldSize Size of the old data being replaced (in bytes).
-	 */
-	void updateData(const std::vector<uint32_t>& data, int index, int oldSize);
-
-	/**
-	 * Appends new data to the end of the current data buffer on the GPU.
-	 *
-	 * This function adds the provided `uint32_t` quad data to the end of the existing data buffer. It
-	 * ensures that the current buffer contents are not overwritten, and the new data is placed sequentially
-	 * after the existing data in the buffer.
-	 *
-	 * @param data Pointer to an array of `uint32_t` values representing the new quad data to be appended.
-	 * @param size The size (in bytes) of the data to be added. This should match the size of the `data` array.
-	 */
-	void addData(const std::vector<uint32_t>& data);
-	void uploadIndirectCommands(const std::vector<Page>& indirectDrawCommands);
-
-	void uploadPositionData(const std::vector<glm::vec3>& positionData);
+	bool Write
 
 	void toggleDrawLines();
 
@@ -90,9 +60,8 @@ private:
 	unsigned int VAO, quadVBO;
 
 
-	GPUBufferAllocator<uint32_t> dataBuffer;
-	GPUBufferAllocator<DrawArraysIndirectCommand> indirectCommandBuffer;
-	GPUBufferAllocator<glm::vec4> positionSSBO;
+	GPUCircularBuffer<DrawArraysIndirectCommand> indirectCommandBuffer;
+	GPUCircularBuffer<glm::vec4> positionSSBO;
 
 
 	float quadVertices[20] = {
@@ -104,6 +73,8 @@ private:
 	};
 
 	bool drawLines;
+
+	const int kTripleBuffer = 3;
 };
 
 #endif
