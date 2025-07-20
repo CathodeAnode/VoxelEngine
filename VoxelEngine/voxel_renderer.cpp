@@ -14,10 +14,13 @@ VoxelRenderer::~VoxelRenderer()
     glDeleteBuffers(1, &quadVBO);
 }
 
-void VoxelRenderer::Init(unsigned int quadBufferSize, unsigned int maxObjectsRendered)
+void VoxelRenderer::Init(unsigned int _quadBufferSize, unsigned int _maxObjectsRendered)
 {
-    indirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, kTripleBuffer * maxObjectsRendered);
-    positionSSBO.Create(GL_SHADER_STORAGE_BUFFER, kTripleBuffer * maxObjectsRendered);
+    maxObjectsRendered = _maxObjectsRendered;
+
+    dataBuffer.Create(GL_ARRAY_BUFFER, _quadBufferSize);
+    indirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, kTripleBuffer * _maxObjectsRendered);
+    positionSSBO.Create(GL_SHADER_STORAGE_BUFFER, kTripleBuffer * _maxObjectsRendered);
 
     //for (int i = 0; i < 4; i += 5) { 
     //    quadVertices[i] *= quadScale;
@@ -48,64 +51,47 @@ void VoxelRenderer::Init(unsigned int quadBufferSize, unsigned int maxObjectsRen
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, dataBuffer.getBufferID());
+    glBindBuffer(GL_ARRAY_BUFFER, dataBuffer.GetName());
     glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(uint32_t), (void*)0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glVertexAttribDivisor(2, 1);
     glBindVertexArray(0);
 }
 
-void VoxelRenderer::uploadData(const std::vector<uint32_t>& data)
+void VoxelRenderer::UploadMesh(const std::vector<uint32_t>& meshData, const uint64_t& worldPosition)
 {
-    dataBuffer.upload(data);
+    dataBuffer.UploadPageData(worldPosition, meshData);
 }
 
-void VoxelRenderer::updateData(const std::vector<uint32_t>& data, int index, int oldSize)
+bool VoxelRenderer::UpdateMesh(const std::vector<uint32_t>& newMeshData, const uint64_t& worldPosition)
 {
-    dataBuffer.replace(data, index, oldSize);
+    return dataBuffer.UpdatePage(worldPosition, newMeshData);
 }
 
-void VoxelRenderer::addData(const std::vector<uint32_t>& data) 
+Page VoxelRenderer::GetDataPageOffsets(const uint64_t& worldPosition)
 {
-    dataBuffer.append(data);
+    return dataBuffer.GetPageOffset(worldPosition);
 }
 
-void VoxelRenderer::uploadIndirectCommands(const std::vector<Page>& indirectDrawCommands)
+DrawArraysIndirectCommand* VoxelRenderer::GetDrawCommandsWritePtr()
 {
-    std::vector<DrawArraysIndirectCommand> drawCommands;
-    unsigned int indirectCmdCount = indirectDrawCommands.size();
-    drawCommands.resize(indirectCmdCount);
-
-    DrawArraysIndirectCommand cmd;
-    for (unsigned int i = 0; i < indirectDrawCommands.size(); i++) {
-        //cmd.count = 4; 
-        //cmd.first = 0;
-        cmd.baseInstance = indirectDrawCommands[i].index;
-        cmd.instanceCount = indirectDrawCommands[i].size;
-
-        //std::cout << cmd.first << " " << cmd.count << " " << cmd.baseInstance << " " << cmd.instanceCount << std::endl;
-
-        drawCommands[i] = cmd;
-    }
-
-    indirectCommandBuffer.upload(drawCommands);
+    return indirectCommandBuffer.Reserve(maxObjectsRendered);
 }
 
-void VoxelRenderer::uploadPositionData(const std::vector<glm::vec3>& positionData)
+glm::vec4* VoxelRenderer::GetPositionDataWritePtr()
 {
-    int size = positionData.size();
-    std::vector<glm::vec4> paddedPositionData;
-    paddedPositionData.resize(size);
-    for (int i = 0; i < size; i++) {
-        paddedPositionData[i] = glm::vec4(positionData[i].x, positionData[i].y, positionData[i].z, 0.0f);
-    }
-
-    positionSSBO.upload(paddedPositionData);
-
+    return positionSSBO.Reserve(maxObjectsRendered);
 }
 
+void VoxelRenderer::CompleteBuffersWrite(size_t _objectRendererd)
+{
+    indirectCmdsRenderHead = indirectCommandBuffer.GetHeadOffset();
+    renderHead = positionSSBO.OnUsageComplete(maxObjectsRendered);
+    indirectCommandBuffer.OnUsageComplete(maxObjectsRendered);
+    objectsRendered = _objectRendererd;
+}
 
-void VoxelRenderer::toggleDrawLines()
+void VoxelRenderer::ToggleDrawLines()
 {
     drawLines = !drawLines;
 }
@@ -113,22 +99,22 @@ void VoxelRenderer::toggleDrawLines()
 
 void VoxelRenderer::render() 
 {
-    glBindVertexArray(VAO);
+    if (objectsRendered == 0) return;
 
+    glBindVertexArray(VAO);
+    positionSSBO.BindBufferRange(0, renderHead, objectsRendered);
 
     if (drawLines) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
-    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, indirectCommandBuffer.GetHeadOffset(), , 0);
-    //glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, 4, 2, 131);
-    //glDrawArraysInstancedBaseInstance(GL_TRIANGLE_STRIP, 0, 4, 2, 153);
+
+    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, indirectCmdsRenderHead, objectsRendered, 0);
 
     if (drawLines) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
     }
 
-    indirectCommandBuffer.OnUsageComplete();
-    positionSSBO.OnUsageComplete()
     glBindVertexArray(0);
+
 }
 

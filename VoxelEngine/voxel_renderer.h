@@ -12,31 +12,33 @@
 #include "types.h"
 #include "gpu_buffer_allocator.h"
 
+struct DrawArraysIndirectCommand {
+	unsigned int count = 4;
+	unsigned int  instanceCount;
+	unsigned int first = 0;
+	unsigned int baseInstance;
+};
 
 class VoxelRenderer {
 public:
-	/**
-	 * Initializes the renderer with a scaled base quad for voxel rendering.
-	 * Uploads quad data to GPU used to draw all voxels in data buffer
-	 *
-	 * @param quadScale Scale factor for the base quad vertices (default: 1.0f).
-	 */
 	VoxelRenderer();
 	~VoxelRenderer();
 
 	void Init(unsigned int quadBufferSize, unsigned int maxObjectsRendered);
 
-	/**
-	 * Overwrites the current data buffer with the provided quad data.
-	 * This function uploads an array of uint32_t values, each representing an encoded voxel quads of all chunks, to the GPU buffer.
-	 *
-	 *
-	 * @param data New quad data encoded in uint32_t, refer to ChunkQuads for encoding (array of uint32_t).
-	 * @param size Length of quad data array
-	 */
-	void uploadData(const std::vector<uint32_t>& data);
+	void UploadMesh(const std::vector<uint32_t>& meshData, const uint64_t& worldPosition);
 
-	void toggleDrawLines();
+	bool UpdateMesh(const std::vector<uint32_t>& newMeshData, const uint64_t& worldPosition);
+
+	Page GetDataPageOffsets(const uint64_t& worldPosition);
+
+	// Reserve methods
+	DrawArraysIndirectCommand* GetDrawCommandsWritePtr();
+	glm::vec4* GetPositionDataWritePtr();
+
+	void CompleteBuffersWrite(size_t _objectRendererd);
+
+	void ToggleDrawLines();
 
 	/**
 	 * Renders quads from data buffer with set indirect commands
@@ -44,20 +46,10 @@ public:
 	void render();
 
 
-	inline unsigned int getDataBufferSize() const { return dataBuffer.getSize(); }
-
 private:
-
-	struct DrawArraysIndirectCommand {
-		unsigned int count = 4;
-		unsigned int  instanceCount;
-		unsigned int first = 0;
-		unsigned int baseInstance;
-	};
-
 	unsigned int VAO, quadVBO;
 
-
+	GPUPagedBuffer<uint32_t, uint64_t> dataBuffer;
 	GPUCircularBuffer<DrawArraysIndirectCommand> indirectCommandBuffer;
 	GPUCircularBuffer<glm::vec4> positionSSBO;
 
@@ -71,6 +63,12 @@ private:
 	};
 
 	bool drawLines;
+	size_t maxObjectsRendered;
+	size_t objectsRendered = 0;
+	GLsizeiptr renderHead = 0;
+	void* indirectCmdsRenderHead;
+
+
 
 	const int kTripleBuffer = 3;
 };

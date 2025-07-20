@@ -35,12 +35,12 @@ public:
 
 	//TODO: change to take pointers instead of making a copy of chunk (optmization)
 	void addChunk(const ChunkType& chunk, const glm::ivec3& chunkGridLocation) {
-		uint64_t chunkIndex = getChunkIndex(chunkGridLocation);
+		uint64_t chunkIndex = GetEncodedChunkCoords(chunkGridLocation);
 		chunks[chunkIndex] = chunk;
 	}
 
 	ChunkType* getChunk(const glm::ivec3& chunkGridLocation) {
-		uint64_t chunkIndex = getChunkIndex(chunkGridLocation);
+		uint64_t chunkIndex = GetEncodedChunkCoords(chunkGridLocation);
 		return getChunk(chunkIndex);
 	}
 
@@ -59,7 +59,7 @@ public:
 		int chunkY = (y < 0) ? (y - ChunkSize + 1) / ChunkSize : y / ChunkSize;
 		int chunkZ = (z < 0) ? (z - ChunkSize + 1) / ChunkSize : z / ChunkSize;
 
-		uint64_t chunkIndex = getChunkIndex(chunkX, chunkY, chunkZ);
+		uint64_t chunkIndex = GetEncodedChunkCoords(chunkX, chunkY, chunkZ);
 
 		if (chunks.contains(chunkIndex)) {
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
@@ -82,7 +82,7 @@ public:
 		int chunkY = (y < 0) ? (y - ChunkSize + 1) / ChunkSize : y / ChunkSize;
 		int chunkZ = (z < 0) ? (z - ChunkSize + 1) / ChunkSize : z / ChunkSize;
 
-		uint64_t chunkIndex = getChunkIndex(chunkX, chunkY, chunkZ);
+		uint64_t chunkIndex = GetEncodedChunkCoords(chunkX, chunkY, chunkZ);
 
 		if (chunks.contains(chunkIndex)) {
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
@@ -105,7 +105,7 @@ public:
 		int chunkY = (y < 0) ? (y - ChunkSize + 1) / ChunkSize : y / ChunkSize;
 		int chunkZ = (z < 0) ? (z - ChunkSize + 1) / ChunkSize : z / ChunkSize;
 
-		uint64_t chunkIndex = getChunkIndex(chunkX, chunkY, chunkZ);
+		uint64_t chunkIndex = GetEncodedChunkCoords(chunkX, chunkY, chunkZ);
 		ChunkType* chunk = getChunk(chunkIndex);
 		if (chunk) {
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
@@ -121,7 +121,7 @@ public:
 
 	char* serialize();
 
-	static uint64_t getChunkIndex(int x, int y, int z) {
+	static uint64_t GetEncodedChunkCoords(int x, int y, int z) {
 		if (x < -MAX_GRID_INT - 1 || x > MAX_GRID_INT ||
 			y < -MAX_GRID_INT - 1 || y > MAX_GRID_INT ||
 			z < -MAX_GRID_INT - 1 || z > MAX_GRID_INT) {
@@ -138,7 +138,7 @@ public:
 		return index;
 	}
 
-	static uint64_t getChunkIndex(const glm::ivec3& chunkGridLocation) { return getChunkIndex(chunkGridLocation.x, chunkGridLocation.y, chunkGridLocation.z); };
+	static uint64_t GetEncodedChunkCoords(const glm::ivec3& chunkGridLocation) { return GetEncodedChunkCoords(chunkGridLocation.x, chunkGridLocation.y, chunkGridLocation.z); };
 
 
 	static glm::ivec3 getChunkCoords(uint64_t index) {

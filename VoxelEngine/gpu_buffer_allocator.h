@@ -71,7 +71,7 @@ public:
     void BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _count);
 
     Atom* GetContents() { return bufferContents; };
-    GLsizeiptr GetSize() const { return sizeAtoms; };
+    GLsizeiptr GetSize() const { return countAtoms; };
     GLuint GetName() const { return name; };
 
 private:
@@ -79,7 +79,7 @@ private:
     Atom* bufferContents;
     GLuint name;
     GLenum target;
-    GLsizeiptr sizeAtoms;
+    GLsizeiptr countAtoms;
 };
 
 template<typename Atom>
@@ -92,11 +92,12 @@ public:
     void Destroy();
 
     Atom* Reserve(GLsizeiptr _count);
-    void OnUsageComplete(GLsizeiptr _count);
+    GLsizeiptr OnUsageComplete(GLsizeiptr _count);
 
     void BindBuffer();
     void BindBufferBase(GLuint _index);
-    void BindBufferRange(GLuint _index, GLsizeiptr _count);
+    void BindBufferHeadRange(GLuint _index, GLsizeiptr _count);
+    void BindBufferRange(GLuint _index, GLsizeiptr _offset, GLsizeiptr _count);
 
     GLsizeiptr GetHead() const { return head; }
     void* GetHeadOffset() const { return (void*)(head * sizeof(Atom)); }
@@ -104,7 +105,7 @@ public:
 
 private:
     GPUPersistentlyMappedBuffer<Atom> buffer;
-    GLsizeiptr head;
+    GLsizeiptr head = 0;
 };
 
 template<typename Atom, typename KeyType>
@@ -124,9 +125,11 @@ public:
     size_t GetCurrentSize() const { return atomCount; };
     size_t GetMaxSize() const { return maxAtomCount; };
     size_t GetPageSize() const { return pageCount; };
+    size_t GetName() const { return name; };
 
 
 private:
+    const int kInitialPendingPageOffsetsCapacity = 1000;
     std::unordered_map<KeyType, Page> pageTable;
     std::vector<int> pendingPageOffsets;
 
@@ -139,7 +142,6 @@ private:
 
     void move(size_t srcIndex, size_t dstIndex, size_t length);
 
-    const int kInitialPendingPageOffsetsCapacity = 200
 
 };
 

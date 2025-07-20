@@ -54,7 +54,7 @@ void GPUBufferLockManager::Wait(GLsync* _syncObj)
 
             if (waitRet == GL_WAIT_FAILED) {
                 //assert(!"Not sure what to do here. Probably raise an exception or something.");
-                std::cout << "wait failed????\n";
+                std::cout << "GPU sync wait failed????\n";
                 return;
             }
 
