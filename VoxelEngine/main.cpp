@@ -160,22 +160,18 @@ void processInput(Screen& screen, double dt, World8& world) {
 	}
 
 	if (Mouse::buttonUp(GLFW_MOUSE_BUTTON_LEFT)) {
-		glm::ivec3 voxel;
+		glm::ivec3 hitVoxel;
 		Ray camRay(camera.pos, camera.front, 999);
-		if (VoxelRayCast<Chunk8>::cast(camRay, world.getGrid(), voxel)) {
-			std::cout << "Voxel (global): " << voxel.x << ", " << voxel.y << ", " << voxel.z << std::endl;
+		bool didHit = VoxelRayCast8::cast(camRay, world.getGrid(), hitVoxel);
 
-			auto start = std::chrono::high_resolution_clock::now();
-			world.removeBlock(voxel);
-			auto end = std::chrono::high_resolution_clock::now();
-			std::chrono::duration<double> duration = end - start;
-			auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
-
-			std::cout << "voxel remove took: " << milliseconds << " ms" << std::endl;
+		if (didHit) {
+			//std::cout << "Voxel (global): " << hitVoxel.x << ", " << hitVoxel.y << ", " << hitVoxel.z << std::endl;
+			world.removeBlock(hitVoxel);
 		}
 		else {
 			std::cout << "miss" << std::endl;
 		}
+
 		
 	}
 

@@ -24,7 +24,7 @@ public:
 	ChunkGrid(int worldSize, float _voxelScale = 1.0f) :
 		voxelScale(_voxelScale)
 	{
-		chunks.reserve(11000);
+		//chunks.reserve(11000);
 	}
 
 	~ChunkGrid() {
@@ -55,6 +55,8 @@ public:
 	bool isVoxelSolid(int x, int y, int z) const {
 		const int ChunkSize = ChunkType::Size;
 
+		bool result = false;
+
 		int chunkX = floor(x / (float)ChunkSize);
 		int chunkY = floor(y / (float)ChunkSize);
 		int chunkZ = floor(z / (float)ChunkSize);
@@ -65,10 +67,11 @@ public:
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
 			int yC = ((y % ChunkSize) + ChunkSize) % ChunkSize;
 			int zC = ((z % ChunkSize) + ChunkSize) % ChunkSize;
-			return chunks.at(chunkIndex).isSolid(xC, yC, zC);
+			result = chunks.at(chunkIndex).isSolid(xC, yC, zC);
 		}
 
-		return false;
+
+		return result;
 	}
 
 	bool isVoxelSolid(const glm::ivec3& pos) const {
@@ -96,30 +99,6 @@ public:
 
 	uint16_t getVoxelData(glm::ivec3 coords) const {
 		return getVoxelData(coords.x, coords.y, coords.z);
-	}
-
-	void toggleBlock(int x, int y, int z) {
-		int ChunkSize = ChunkType::Size;
-
-		int chunkX = floor(x / (float)ChunkSize);
-		int chunkY = floor(y / (float)ChunkSize);
-		int chunkZ = floor(z / (float)ChunkSize);
-		std::cout << "Chunk Coordinates: " << chunkX << ", " << chunkY << ", " << chunkZ << std::endl;
-
-
-		uint64_t chunkIndex = GetEncodedChunkCoords(chunkX, chunkY, chunkZ);
-		ChunkType* chunk = getChunk(chunkIndex);
-		if (chunk) {
-			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
-			int yC = ((y % ChunkSize) + ChunkSize) % ChunkSize;
-			int zC = ((z % ChunkSize) + ChunkSize) % ChunkSize;
-			std::cout << "Voxel (local): " << xC << ", " << yC << ", " << zC << std::endl;
-			chunk->toggleBit(xC, yC, zC);
-		}
-	}
-
-	void toggleBlock(glm::ivec3 coords) {
-		toggleBlock(coords.x, coords.y, coords.z);
 	}
 
 	char* serialize();
