@@ -163,8 +163,15 @@ void processInput(Screen& screen, double dt, World8& world) {
 		glm::ivec3 voxel;
 		Ray camRay(camera.pos, camera.front, 999);
 		if (VoxelRayCast<Chunk8>::cast(camRay, world.getGrid(), voxel)) {
-			std::cout << voxel.x << ", " << voxel.y << ", " << voxel.z << std::endl;
+			std::cout << "Voxel (global): " << voxel.x << ", " << voxel.y << ", " << voxel.z << std::endl;
+
+			auto start = std::chrono::high_resolution_clock::now();
 			world.removeBlock(voxel);
+			auto end = std::chrono::high_resolution_clock::now();
+			std::chrono::duration<double> duration = end - start;
+			auto milliseconds = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count();
+
+			std::cout << "voxel remove took: " << milliseconds << " ms" << std::endl;
 		}
 		else {
 			std::cout << "miss" << std::endl;

@@ -55,9 +55,9 @@ public:
 	bool isVoxelSolid(int x, int y, int z) const {
 		const int ChunkSize = ChunkType::Size;
 
-		int chunkX = (x < 0) ? (x - ChunkSize + 1) / ChunkSize : x / ChunkSize;
-		int chunkY = (y < 0) ? (y - ChunkSize + 1) / ChunkSize : y / ChunkSize;
-		int chunkZ = (z < 0) ? (z - ChunkSize + 1) / ChunkSize : z / ChunkSize;
+		int chunkX = floor(x / (float)ChunkSize);
+		int chunkY = floor(y / (float)ChunkSize);
+		int chunkZ = floor(z / (float)ChunkSize);
 
 		uint64_t chunkIndex = GetEncodedChunkCoords(chunkX, chunkY, chunkZ);
 
@@ -78,9 +78,9 @@ public:
 	uint16_t getVoxelData(int x, int y, int z) const {
 		const int ChunkSize = ChunkType::Size;
 
-		int chunkX = (x < 0) ? (x - ChunkSize + 1) / ChunkSize : x / ChunkSize;
-		int chunkY = (y < 0) ? (y - ChunkSize + 1) / ChunkSize : y / ChunkSize;
-		int chunkZ = (z < 0) ? (z - ChunkSize + 1) / ChunkSize : z / ChunkSize;
+		int chunkX = floor(x / (float)ChunkSize);
+		int chunkY = floor(y / (float)ChunkSize);
+		int chunkZ = floor(z / (float)ChunkSize);
 
 		uint64_t chunkIndex = GetEncodedChunkCoords(chunkX, chunkY, chunkZ);
 
@@ -101,9 +101,11 @@ public:
 	void toggleBlock(int x, int y, int z) {
 		int ChunkSize = ChunkType::Size;
 
-		int chunkX = (x < 0) ? (x - ChunkSize + 1) / ChunkSize : x / ChunkSize;
-		int chunkY = (y < 0) ? (y - ChunkSize + 1) / ChunkSize : y / ChunkSize;
-		int chunkZ = (z < 0) ? (z - ChunkSize + 1) / ChunkSize : z / ChunkSize;
+		int chunkX = floor(x / (float)ChunkSize);
+		int chunkY = floor(y / (float)ChunkSize);
+		int chunkZ = floor(z / (float)ChunkSize);
+		std::cout << "Chunk Coordinates: " << chunkX << ", " << chunkY << ", " << chunkZ << std::endl;
+
 
 		uint64_t chunkIndex = GetEncodedChunkCoords(chunkX, chunkY, chunkZ);
 		ChunkType* chunk = getChunk(chunkIndex);
@@ -111,6 +113,7 @@ public:
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
 			int yC = ((y % ChunkSize) + ChunkSize) % ChunkSize;
 			int zC = ((z % ChunkSize) + ChunkSize) % ChunkSize;
+			std::cout << "Voxel (local): " << xC << ", " << yC << ", " << zC << std::endl;
 			chunk->toggleBit(xC, yC, zC);
 		}
 	}

@@ -277,15 +277,13 @@ void GPUPagedBuffer<Atom, KeyType>::move(size_t srcIndex, size_t dstIndex, size_
 		unsigned int copyBuffer;
 		glGenBuffers(1, &copyBuffer);
 		glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
-		glBufferData(GL_COPY_WRITE_BUFFER, length * sizeof(Atom), nullptr, GL_STATIC_COPY);
+		glBufferData(GL_COPY_WRITE_BUFFER, length * sizeof(Atom), nullptr, GL_DYNAMIC_COPY);
 		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 
 		// copy data into temp copy buffer
 		glBindBuffer(GL_COPY_READ_BUFFER, name);
 		glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
 		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, srcIndex * sizeof(Atom), 0, length * sizeof(Atom));
-		glBindBuffer(GL_COPY_READ_BUFFER, 0);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
 
 		// copy from temp buffer to move location
 		glBindBuffer(GL_COPY_READ_BUFFER, copyBuffer);

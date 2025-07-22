@@ -42,11 +42,11 @@ public:
 
 	void updateVisibleChunksByDistance(const glm::vec3& playerWorldCoords) {
 		// step 1: convert player world coordinates to grid coordinates
-		const int ChunkSize = ChunkType::Size;
+		const int chunkSize = ChunkType::Size;
 
-		int chunkX = playerWorldCoords.x / ChunkSize;
-		int chunkY = playerWorldCoords.y / ChunkSize;
-		int chunkZ = playerWorldCoords.z / ChunkSize;
+		int chunkX = floor(playerWorldCoords.x / (float)chunkSize);
+		int chunkY = floor(playerWorldCoords.y / (float)chunkSize);
+		int chunkZ = floor(playerWorldCoords.z / (float)chunkSize);
 		const glm::ivec3 playerGridCoords(chunkX, chunkY, chunkZ);
 
 		// step 2: check if player grid coords has changed since last call
@@ -54,7 +54,6 @@ public:
 			return; //exit early
 		}
 
-		std::cout << chunkX << ", " << chunkY << ", " << chunkZ << std::endl;
 
 		// step 3: compute chunks to be rendered around player in sphereical volume
 		const int renderDistRadius_2 = renderDistance * renderDistance;
@@ -87,9 +86,9 @@ public:
 					cmds->baseInstance = pageOffset.index;
 					cmds->instanceCount = pageOffset.size;
 
-					paddedWorldPosition->x = chunkCoords.x * ChunkSize;
-					paddedWorldPosition->y = chunkCoords.y * ChunkSize;
-					paddedWorldPosition->z = chunkCoords.z * ChunkSize;
+					paddedWorldPosition->x = chunkCoords.x * chunkSize;
+					paddedWorldPosition->y = chunkCoords.y * chunkSize;
+					paddedWorldPosition->z = chunkCoords.z * chunkSize;
 					paddedWorldPosition->w = 0; 
 					
 					cmds++;
@@ -108,10 +107,34 @@ public:
 	}
 
 	void setBlock(const glm::ivec3& coords, uint16_t type);
-	void removeBlock(const glm::ivec3& coords) {
-		chunks.toggleBlock(coords);
+	void removeBlock(const glm::ivec3& voxelWorldCoords) {
 		
-		// TODO: remesh chunk
+		int ChunkSize = ChunkType::Size;
+
+		int chunkX = floor(voxelWorldCoords.x / (float)ChunkSize);
+		int chunkY = floor(voxelWorldCoords.y / (float)ChunkSize);
+		int chunkZ = floor(voxelWorldCoords.z / (float)ChunkSize);
+		glm::ivec3 chunkCoords(chunkX, chunkY, chunkZ);
+		uint64_t encodedChunkindex = ChunkGrid<ChunkType>::GetEncodedChunkCoords(chunkCoords);
+		std::cout << "Chunk Coordinates: " << chunkX << ", " << chunkY << ", " << chunkZ << std::endl;
+
+		ChunkType* chunk = chunks.getChunk(encodedChunkindex);
+
+		if (!chunk) {
+			return;
+		}
+
+		int xC = ((voxelWorldCoords.x % ChunkSize) + ChunkSize) % ChunkSize;
+		int yC = ((voxelWorldCoords.y % ChunkSize) + ChunkSize) % ChunkSize;
+		int zC = ((voxelWorldCoords.z % ChunkSize) + ChunkSize) % ChunkSize;
+		std::cout << "Voxel (local): " << xC << ", " << yC << ", " << zC << std::endl;
+		chunk->toggleBit(xC, yC, zC);
+		
+		// re-mesh chunk
+		ChunkQuads mesh = mesher.meshChunk(chunks, chunkCoords);
+		renderer.UpdateMesh(mesh.quadData, encodedChunkindex);
+
+		// re-mesh neighbooring chunks if voxel remove was on edge of chunk
 	}
 
 	void addChunk(const glm::ivec3& chunkCoords, const ChunkType& chunk, bool doMesh = false) {
