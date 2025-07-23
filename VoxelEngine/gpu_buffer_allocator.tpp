@@ -159,23 +159,23 @@ void GPUCircularBuffer<Atom>::BindBufferRange(GLuint _index, GLsizeiptr _offset,
 
 // ------------------------------------------------------------------------------------------------------------------
 
-template<typename Atom, typename KeyType>
-GPUPagedBuffer<Atom, KeyType>::GPUPagedBuffer()
+template<typename Atom>
+GPUPagedBuffer<Atom>::GPUPagedBuffer()
 	: atomCount(0)
-	, pageCount(0)
 	, maxAtomCount(0)
 	, name(0)
-	, pendingPageOffsets(kInitialPendingPageOffsetsCapacity)
-{}
+{
+	pageTable.reserve(kInitialPageTableCapacity);
+}
 
-template<typename Atom, typename KeyType>
-GPUPagedBuffer<Atom, KeyType>::~GPUPagedBuffer()
+template<typename Atom>
+GPUPagedBuffer<Atom>::~GPUPagedBuffer()
 {
 	Destroy();
 }
 
-template<typename Atom, typename KeyType>
-bool GPUPagedBuffer<Atom, KeyType>::Create(GLenum _target, GLuint _count) noexcept
+template<typename Atom>
+bool GPUPagedBuffer<Atom>::Create(GLenum _target, GLuint _count) noexcept
 {
 	target = _target;
 	maxAtomCount = _count;
@@ -190,37 +190,33 @@ bool GPUPagedBuffer<Atom, KeyType>::Create(GLenum _target, GLuint _count) noexce
 	return true;
 }
 
-template<typename Atom, typename KeyType>
-void GPUPagedBuffer<Atom, KeyType>::Destroy() noexcept
+template<typename Atom>
+void GPUPagedBuffer<Atom>::Destroy() noexcept
 {
 	glDeleteBuffers(1, &name);
 }
 
-template<typename Atom, typename KeyType>
-void GPUPagedBuffer<Atom, KeyType>::UploadPageData(const KeyType& pageKey, const std::vector<Atom>& data) noexcept
+template<typename Atom>
+size_t GPUPagedBuffer<Atom>::UploadPageData(const std::vector<Atom>& data) noexcept
 {
 	const size_t count = data.size();
 	glBindBuffer(target, name);
 	glBufferSubData(target, atomCount * sizeof(Atom), count * sizeof(Atom), data.data());
 	glBindBuffer(target, 0);
 
-	pageCount++;
-	pageTable[pageKey] = { pageCount, atomCount, count };
+	pageTable.push_back({atomCount, count });
 	atomCount += count;
-
-	if (pageCount > pendingPageOffsets.size()) {
-		pendingPageOffsets.resize(pendingPageOffsets.size() * 2, 0);
-	}
+	return pageTable.size() - 1;
 }
 
-template<typename Atom, typename KeyType>
-bool GPUPagedBuffer<Atom, KeyType>::UpdatePage(const KeyType& pageKey, const std::vector<Atom>& data) noexcept
+template<typename Atom>
+bool GPUPagedBuffer<Atom>::UpdatePage(const size_t& pageId, const std::vector<Atom>& data) noexcept
 {
 	const size_t newPageCount = data.size();
 
 	//get page offsets
-	Page page = GetPageOffset(pageKey);
-	if (page.id == 0) {
+	Page page = GetPageOffset(pageId);
+	if (page.isNull()) {
 		return false;
 	}
 
@@ -236,38 +232,31 @@ bool GPUPagedBuffer<Atom, KeyType>::UpdatePage(const KeyType& pageKey, const std
 	glBindBuffer(target, 0);
 
 	// update buffer state in data structure
+	pageTable[pageId].size = newPageCount;
 	const size_t countDelta = newPageCount - page.size;
-	for (int i = page.id + 1; i <= pageCount; i++)
+	for (int i = pageId + 1; i < pageTable.size(); i++)
 	{
-		pendingPageOffsets[i] += countDelta; 
+		pageTable[i].index += countDelta;
 	}
 
 	atomCount += countDelta;
-	pageTable[pageKey].size = newPageCount;
 	
 	return true;
 }
 
-template<typename Atom, typename KeyType>
-Page GPUPagedBuffer<Atom, KeyType>::GetPageOffset(const KeyType& pageKey) noexcept
+template<typename Atom>
+Page GPUPagedBuffer<Atom>::GetPageOffset(const size_t& pageId) noexcept
 {
-	auto it = pageTable.find(pageKey);
-	
 	// page does not exisit
-	if (it == pageTable.end())
-	{
-		return Page(0, 0, 0);
+	if (pageId >= pageTable.size()) {
+		return Page(0, 0);
 	}
 
-	Page& page = it->second;
-	page.index += pendingPageOffsets[page.id];
-	pendingPageOffsets[page.id] = 0; // clear pending offset
-
-	return page;
+	return pageTable[pageId];
 }
 
-template<typename Atom, typename KeyType>
-void GPUPagedBuffer<Atom, KeyType>::move(size_t srcIndex, size_t dstIndex, size_t length)
+template<typename Atom>
+void GPUPagedBuffer<Atom>::move(size_t srcIndex, size_t dstIndex, size_t length)
 {
 	// if intervials overlap
 	if (srcIndex < (dstIndex + length)

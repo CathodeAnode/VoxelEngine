@@ -26,11 +26,11 @@ public:
 
 	void Init(unsigned int quadBufferSize, unsigned int maxObjectsRendered);
 
-	void UploadMesh(const std::vector<uint32_t>& meshData, const uint64_t& worldPosition);
+	size_t UploadMesh(const std::vector<uint32_t>& meshData);
 
-	bool UpdateMesh(const std::vector<uint32_t>& newMeshData, const uint64_t& worldPosition);
+	bool UpdateMesh(const std::vector<uint32_t>& newMeshData, const size_t& pageId);
 
-	Page GetDataPageOffsets(const uint64_t& worldPosition);
+	Page GetDataPageOffsets(const size_t& id);
 
 	// Reserve methods
 	DrawArraysIndirectCommand* GetDrawCommandsWritePtr();
@@ -49,7 +49,7 @@ public:
 private:
 	unsigned int VAO, quadVBO;
 
-	GPUPagedBuffer<uint32_t, uint64_t> dataBuffer;
+	GPUPagedBuffer<uint32_t> dataBuffer;
 	GPUCircularBuffer<DrawArraysIndirectCommand> indirectCommandBuffer;
 	GPUCircularBuffer<glm::vec4> positionSSBO;
 

@@ -48,9 +48,12 @@
 //};
 
 struct Page {
-    size_t id;
     size_t index;
     size_t size;
+
+    bool isNull() {
+        return index == 0 && size == 0;
+    }
 };
 
 template<typename Atom>
@@ -108,7 +111,7 @@ private:
     GLsizeiptr head = 0;
 };
 
-template<typename Atom, typename KeyType>
+template<typename Atom>
 class GPUPagedBuffer 
 {
 public:
@@ -118,26 +121,24 @@ public:
     bool Create(GLenum _target, GLuint _count) noexcept;
     void Destroy() noexcept;
 
-    void UploadPageData(const KeyType& pageKey, const std::vector<Atom>& data) noexcept;
-    bool UpdatePage(const KeyType& pageKey, const std::vector<Atom>& data) noexcept;
+    size_t UploadPageData(const std::vector<Atom>& data) noexcept;
+    bool UpdatePage(const size_t& pageId, const std::vector<Atom>& data) noexcept;
 
-    Page GetPageOffset(const KeyType& pageKey) noexcept;
+    Page GetPageOffset(const size_t& pageId) noexcept;
     size_t GetCurrentSize() const { return atomCount; };
     size_t GetMaxSize() const { return maxAtomCount; };
-    size_t GetPageSize() const { return pageCount; };
+    size_t GetPageSize() const { return pageTable.size(); };
     size_t GetName() const { return name; };
 
 
 private:
-    const int kInitialPendingPageOffsetsCapacity = 1000;
-    std::unordered_map<KeyType, Page> pageTable;
-    std::vector<int> pendingPageOffsets;
+    const int kInitialPageTableCapacity = 1000;
+    std::vector<Page> pageTable;
 
     GLuint name;
     GLenum target;
 
     size_t atomCount;
-    size_t pageCount;
     size_t maxAtomCount;
 
     void move(size_t srcIndex, size_t dstIndex, size_t length);

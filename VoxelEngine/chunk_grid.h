@@ -35,12 +35,12 @@ public:
 
 	//TODO: change to take pointers instead of making a copy of chunk (optmization)
 	void addChunk(const ChunkType& chunk, const glm::ivec3& chunkGridLocation) {
-		uint64_t chunkIndex = GetEncodedChunkCoords(chunkGridLocation);
+		uint64_t chunkIndex = EncodeChunkCoords(chunkGridLocation);
 		chunks[chunkIndex] = chunk;
 	}
 
 	ChunkType* getChunk(const glm::ivec3& chunkGridLocation) {
-		uint64_t chunkIndex = GetEncodedChunkCoords(chunkGridLocation);
+		uint64_t chunkIndex = EncodeChunkCoords(chunkGridLocation);
 		return getChunk(chunkIndex);
 	}
 
@@ -61,7 +61,7 @@ public:
 		int chunkY = floor(y / (float)ChunkSize);
 		int chunkZ = floor(z / (float)ChunkSize);
 
-		uint64_t chunkIndex = GetEncodedChunkCoords(chunkX, chunkY, chunkZ);
+		uint64_t chunkIndex = EncodeChunkCoords(chunkX, chunkY, chunkZ);
 
 		if (chunks.contains(chunkIndex)) {
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
@@ -85,7 +85,7 @@ public:
 		int chunkY = floor(y / (float)ChunkSize);
 		int chunkZ = floor(z / (float)ChunkSize);
 
-		uint64_t chunkIndex = GetEncodedChunkCoords(chunkX, chunkY, chunkZ);
+		uint64_t chunkIndex = EncodeChunkCoords(chunkX, chunkY, chunkZ);
 
 		if (chunks.contains(chunkIndex)) {
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
@@ -103,7 +103,7 @@ public:
 
 	char* serialize();
 
-	static uint64_t GetEncodedChunkCoords(int x, int y, int z) {
+	static uint64_t EncodeChunkCoords(int x, int y, int z) {
 		if (x < -MAX_GRID_INT - 1 || x > MAX_GRID_INT ||
 			y < -MAX_GRID_INT - 1 || y > MAX_GRID_INT ||
 			z < -MAX_GRID_INT - 1 || z > MAX_GRID_INT) {
@@ -120,10 +120,10 @@ public:
 		return index;
 	}
 
-	static uint64_t GetEncodedChunkCoords(const glm::ivec3& chunkGridLocation) { return GetEncodedChunkCoords(chunkGridLocation.x, chunkGridLocation.y, chunkGridLocation.z); };
+	static uint64_t EncodeChunkCoords(const glm::ivec3& chunkGridLocation) { return EncodeChunkCoords(chunkGridLocation.x, chunkGridLocation.y, chunkGridLocation.z); };
 
 
-	static glm::ivec3 getChunkCoords(uint64_t index) {
+	static glm::ivec3 DecodeChunkCoords(uint64_t index) {
 		glm::ivec3 coords;
 
 

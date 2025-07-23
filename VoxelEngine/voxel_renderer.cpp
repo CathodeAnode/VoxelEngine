@@ -58,19 +58,19 @@ void VoxelRenderer::Init(unsigned int _quadBufferSize, unsigned int _maxObjectsR
     glBindVertexArray(0);
 }
 
-void VoxelRenderer::UploadMesh(const std::vector<uint32_t>& meshData, const uint64_t& worldPosition)
+size_t VoxelRenderer::UploadMesh(const std::vector<uint32_t>& meshData)
 {
-    dataBuffer.UploadPageData(worldPosition, meshData);
+    return dataBuffer.UploadPageData(meshData);
 }
 
-bool VoxelRenderer::UpdateMesh(const std::vector<uint32_t>& newMeshData, const uint64_t& worldPosition)
+bool VoxelRenderer::UpdateMesh(const std::vector<uint32_t>& newMeshData, const size_t& pageId)
 {
-    return dataBuffer.UpdatePage(worldPosition, newMeshData);
+    return dataBuffer.UpdatePage(pageId, newMeshData);
 }
 
-Page VoxelRenderer::GetDataPageOffsets(const uint64_t& worldPosition)
+Page VoxelRenderer::GetDataPageOffsets(const size_t& id)
 {
-    return dataBuffer.GetPageOffset(worldPosition);
+    return dataBuffer.GetPageOffset(id);
 }
 
 DrawArraysIndirectCommand* VoxelRenderer::GetDrawCommandsWritePtr()
