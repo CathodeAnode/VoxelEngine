@@ -116,7 +116,7 @@ public:
 		int chunkZ = floor(voxelWorldCoords.z / (float)ChunkSize);
 		glm::ivec3 chunkCoords(chunkX, chunkY, chunkZ);
 		uint64_t encodedChunkindex = ChunkGrid<ChunkType>::GetEncodedChunkCoords(chunkCoords);
-		std::cout << "Chunk Coordinates: " << chunkX << ", " << chunkY << ", " << chunkZ << std::endl;
+		//std::cout << "Chunk Coordinates: " << chunkX << ", " << chunkY << ", " << chunkZ << std::endl;
 
 		ChunkType* chunk = chunks.getChunk(encodedChunkindex);
 
@@ -127,7 +127,7 @@ public:
 		int xC = ((voxelWorldCoords.x % ChunkSize) + ChunkSize) % ChunkSize;
 		int yC = ((voxelWorldCoords.y % ChunkSize) + ChunkSize) % ChunkSize;
 		int zC = ((voxelWorldCoords.z % ChunkSize) + ChunkSize) % ChunkSize;
-		std::cout << "Voxel (local): " << xC << ", " << yC << ", " << zC << std::endl;
+		//std::cout << "Voxel (local): " << xC << ", " << yC << ", " << zC << std::endl;
 		chunk->toggleBit(xC, yC, zC);
 		
 		// re-mesh chunk
@@ -156,7 +156,7 @@ public:
 
 	void saveModel(const char* filePath);
 
-	inline ChunkGrid<ChunkType> getGrid() const { return chunks; };
+	inline ChunkGrid<ChunkType>& getGrid() const { return const_cast<ChunkGrid<ChunkType>&>(chunks); };
 
 };
 
