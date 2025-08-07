@@ -88,7 +88,7 @@ int main() {
 
 	for (int x = -20; x <= 20; x++) {
 		for (int z = -20; z <= 20; z++) {
-			world.addChunk(glm::ivec3(x, -1, z), filledChunk);
+			world.AddChunk(glm::ivec3(x, -1, z), filledChunk);
 		}
 	}
 
@@ -98,7 +98,7 @@ int main() {
 
 	std::cout << "done inserting\n";
 	start = std::chrono::high_resolution_clock::now();
-	world.meshWorld();
+	world.MeshWorld();
 	end = std::chrono::high_resolution_clock::now();
 	duration = end - start;
 	std::cout << "Chunk meshing took " << duration.count() << " seconds.\n";
@@ -134,7 +134,7 @@ int main() {
 		shaderPrgm.use();
 		shaderPrgm.setMat4("view", *view.lock());
 		shaderPrgm.setMat4("projection", *projection.lock());
-		world.updateVisibleChunksByDistance(camera.pos);
+		world.UpdateVisibleChunksByDistance(camera.pos);
 		world.render();
 		//std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;
 
@@ -166,7 +166,7 @@ void processInput(Screen& screen, double dt, World8& world) {
 
 		if (didHit) {
 			//std::cout << "Voxel (global): " << hitVoxel.x << ", " << hitVoxel.y << ", " << hitVoxel.z << std::endl;
-			world.removeBlock(hitVoxel);
+			//world.removeBlock(hitVoxel);
 		}
 		else {
 			std::cout << "miss" << std::endl;

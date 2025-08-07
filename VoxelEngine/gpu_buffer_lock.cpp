@@ -1,24 +1,24 @@
 #include "gpu_buffer_lock.h"
 
 GPUBufferLockManager::GPUBufferLockManager(bool _cpuUpdates)
-	: CPUUpdates(_cpuUpdates)
+	: m_CPUUpdates(_cpuUpdates)
 {
 }
 
 GPUBufferLockManager::~GPUBufferLockManager()
 {
-    for (auto it = bufferLocks.begin(); it != bufferLocks.end(); ++it) {
+    for (auto it = m_BufferLocks.begin(); it != m_BufferLocks.end(); ++it) {
         Cleanup(&*it);
     }
 
-    bufferLocks.clear();
+    m_BufferLocks.clear();
 }
 
 void GPUBufferLockManager::WaitForLockedRange(size_t _lockBeginBytes, size_t _lockLength)
 {
     GPUBufferRange testRange = { _lockBeginBytes, _lockLength };
     std::vector<GPUBufferLock> swapLocks;
-    for (auto it = bufferLocks.begin(); it != bufferLocks.end(); ++it)
+    for (auto it = m_BufferLocks.begin(); it != m_BufferLocks.end(); ++it)
     {
         if (testRange.Overlaps(it->range)) {
             Wait(&it->syncObj);
@@ -29,7 +29,7 @@ void GPUBufferLockManager::WaitForLockedRange(size_t _lockBeginBytes, size_t _lo
         }
     }
 
-    bufferLocks.swap(swapLocks);
+    m_BufferLocks.swap(swapLocks);
 }
 
 void GPUBufferLockManager::LockRange(size_t _lockBeginBytes, size_t _lockLength)
@@ -38,12 +38,12 @@ void GPUBufferLockManager::LockRange(size_t _lockBeginBytes, size_t _lockLength)
     GLsync syncName = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     GPUBufferLock newLock = { newRange, syncName };
 
-    bufferLocks.push_back(newLock);
+    m_BufferLocks.push_back(newLock);
 }
 
 void GPUBufferLockManager::Wait(GLsync* _syncObj)
 {
-    if (CPUUpdates) {
+    if (m_CPUUpdates) {
         GLbitfield waitFlags = 0;
         uint64_t waitDuration = 0;
         while (1) {
@@ -60,7 +60,7 @@ void GPUBufferLockManager::Wait(GLsync* _syncObj)
 
             // After the first time, need to start flushing, and wait for a looong time.
             waitFlags = GL_SYNC_FLUSH_COMMANDS_BIT;
-            waitDuration = kOneSecondInNanoSeconds;
+            waitDuration = m_KOneSecondInNanoSeconds;
         }
     }
     else {

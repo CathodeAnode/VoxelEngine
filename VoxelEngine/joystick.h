@@ -57,16 +57,16 @@ public:
     static int getId(int i); // static method to get enum value for joystick
 
 private:
-    int present; // 1 if present, 0 if not
+    int m_Present; // 1 if present, 0 if not
  
-    int id; // joystick id
-    const char* name; // joystick name
+    int m_Id; // joystick id
+    const char* m_Name; // joystick name
 
-    int axesCount; // number of axes on joystick
-    const float* axes; // array of axes values
+    int m_AxesCount; // number of axes on joystick
+    const float* m_Axes; // array of axes values
 
-    int buttonCount; // number of buttons
-    const unsigned char* buttons; // array of button states
+    int m_ButtonCount; // number of buttons
+    const unsigned char* m_Buttons; // array of button states
 };
 
 

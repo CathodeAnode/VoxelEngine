@@ -26,20 +26,20 @@ public:
 	void setTitle(const char* _title);
 
 
-	GLFWwindow* getWindow() const { return window; }
+	GLFWwindow* getWindow() const { return m_Window; }
 
-	unsigned int getWidth() { return width; }
-	unsigned int getHeight() { return height; }
+	unsigned int getWidth() { return m_Width; }
+	unsigned int getHeight() { return m_Height; }
 
 private:
-	GLFWwindow* window;
-	static unsigned int width;
-	static unsigned int height;
-	const char* title;
+	GLFWwindow* m_Window;
+	static unsigned int m_Width;
+	static unsigned int m_Height;
+	const char* m_Title;
 
-	bool cursorEnabled;
+	bool m_CursorEnabled;
 
-	static void framebuffer_size_callback(GLFWwindow* window, int _width, int _height);
+	static void framebuffer_size_callback(GLFWwindow* m_Window, int _width, int _height);
 };
 
 #endif // !SCREEN_H

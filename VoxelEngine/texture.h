@@ -10,7 +10,7 @@
 
 class Texture {
 public:
-    Texture(std::string name);
+    Texture(std::string m_Name);
 
     // initialize with image path and type
     Texture(std::string dir, std::string path);
@@ -37,9 +37,9 @@ public:
     */
 
     // texture id
-    unsigned int id;
+    unsigned int m_Id;
     // name
-    std::string name;
+    std::string m_Name;
     // directory of image
     std::string dir;
     // name of image

@@ -8,7 +8,7 @@ class Mouse {
 public:
 	static void cursorPosCallback(GLFWwindow* window, double _x, double _y);
 	static void mouseButtonCallback(GLFWwindow* window, int button, int action, int mods);
-	static void mouseWheelCallback(GLFWwindow* window, double dx, double dy);
+	static void mouseWheelCallback(GLFWwindow* window, double m_Dx, double m_Dy);
 
 	static double getMouseX();
 	static double getMouseY();
@@ -25,22 +25,22 @@ public:
 	static bool buttonDown(int button);
 
 private:
-	static double x;
-	static double y;
+	static double m_X;
+	static double m_Y;
 
-	static double lastX;
-	static double lastY;
+	static double m_LastX;
+	static double m_LastY;
 
-	static double dx;
-	static double dy;
+	static double m_Dx;
+	static double m_Dy;
 
-	static double scrollDX;
-	static double scrollDY;
+	static double m_ScrollDX;
+	static double m_ScrollDY;
 
-	static bool firstRead;
+	static bool m_FirstRead;
 
-	static bool buttons[];
-	static bool changedButtons[];
+	static bool m_Buttons[];
+	static bool m_ChangedButtons[];
 };
 
 

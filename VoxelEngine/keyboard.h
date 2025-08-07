@@ -25,8 +25,8 @@ public:
 	static bool keyDown(int key);
 
 private:
-	static bool keys[]; // key state array (true for down, false for up)
-	static bool keysChanged[]; // key changed array (true if changed)
+	static bool m_Keys[]; // key state array (true for down, false for up)
+	static bool m_KeysChanged[]; // key changed array (true if changed)
 };
 
 

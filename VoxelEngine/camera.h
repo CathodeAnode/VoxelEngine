@@ -101,12 +101,12 @@ public:
 	std::weak_ptr<Frustum> getFrustumPtr();
 
 private:
-	float zNear, zFar;
-	int screenWidth, screenHeight;
+	float m_ZNear, m_ZFar;
+	int m_ScreenWidth, m_ScreenHeight;
 
-	std::shared_ptr<Frustum> camFrustum;
-	std::shared_ptr<glm::mat4> viewMatrix;
-	std::shared_ptr<glm::mat4> projectionMatrix;
+	std::shared_ptr<Frustum> m_CamFrustum;
+	std::shared_ptr<glm::mat4> m_ViewMatrix;
+	std::shared_ptr<glm::mat4> m_ProjectionMatrix;
 
 
 	void updateCameraVectors();

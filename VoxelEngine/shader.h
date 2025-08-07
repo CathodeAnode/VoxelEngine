@@ -14,7 +14,7 @@
 
 class Shader {
 public:
-	GLuint id; // program ID
+	GLuint m_Id; // program ID
 
 	Shader() = default;
 
@@ -25,10 +25,10 @@ public:
 	void use();
 
 	// util uniform functions
-	void setMat4(const std::string& name, glm::mat4 value) const;
-	void setBool(const std::string& name, bool value) const;
-	void setInt(const std::string& name, int value) const;
-	void setFloat(const std::string& name, float value) const;
+	void setMat4(const std::string& m_Name, glm::mat4 value) const;
+	void setBool(const std::string& m_Name, bool value) const;
+	void setInt(const std::string& m_Name, int value) const;
+	void setFloat(const std::string& m_Name, float value) const;
 
 	// TODO: implement getter functions uniform vals: getBool, getInt, getFloat
 

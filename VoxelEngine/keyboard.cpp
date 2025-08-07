@@ -1,9 +1,9 @@
 #include "keyboard.h"
 
 // key state array (true for down, false for up)
-bool Keyboard::keys[GLFW_KEY_LAST] = { 0 };
+bool Keyboard::m_Keys[GLFW_KEY_LAST] = { 0 };
 // key changed array (true if changed)
-bool Keyboard::keysChanged[GLFW_KEY_LAST] = { 0 };
+bool Keyboard::m_KeysChanged[GLFW_KEY_LAST] = { 0 };
 
 /*
     static callback
@@ -12,14 +12,14 @@ bool Keyboard::keysChanged[GLFW_KEY_LAST] = { 0 };
 // key state changed
 void Keyboard::keyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
     if (action != GLFW_RELEASE) {
-        if (!keys[key]) {
-            keys[key] = true;
+        if (!m_Keys[key]) {
+            m_Keys[key] = true;
         }
     }
     else {
-        keys[key] = false;
+        m_Keys[key] = false;
     }
-    keysChanged[key] = action != GLFW_REPEAT;
+    m_KeysChanged[key] = action != GLFW_REPEAT;
 }
 
 /*
@@ -28,23 +28,23 @@ void Keyboard::keyCallback(GLFWwindow* window, int key, int scancode, int action
 
 // get key state
 bool Keyboard::key(int key) {
-    return keys[key];
+    return m_Keys[key];
 }
 
 // get if key recently changed
 bool Keyboard::keyChanged(int key) {
-    bool ret = keysChanged[key];
+    bool ret = m_KeysChanged[key];
     // set to false because change no longer new
-    keysChanged[key] = false;
+    m_KeysChanged[key] = false;
     return ret;
 }
 
 // get if key recently changed and is up
 bool Keyboard::keyDown(int key) {
-    return keys[key] && keyChanged(key);
+    return m_Keys[key] && keyChanged(key);
 }
 
 // get if key recently changed and is down
 bool Keyboard::keyUp(int key) {
-    return !keys[key] && keyChanged(key);
+    return !m_Keys[key] && keyChanged(key);
 }

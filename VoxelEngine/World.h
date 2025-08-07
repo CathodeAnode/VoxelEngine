@@ -14,59 +14,60 @@
 template<typename ChunkType> class World {
 public:
 	World(int _worldSize, unsigned int _renderDistance) 
-		: worldSize(_worldSize * _worldSize * _worldSize)
-		, renderDistance(_renderDistance)
+		: m_WorldSize(_worldSize * _worldSize * _worldSize)
+		, m_RenderDistance(_renderDistance)
 	{
-		lastPlayerGridCoords = glm::ivec3(MAX_GRID_INT, MAX_GRID_INT, MAX_GRID_INT) + 100;
-		maxRenderableChunks = pow(renderDistance, 3);
-		renderer.Init(QUAD_FACES_PER_CHUNK* NUMBER_OF_CHUNKS, maxRenderableChunks);
+		m_LastPlayerGridCoords = glm::ivec3(MAX_GRID_INT, MAX_GRID_INT, MAX_GRID_INT) + 100;
+		m_MaxRenderableChunks = pow(m_RenderDistance, 3);
+		m_Renderer.Init(QUAD_FACES_PER_CHUNK* NUMBER_OF_CHUNKS, m_MaxRenderableChunks);
 
 	}
 
 	World(const char* filePath);
 
-	void updateVisibleChunksByDistance(const glm::vec3& playerWorldCoords) {
+	void UpdateVisibleChunksByDistance(const glm::vec3& playerWorldCoords) {
 		// step 1: convert player world coordinates to grid coordinates
 		const int chunkSize = ChunkType::Size;
 
-		int chunkX = floor(playerWorldCoords.x / (float)chunkSize);
-		int chunkY = floor(playerWorldCoords.y / (float)chunkSize);
-		int chunkZ = floor(playerWorldCoords.z / (float)chunkSize);
-		const glm::ivec3 playerGridCoords(chunkX, chunkY, chunkZ);
+		const glm::ivec3 playerGridCoords(
+			floor(playerWorldCoords.x / (float)chunkSize), 
+			floor(playerWorldCoords.y / (float)chunkSize),
+			floor(playerWorldCoords.z / (float)chunkSize)
+		);
 
 		// step 2: check if player grid coords has changed since last call
-		if (playerGridCoords == lastPlayerGridCoords) {
+		if (playerGridCoords == m_LastPlayerGridCoords) {
 			return; //exit early
 		}
 
 
-		// step 3: compute chunks to be rendered around player in sphereical volume
-		const int renderDistRadius_2 = renderDistance * renderDistance;
+		// step 3: compute m_Chunks to be rendered around player in sphereical volume
+		const int renderDistRadius_2 = m_RenderDistance * m_RenderDistance;
 
-		const size_t maxChunksRenderedPerFrame = pow(renderDistance, 3);
-		DrawArraysIndirectCommand* cmds = renderer.GetDrawCommandsWritePtr();
-		glm::vec4* paddedWorldPosition = renderer.GetPositionDataWritePtr();
+		const size_t maxChunksRenderedPerFrame = pow(m_RenderDistance, 3);
+		DrawArraysIndirectCommand* cmds = m_Renderer.GetDrawCommandsWritePtr();
+		glm::vec4* paddedWorldPosition = m_Renderer.GetPositionDataWritePtr();
 
 
-		chunksRendered = 0;
-		for (int x = -renderDistance; x <= renderDistance; x++) {
-			for (int y = -renderDistance; y <= renderDistance; y++) {
-				for (int z = -renderDistance; z <= renderDistance; z++) {
+		m_ChunksRendered = 0;
+		for (int x = -m_RenderDistance; x <= m_RenderDistance; x++) {
+			for (int y = -m_RenderDistance; y <= m_RenderDistance; y++) {
+				for (int z = -m_RenderDistance; z <= m_RenderDistance; z++) {
 					if (x * x + y * y + z * z > renderDistRadius_2) continue; // outside sphere
 
 					glm::ivec3 chunkCoords = playerGridCoords + glm::ivec3(x, y, z); // relative to player
 					uint64_t encodedChunkCoords = ChunkGrid<ChunkType>::EncodeChunkCoords(chunkCoords);
 
-					if (chunks.getChunk(encodedChunkCoords) == nullptr) continue;
+					if (m_Chunks.getChunk(encodedChunkCoords) == nullptr) continue;
 
-					Page pageOffset = renderer.GetDataPageOffsets(chunkCoordsPageID[encodedChunkCoords]);
+					Page pageOffset = m_Renderer.GetDataPageOffsets(m_ChunkCoordsPageID[encodedChunkCoords]);
 					if (pageOffset.isNull()) {
-						ChunkQuads mesh = mesher.meshChunk(chunks, chunkCoords);
-						const size_t pageId = renderer.UploadMesh(mesh.quadData);
-						pageOffset = renderer.GetDataPageOffsets(chunkCoordsPageID[encodedChunkCoords]);
+						ChunkQuads mesh = m_Mesher.meshChunk(m_Chunks, chunkCoords);
+						const size_t pageId = m_Renderer.UploadMesh(mesh.quadData);
+						pageOffset = m_Renderer.GetDataPageOffsets(m_ChunkCoordsPageID[encodedChunkCoords]);
 					}
 
-					if (chunksRendered >= maxRenderableChunks) {
+					if (m_ChunksRendered >= m_MaxRenderableChunks) {
 						break;
 					}
 
@@ -82,83 +83,103 @@ public:
 					
 					cmds++;
 					paddedWorldPosition++;
-					chunksRendered++;
+					m_ChunksRendered++;
 				}
 			}
 		}
 
-		renderer.CompleteBuffersWrite(chunksRendered);
-		lastPlayerGridCoords = playerGridCoords;
+		m_Renderer.CompleteBuffersWrite(m_ChunksRendered);
+		m_LastPlayerGridCoords = playerGridCoords;
 	}
 
 	void render() {
-		renderer.render();
+		m_Renderer.render();
 	}
 
-	void setBlock(const glm::ivec3& coords, uint16_t type);
-	void removeBlock(const glm::ivec3& voxelWorldCoords) {
-		
-		int ChunkSize = ChunkType::Size;
+	//void setBlock(const glm::ivec3& coords, uint16_t type);
+	//void removeBlock(const glm::ivec3& voxelWorldCoords) {
+	//	
+	//	const int chunkSize = ChunkType::Size;
 
-		int chunkX = floor(voxelWorldCoords.x / (float)ChunkSize);
-		int chunkY = floor(voxelWorldCoords.y / (float)ChunkSize);
-		int chunkZ = floor(voxelWorldCoords.z / (float)ChunkSize);
-		glm::ivec3 chunkCoords(chunkX, chunkY, chunkZ);
-		uint64_t encodedChunkCoords = ChunkGrid<ChunkType>::EncodeChunkCoords(chunkCoords);
-		//std::cout << "Chunk Coordinates: " << chunkX << ", " << chunkY << ", " << chunkZ << std::endl;
+	//	glm::ivec3 chunkCoords(
+	//		floor(voxelWorldCoords.x / (float)chunkSize),
+	//		floor(voxelWorldCoords.y / (float)chunkSize),
+	//		floor(voxelWorldCoords.z / (float)chunkSize)
+	//	);
+	//	//std::cout << "Chunk Coordinates: " << chunkX << ", " << chunkY << ", " << chunkZ << std::endl;
 
-		ChunkType* chunk = chunks.getChunk(encodedChunkCoords);
+	//	ChunkType* chunk = m_Chunks.getChunk(chunkCoords);
 
-		if (!chunk) {
-			return;
-		}
+	//	if (!chunk) {
+	//		return;
+	//	}
 
-		int xC = ((voxelWorldCoords.x % ChunkSize) + ChunkSize) % ChunkSize;
-		int yC = ((voxelWorldCoords.y % ChunkSize) + ChunkSize) % ChunkSize;
-		int zC = ((voxelWorldCoords.z % ChunkSize) + ChunkSize) % ChunkSize;
-		//std::cout << "Voxel (local): " << xC << ", " << yC << ", " << zC << std::endl;
-		chunk->toggleBit(xC, yC, zC);
-		
-		// re-mesh chunk
-		ChunkQuads mesh = mesher.meshChunk(chunks, chunkCoords);
-		renderer.UpdateMesh(mesh.quadData, chunkCoordsPageID[encodedChunkCoords]);
+	//	size_t xLocal = ((voxelWorldCoords.x % chunkSize) + chunkSize) % chunkSize;
+	//	size_t yLocal = ((voxelWorldCoords.y % chunkSize) + chunkSize) % chunkSize;
+	//	size_t zLocal = ((voxelWorldCoords.z % chunkSize) + chunkSize) % chunkSize;
+	//	//std::cout << "Voxel (local): " << xC << ", " << yC << ", " << zC << std::endl;
+	//	chunk->toggleBit(xLocal, yLocal, zLocal);
+	//	
+	//	// re-mesh chunk
+	//	ChunkQuads mesh = m_Mesher.meshChunk(m_Chunks, chunkCoords);
+	//	uint64_t encodedChunkCoords = ChunkGrid<ChunkType>::EncodeChunkCoords(chunkCoords);
+	//	m_Renderer.UpdateMesh(mesh.quadData, m_ChunkCoordsPageID[encodedChunkCoords]);
 
-		// re-mesh neighbooring chunks if voxel remove was on edge of chunk
+	//	// re-mesh neighbooring m_Chunks if voxel remove was on edge of chunk
+	//	//if (xLocal == 0) {
+	//	//	glm::ivec3 neighboorChunk = chunkCoords + glm::ivec3(-1, 0, 0);
+	//	//	ChunkQuads mesh = m_Mesher.meshChunk(m_Chunks, neighboorChunk);
+	//	//	uint64_t encodedNeighboorChunkCoords = ChunkGrid<ChunkType>::EncodeChunkCoords(neighboorChunk);
+	//	//	m_Renderer.UpdateMesh(mesh.quadData, m_ChunkCoordsPageID[encodedNeighboorChunkCoords]);
+	//	//}
+	//	//else if (xLocal == chunkSize - 1) {
+	//	//	glm::ivec3 neighboorChunk = chunkCoords + glm::ivec3(1, 0, 0);
+	//	//	ChunkQuads mesh = m_Mesher.meshChunk(m_Chunks, neighboorChunk);
+	//	//	uint64_t encodedNeighboorChunkCoords = ChunkGrid<ChunkType>::EncodeChunkCoords(neighboorChunk);
+	//	//	m_Renderer.UpdateMesh(mesh.quadData, m_ChunkCoordsPageID[encodedNeighboorChunkCoords]);
+	//	//}
+	//	
+	//}
+
+	void AddChunk(const glm::ivec3& chunkCoords, const ChunkType& chunk, bool doMesh = false) {
+		m_Chunks.addChunk(chunk, chunkCoords);
 	}
+	void RemoveChunk(const glm::ivec3& chunkCoords);
 
-	void addChunk(const glm::ivec3& chunkCoords, const ChunkType& chunk, bool doMesh = false) {
-		chunks.addChunk(chunk, chunkCoords);
-	}
-	void removeChunk(const glm::ivec3& chunkCoords);
-
-	void meshWorld() {
+	void MeshWorld() {
 		ChunkQuads mesh;
 
-		for (const auto& [encodedChunkCoords, _] : chunks) {
+		for (const auto& [encodedChunkCoords, _] : m_Chunks) {
 			glm::ivec3 coords = ChunkGrid<ChunkType>::DecodeChunkCoords(encodedChunkCoords);
-			mesh = mesher.meshChunk(chunks, coords);
-			const size_t pageId = renderer.UploadMesh(mesh.quadData);
-			chunkCoordsPageID[encodedChunkCoords] = pageId;
+			mesh = m_Mesher.meshChunk(m_Chunks, coords);
+			const size_t pageId = m_Renderer.UploadMesh(mesh.quadData);
+			m_ChunkCoordsPageID[encodedChunkCoords] = pageId;
 		}
 
+	}
+
+	void UpdateChunkMesh(const glm::ivec3& coords) {
+		// step 1: calculate mesh of chunk
+		// step 2: upload new mesh GPU
+		// step 3: update indirect draw commands if chunk is being drawn
 	}
 
 	void saveModel(const char* filePath);
 
-	inline ChunkGrid<ChunkType>& getGrid() const { return const_cast<ChunkGrid<ChunkType>&>(chunks); };
+	inline ChunkGrid<ChunkType>& getGrid() const { return const_cast<ChunkGrid<ChunkType>&>(m_Chunks); };
 
 private:
-	ChunkGrid<ChunkType> chunks;
-	VoxelMesher<ChunkType> mesher;
-	VoxelRenderer renderer;
+	ChunkGrid<ChunkType> m_Chunks;
+	VoxelMesher<ChunkType> m_Mesher;
+	VoxelRenderer m_Renderer;
 
-	size_t worldSize; // NxNxN chunks
-	int renderDistance;
-	size_t maxRenderableChunks;
-	size_t chunksRendered;
-	glm::ivec3 lastPlayerGridCoords;
+	size_t m_WorldSize; // NxNxN m_Chunks
+	int m_RenderDistance;
+	size_t m_MaxRenderableChunks;
+	size_t m_ChunksRendered;
+	glm::ivec3 m_LastPlayerGridCoords;
 
-	std::unordered_map<uint64_t, size_t> chunkCoordsPageID;
+	std::unordered_map<uint64_t, size_t> m_ChunkCoordsPageID;
 
 };
 

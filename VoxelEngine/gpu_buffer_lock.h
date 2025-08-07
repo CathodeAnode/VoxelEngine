@@ -35,13 +35,13 @@ private:
 	void Wait(GLsync* _syncObj);
 	void Cleanup(GPUBufferLock* _bufferLock);
 
-	std::vector<GPUBufferLock> bufferLocks;
+	std::vector<GPUBufferLock> m_BufferLocks;
 
 
 	// if true, CPU updates, else GPU updates
-	bool CPUUpdates;
+	bool m_CPUUpdates;
 
-	const uint64_t kOneSecondInNanoSeconds = 1000000000;
+	const uint64_t m_KOneSecondInNanoSeconds = 1000000000;
 };
 
 #endif

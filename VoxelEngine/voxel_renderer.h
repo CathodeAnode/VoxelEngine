@@ -24,13 +24,13 @@ public:
 	VoxelRenderer();
 	~VoxelRenderer();
 
-	void Init(unsigned int quadBufferSize, unsigned int maxObjectsRendered);
+	void Init(unsigned int quadBufferSize, unsigned int m_MaxObjectsRendered);
 
 	size_t UploadMesh(const std::vector<uint32_t>& meshData);
 
 	bool UpdateMesh(const std::vector<uint32_t>& newMeshData, const size_t& pageId);
 
-	Page GetDataPageOffsets(const size_t& id);
+	Page GetDataPageOffsets(const size_t& m_Id);
 
 	// Reserve methods
 	DrawArraysIndirectCommand* GetDrawCommandsWritePtr();
@@ -47,14 +47,14 @@ public:
 
 
 private:
-	unsigned int VAO, quadVBO;
+	unsigned int m_VAO, m_QuadVBO;
 
-	GPUPagedBuffer<uint32_t> dataBuffer;
-	GPUCircularBuffer<DrawArraysIndirectCommand> indirectCommandBuffer;
-	GPUCircularBuffer<glm::vec4> positionSSBO;
+	GPUPagedBuffer<uint32_t> m_DataBuffer;
+	GPUCircularBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
+	GPUCircularBuffer<glm::vec4> m_PositionSSBO;
 
 
-	float quadVertices[20] = {
+	float m_QuadVertices[20] = {
 		// position             texture
 		0.0f,  0.0f, 0.0f,    0.0f, 1.0f,    // Bottom left
 		0.0f,  1.0f, 0.0f,    1.0f, 1.0f,    // Top Left
@@ -62,11 +62,11 @@ private:
 		1.0f,  1.0f, 0.0f,    1.0f, 0.0f  // Top Right
 	};
 
-	bool drawLines;
-	size_t maxObjectsRendered;
-	size_t objectsRendered = 0;
-	GLsizeiptr renderHead = 0;
-	void* indirectCmdsRenderHead;
+	bool m_DrawLines;
+	size_t m_MaxObjectsRendered;
+	size_t m_ObjectsRendered = 0;
+	GLsizeiptr m_RenderHead = 0;
+	void* m_IndirectCmdsRenderHead;
 
 
 

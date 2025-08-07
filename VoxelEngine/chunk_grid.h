@@ -8,7 +8,7 @@
 #include <unordered_map>
 #include <stdexcept>
 #include <limits>
-#include "iostream"
+#include <iostream>
 
 #include "chunk.h"
 #include "types.h"
@@ -21,14 +21,14 @@ public:
 	ChunkGrid(char* serializedData); // load from serialized data
 
 	// generate flat world with given size
-	ChunkGrid(int worldSize, float _voxelScale = 1.0f) :
-		voxelScale(_voxelScale)
+	ChunkGrid(int m_WorldSize, float _voxelScale = 1.0f) :
+		m_VoxelScale(_voxelScale)
 	{
-		//chunks.reserve(11000);
+		//m_Chunks.reserve(11000);
 	}
 
 	~ChunkGrid() {
-		chunks.clear();
+		m_Chunks.clear();
 	}
 
 	ChunkGrid() {};
@@ -36,7 +36,7 @@ public:
 	//TODO: change to take pointers instead of making a copy of chunk (optmization)
 	void addChunk(const ChunkType& chunk, const glm::ivec3& chunkGridLocation) {
 		uint64_t chunkIndex = EncodeChunkCoords(chunkGridLocation);
-		chunks[chunkIndex] = chunk;
+		m_Chunks[chunkIndex] = chunk;
 	}
 
 	ChunkType* getChunk(const glm::ivec3& chunkGridLocation) {
@@ -45,8 +45,8 @@ public:
 	}
 
 	ChunkType* getChunk(const uint64_t& index) {
-		if (chunks.contains(index)) {
-			return &chunks.at(index);
+		if (m_Chunks.contains(index)) {
+			return &m_Chunks.at(index);
 		}
 
 		return nullptr;
@@ -63,11 +63,11 @@ public:
 
 		uint64_t chunkIndex = EncodeChunkCoords(chunkX, chunkY, chunkZ);
 
-		if (chunks.contains(chunkIndex)) {
+		if (m_Chunks.contains(chunkIndex)) {
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
 			int yC = ((y % ChunkSize) + ChunkSize) % ChunkSize;
 			int zC = ((z % ChunkSize) + ChunkSize) % ChunkSize;
-			result = chunks.at(chunkIndex).isSolid(xC, yC, zC);
+			result = m_Chunks.at(chunkIndex).isSolid(xC, yC, zC);
 		}
 
 
@@ -87,11 +87,11 @@ public:
 
 		uint64_t chunkIndex = EncodeChunkCoords(chunkX, chunkY, chunkZ);
 
-		if (chunks.contains(chunkIndex)) {
+		if (m_Chunks.contains(chunkIndex)) {
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
 			int yC = ((y % ChunkSize) + ChunkSize) % ChunkSize;
 			int zC = ((z % ChunkSize) + ChunkSize) % ChunkSize;
-			return chunks.at(chunkIndex).getVoxel(xC, yC, zC);
+			return m_Chunks.at(chunkIndex).getVoxel(xC, yC, zC);
 		}
 
 		return std::numeric_limits<uint16_t>::max();
@@ -139,14 +139,14 @@ public:
  		return coords;
 	}
 
-	inline float getVoxelScale() const { return voxelScale; };
+	inline float getVoxelScale() const { return m_VoxelScale; };
 
 
-	std::unordered_map<uint64_t, ChunkType>::iterator begin() const { return chunks.begin(); }
-	std::unordered_map<uint64_t, ChunkType>::iterator end() const { return chunks.end(); }
+	std::unordered_map<uint64_t, ChunkType>::iterator begin() const { return m_Chunks.begin(); }
+	std::unordered_map<uint64_t, ChunkType>::iterator end() const { return m_Chunks.end(); }
 
-	std::unordered_map<uint64_t, ChunkType>::iterator begin() { return chunks.begin(); }
-	std::unordered_map<uint64_t, ChunkType>::iterator end() { return chunks.end(); }
+	std::unordered_map<uint64_t, ChunkType>::iterator begin() { return m_Chunks.begin(); }
+	std::unordered_map<uint64_t, ChunkType>::iterator end() { return m_Chunks.end(); }
 
 
 private:
@@ -157,8 +157,8 @@ private:
 	 * bit 63 extra
 	 * max supported world size: 2,097,152 (-1,048,576 to 1,048,576)
 	*/
-	std::unordered_map<uint64_t, ChunkType> chunks;
-	float voxelScale;
+	std::unordered_map<uint64_t, ChunkType> m_Chunks;
+	float m_VoxelScale;
 };
 
 typedef ChunkGrid<Chunk8> ChunkGrid8;

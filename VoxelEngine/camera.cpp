@@ -3,10 +3,10 @@
 
 Camera::Camera(glm::vec3 position, int _screenWidth, int _screenHeight, float _zNear, float _zFar)
 	: pos(position),
-		screenWidth(_screenWidth),
-		screenHeight(_screenHeight),
-		zNear(_zNear),
-		zFar(_zFar),
+		m_ScreenWidth(_screenWidth),
+		m_ScreenHeight(_screenHeight),
+		m_ZNear(_zNear),
+		m_ZFar(_zFar),
 		worldUp(glm::vec3(0.0f, 1.0f, 0.0f)),
 		yaw(90.0f),
 		pitch(0.0f),
@@ -14,9 +14,9 @@ Camera::Camera(glm::vec3 position, int _screenWidth, int _screenHeight, float _z
 		zoom(45.0f),
 		front(glm::vec3(0.0f, 0.0f, -1.0f)) {
 
-	viewMatrix = std::make_shared<glm::mat4>(1.0f);
-	projectionMatrix = std::make_shared<glm::mat4>(1.0f);
-	camFrustum = std::make_shared<Frustum>();
+	m_ViewMatrix = std::make_shared<glm::mat4>(1.0f);
+	m_ProjectionMatrix = std::make_shared<glm::mat4>(1.0f);
+	m_CamFrustum = std::make_shared<Frustum>();
 	updateCameraVectors();
 }
 
@@ -77,25 +77,25 @@ void Camera::updateCameraZoom(double dy) {
 
 void Camera::update()
 {
-	*viewMatrix = glm::lookAt(pos, pos + front, up);
-	*projectionMatrix = glm::perspective(glm::radians(zoom), (float)screenWidth / screenHeight, zNear, zFar);
+	*m_ViewMatrix = glm::lookAt(pos, pos + front, up);
+	*m_ProjectionMatrix = glm::perspective(glm::radians(zoom), (float)m_ScreenWidth / m_ScreenHeight, m_ZNear, m_ZFar);
 
 	//calculateFrustum();
 }
 
 std::weak_ptr<glm::mat4> Camera::getViewMatrixPtr()
 {
-	return viewMatrix;
+	return m_ViewMatrix;
 }
 
 std::weak_ptr<glm::mat4> Camera::getProjMatrixPtr()
 {
-	return projectionMatrix;
+	return m_ProjectionMatrix;
 }
 
 std::weak_ptr<Frustum> Camera::getFrustumPtr()
 {
-	return camFrustum;
+	return m_CamFrustum;
 }
 
 void Camera::updateCameraVectors() {
@@ -112,20 +112,20 @@ void Camera::updateCameraVectors() {
 
 void Camera::calculateFrustum()
 {
-	glm::vec4 row0 = glm::row(*viewMatrix, 0);
-	glm::vec4 row1 = glm::row(*viewMatrix, 1);
-	glm::vec4 row2 = glm::row(*viewMatrix, 2);
-	glm::vec4 row3 = glm::row(*viewMatrix, 3);
+	glm::vec4 row0 = glm::row(*m_ViewMatrix, 0);
+	glm::vec4 row1 = glm::row(*m_ViewMatrix, 1);
+	glm::vec4 row2 = glm::row(*m_ViewMatrix, 2);
+	glm::vec4 row3 = glm::row(*m_ViewMatrix, 3);
 
-	camFrustum->leftClipPlane = row0 + row3;
-	camFrustum->rightClipPlane = row0 - row3;
-	camFrustum->bottomClipPlane = row1 + row3;
-	camFrustum->topClipPlane = row1 - row3;
-	camFrustum->nearClipPlane = row2 + row3;
-	camFrustum->farClipPlane = row2 - row3;
+	m_CamFrustum->leftClipPlane = row0 + row3;
+	m_CamFrustum->rightClipPlane = row0 - row3;
+	m_CamFrustum->bottomClipPlane = row1 + row3;
+	m_CamFrustum->topClipPlane = row1 - row3;
+	m_CamFrustum->nearClipPlane = row2 + row3;
+	m_CamFrustum->farClipPlane = row2 - row3;
 
 	// --- Compute minCorner and maxCorner of frustum AABB in world space ---
-	glm::mat4 vp = (*projectionMatrix) * (*viewMatrix);
+	glm::mat4 vp = (*m_ProjectionMatrix) * (*m_ViewMatrix);
 	glm::mat4 invVP = glm::inverse(vp);
 
 	// Clip space cube corners [-1, 1]
@@ -151,6 +151,6 @@ void Camera::calculateFrustum()
 		maxCorner = glm::max(maxCorner, glm::vec3(worldPos));
 	}
 
-	camFrustum->minCorner = minCorner;
-	camFrustum->maxCorner = maxCorner;
+	m_CamFrustum->minCorner = minCorner;
+	m_CamFrustum->maxCorner = maxCorner;
 }

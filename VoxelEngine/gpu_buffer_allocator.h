@@ -5,6 +5,7 @@
 #include <glfw/glfw3.h>
 
 #include <vector>
+#include <stack>
 #include <stdexcept>
 
 #include "gpu_buffer_lock.h"
@@ -39,7 +40,7 @@
 //	GLenum type;
 //	GLenum usage;
 //
-//	// assumes move is valid in buffer, i.e. endIndex + size < buffersize and startIndex < buffersize
+//	// assumes move is valid in m_Buffer, i.e. endIndex + size < buffersize and startIndex < buffersize
 //	// does not change currentSize
 //	void move(unsigned int startIndex, unsigned int endIndex, unsigned int size);
 //
@@ -47,13 +48,20 @@
 //
 //};
 
-struct Page {
+struct Page 
+{
     size_t index;
     size_t size;
 
     bool isNull() {
         return index == 0 && size == 0;
     }
+};
+
+struct GPUObjectAllocation
+{
+    std::vector<size_t> pagesAllocated;
+    size_t m_AtomCount;
 };
 
 template<typename Atom>
@@ -73,16 +81,16 @@ public:
     void BindBufferBase(GLuint _index);
     void BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _count);
 
-    Atom* GetContents() { return bufferContents; };
-    GLsizeiptr GetSize() const { return countAtoms; };
-    GLuint GetName() const { return name; };
+    Atom* GetContents() { return m_BufferContents; };
+    GLsizeiptr GetSize() const { return m_CountAtoms; };
+    GLuint GetName() const { return m_Name; };
 
 private:
-    GPUBufferLockManager lockManager;
-    Atom* bufferContents;
-    GLuint name;
-    GLenum target;
-    GLsizeiptr countAtoms;
+    GPUBufferLockManager m_LockManager;
+    Atom* m_BufferContents;
+    GLuint m_Name;
+    GLenum m_Target;
+    GLsizeiptr m_CountAtoms;
 };
 
 template<typename Atom>
@@ -102,13 +110,13 @@ public:
     void BindBufferHeadRange(GLuint _index, GLsizeiptr _count);
     void BindBufferRange(GLuint _index, GLsizeiptr _offset, GLsizeiptr _count);
 
-    GLsizeiptr GetHead() const { return head; }
-    void* GetHeadOffset() const { return (void*)(head * sizeof(Atom)); }
-    GLsizeiptr GetSize() const { return buffer.GetSize(); }
+    GLsizeiptr GetHead() const { return m_Head; }
+    void* GetHeadOffset() const { return (void*)(m_Head * sizeof(Atom)); }
+    GLsizeiptr GetSize() const { return m_Buffer.GetSize(); }
 
 private:
-    GPUPersistentlyMappedBuffer<Atom> buffer;
-    GLsizeiptr head = 0;
+    GPUPersistentlyMappedBuffer<Atom> m_Buffer;
+    GLsizeiptr m_Head = 0;
 };
 
 template<typename Atom>
@@ -125,30 +133,51 @@ public:
     bool UpdatePage(const size_t& pageId, const std::vector<Atom>& data) noexcept;
 
     Page GetPageOffset(const size_t& pageId) noexcept;
-    size_t GetCurrentSize() const { return atomCount; };
-    size_t GetMaxSize() const { return maxAtomCount; };
-    size_t GetPageSize() const { return pageTable.size(); };
-    size_t GetName() const { return name; };
+    size_t GetCurrentSize() const { return m_AtomCount; };
+    size_t GetMaxSize() const { return m_MaxAtomCount; };
+    size_t GetPageSize() const { return m_PageTable.size(); };
+    size_t GetName() const { return m_Name; };
 
 
 private:
-    const int kInitialPageTableCapacity = 1000;
-    std::vector<Page> pageTable;
+    const int m_KInitialPageTableCapacity = 1000;
+    std::vector<Page> m_PageTable;
 
-    GLuint name;
-    GLenum target;
+    GLuint m_Name;
+    GLenum m_Target;
 
-    size_t atomCount;
-    size_t maxAtomCount;
+    size_t m_AtomCount;
+    size_t m_MaxAtomCount;
 
     void move(size_t srcIndex, size_t dstIndex, size_t length);
 
 
 };
 
+template<typename Atom, typename ObjectID>
+class GPUFixedPagedBuffer
+{
+public:
+    GPUFixedPagedBuffer(bool cpuUpdates = true);
+
+    bool Create(GLenum m_Target, size_t pageSize, size_t pageCount) noexcept;
+    void Destroy() noexcept;
+
+    void AllocatePages(ObjectID obj, size_t pages);
+    void ObjectPushBack(ObjectID obj, Atom data);
+    void FreeObject(ObjectID obj);
+
+    GPUObjectAllocation GetObjectPageAllocations(ObjectID obj);
+
+private:
+    GPUPersistentlyMappedBuffer<Atom> m_Buffer;
+    std::stack<size_t> m_FreePages;    
+    std::unordered_map<ObjectID, GPUObjectAllocation> m_ObjectPages; // map obj id => allocated pages, count of elements
+
+    size_t m_PageSize;
+};
+
 #include "gpu_buffer_allocator.tpp"
 
 
 #endif
-
-

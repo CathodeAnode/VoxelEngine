@@ -3,8 +3,8 @@
 #include <iostream>
 
 
-Texture::Texture(std::string name)
-    : name(name) {
+Texture::Texture(std::string m_Name)
+    : m_Name(m_Name) {
     generate();
 }
 
@@ -16,7 +16,7 @@ Texture::Texture(std::string dir, std::string path)
 
 // generate texture id
 void Texture::generate() {
-    glGenTextures(1, &id);
+    glGenTextures(1, &m_Id);
 }
 
 // load texture from path
@@ -38,7 +38,7 @@ void Texture::load(bool flip) {
     };
 
     if (data) {
-        glBindTexture(GL_TEXTURE_2D, id);
+        glBindTexture(GL_TEXTURE_2D, m_Id);
         glTexImage2D(GL_TEXTURE_2D, 0, colorMode, width, height, 0, colorMode, GL_UNSIGNED_BYTE, data);
         glGenerateMipmap(GL_TEXTURE_2D);
 
@@ -67,9 +67,9 @@ void Texture::setParams(GLenum texMinFilter, GLenum texMagFilter, GLenum wrapS, 
 
 // bind texture id
 void Texture::bind() {
-    glBindTexture(GL_TEXTURE_2D, id);
+    glBindTexture(GL_TEXTURE_2D, m_Id);
 }
 
 void Texture::cleanup() {
-    glDeleteTextures(1, &id);
+    glDeleteTextures(1, &m_Id);
 }
