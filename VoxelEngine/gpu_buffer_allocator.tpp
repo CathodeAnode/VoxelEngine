@@ -216,7 +216,7 @@ bool GPUPagedBuffer<Atom>::UpdatePage(const size_t& pageId, const std::vector<At
 
 	//get page offsets
 	Page page = GetPageOffset(pageId);
-	if (page.isNull()) {
+	if (page.IsNull()) {
 		return false;
 	}
 
@@ -303,8 +303,69 @@ template<typename Atom, typename ObjectID>
 bool GPUFixedPagedBuffer<Atom, ObjectID>::Create(GLenum m_Target, size_t pageSize, size_t pageCount) noexcept
 {
 	m_PageSize = pageSize;
-	// populate <free pages> data struture
+	m_FreePages.emplace_back(PageRange(0, pageCount));
 
 	return m_Buffer.Create(m_Target, pageSize * pageCount);
+}
+
+template<typename Atom, typename ObjectID>
+void GPUFixedPagedBuffer<Atom, ObjectID>::Destroy() noexcept
+{
+	m_PageSize = 0;
+	m_FreePages.clear();
+
+	m_Buffer.Destroy();
+}
+
+template<typename Atom, typename ObjectID>
+bool GPUFixedPagedBuffer<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsigned int pages)
+{
+	assert(pages >= 0)
+
+	if (pages == 0 || m_FreePages.empty())
+		return false;
+
+	std::vector<PageRange> allocatedRanges;
+
+	// temp free page data struct for rollback if needed
+	auto freePagesBackup = m_FreePages;
+
+	// find pages that will be allocated to obj
+	do 
+	{
+		PageRange& range = m_FreePages.front();
+		const unsigned int rangeSize = range.GetSize();
+		const unsigned int pagesToAllocate = std::min(pages, rangeSize)
+
+		allocatedRanges.emplace_back(PageRange(range.start, range.start + pagesToAllocate));
+
+		// trim range and remove if necessary
+		if (!range.TrimStart(pages))
+		{
+			m_FreePages.erase(m_FreePages.begin());
+		}
+		pages -= pagesToAllocate;
+
+	} while (pages > 0 && !m_FreePages.empty());
+
+	// not enough pages to allocate 
+	if (pages > 0)
+	{
+		m_FreePages = std::move(freePagesBackup); // revert state
+		return false;
+	}
+
+	GPUObjectAllocation allocation;
+	allocation.pagesAllocated = std::move(allocatedRanges);
+	allocation.countOnLastPage = 0;
+
+	m_ObjectPages[obj] = std::move(allocation);
+	return true;
+}
+
+template<typename Atom, typename ObjectID>
+bool GPUFixedPagedBuffer<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, const Atom& data)
+{
+	return false;
 }
 

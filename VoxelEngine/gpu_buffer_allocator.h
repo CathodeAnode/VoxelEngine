@@ -7,6 +7,7 @@
 #include <vector>
 #include <stack>
 #include <stdexcept>
+#include <cassert>
 
 #include "gpu_buffer_lock.h"
 
@@ -50,18 +51,12 @@
 
 struct Page 
 {
-    size_t index;
+    unsigned int index;
     size_t size;
 
-    bool isNull() {
+    bool IsNull() {
         return index == 0 && size == 0;
     }
-};
-
-struct GPUObjectAllocation
-{
-    std::vector<size_t> pagesAllocated;
-    size_t m_AtomCount;
 };
 
 template<typename Atom>
@@ -163,15 +158,34 @@ public:
     bool Create(GLenum m_Target, size_t pageSize, size_t pageCount) noexcept;
     void Destroy() noexcept;
 
-    void AllocatePages(ObjectID obj, size_t pages);
-    void ObjectPushBack(ObjectID obj, Atom data);
-    void FreeObject(ObjectID obj);
+    bool AllocatePages(const ObjectID& obj, unsigned int pages);
+    bool PushBackToObject(const ObjectID& obj, const Atom& data);
+    bool DeallocateObject(const ObjectID& obj);
 
-    GPUObjectAllocation GetObjectPageAllocations(ObjectID obj);
+    std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj);
 
 private:
+    struct PageRange {
+        unsigned int start;
+        unsigned int end;
+
+        bool TrimStart(unsigned int n)
+        {
+            start += n;
+            return start <= end; // return if range is still valid
+        }
+
+        inline unsigned int GetSize() const { return end - start; };
+    };
+
+    struct GPUObjectAllocation
+    {
+        std::vector<PageRange> pagesAllocated;
+        size_t countOnLastPage;
+    };
+
     GPUPersistentlyMappedBuffer<Atom> m_Buffer;
-    std::stack<size_t> m_FreePages;    
+    std::vector<PageRange> m_FreePages;
     std::unordered_map<ObjectID, GPUObjectAllocation> m_ObjectPages; // map obj id => allocated pages, count of elements
 
     size_t m_PageSize;
