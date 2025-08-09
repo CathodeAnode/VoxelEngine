@@ -199,7 +199,7 @@ void GPUPagedBuffer<Atom>::Destroy() noexcept
 template<typename Atom>
 size_t GPUPagedBuffer<Atom>::UploadPageData(const std::vector<Atom>& data) noexcept
 {
-	const size_t count = data.size();
+	const unsigned int count = data.size();
 	glBindBuffer(m_Target, m_Name);
 	glBufferSubData(m_Target, m_AtomCount * sizeof(Atom), count * sizeof(Atom), data.data());
 	glBindBuffer(m_Target, 0);
@@ -302,6 +302,9 @@ GPUFixedPagedBuffer<Atom, ObjectID>::GPUFixedPagedBuffer(bool cpuUpdates)
 template<typename Atom, typename ObjectID>
 bool GPUFixedPagedBuffer<Atom, ObjectID>::Create(GLenum m_Target, size_t pageSize, size_t pageCount) noexcept
 {
+	if (pageSize == 0 || pageCount == 0)
+		return false;
+
 	m_PageSize = pageSize;
 	m_FreePages.emplace_back(PageRange(0, pageCount));
 
@@ -313,6 +316,7 @@ void GPUFixedPagedBuffer<Atom, ObjectID>::Destroy() noexcept
 {
 	m_PageSize = 0;
 	m_FreePages.clear();
+	m_ObjectMapping.clear();
 
 	m_Buffer.Destroy();
 }
@@ -320,7 +324,7 @@ void GPUFixedPagedBuffer<Atom, ObjectID>::Destroy() noexcept
 template<typename Atom, typename ObjectID>
 bool GPUFixedPagedBuffer<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsigned int pages)
 {
-	assert(pages >= 0)
+	assert(pages >= 0);
 
 	if (pages == 0 || m_FreePages.empty())
 		return false;
@@ -335,7 +339,7 @@ bool GPUFixedPagedBuffer<Atom, ObjectID>::AllocatePages(const ObjectID& obj, uns
 	{
 		PageRange& range = m_FreePages.front();
 		const unsigned int rangeSize = range.GetSize();
-		const unsigned int pagesToAllocate = std::min(pages, rangeSize)
+		const unsigned int pagesToAllocate = std::min(pages, rangeSize);
 
 		allocatedRanges.emplace_back(PageRange(range.start, range.start + pagesToAllocate));
 
@@ -355,17 +359,45 @@ bool GPUFixedPagedBuffer<Atom, ObjectID>::AllocatePages(const ObjectID& obj, uns
 		return false;
 	}
 
-	GPUObjectAllocation allocation;
-	allocation.pagesAllocated = std::move(allocatedRanges);
-	allocation.countOnLastPage = 0;
+	//if (!m_ObjectPages.contains(obj))
+	//{
+	//	m_ObjectPages[obj] = GPUObjectAllocation();
+	//}
+	GPUObjectAllocation& objAlloc = m_ObjectMapping[obj];
+	objAlloc.pageRanges.insert(objAlloc.pageRanges.end(),
+		                           std::move_iterator(allocatedRanges.begin()),
+		                           std::move_iterator(allocatedRanges.end()));
 
-	m_ObjectPages[obj] = std::move(allocation);
 	return true;
 }
 
 template<typename Atom, typename ObjectID>
 bool GPUFixedPagedBuffer<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, const Atom& data)
 {
-	return false;
+	// Check if object has pages allocated
+	if (!m_ObjectMapping.contains(obj))
+	{
+		if (!AllocatePages(obj, 1))
+			return false;
+	}
+
+	GPUObjectAllocation& objAllocations = m_ObjectMapping[obj];
+
+	// Check if last page is full
+	const unsigned int nextAtomPageIndex = (objAllocations.count + 1) / m_PageSize;
+	if (nextAtomPageIndex >= objAllocations.GetSize())
+	{
+		if (!AllocatePages(obj, 1))
+			return false;
+	}
+
+	Atom* bufferHead = m_Buffer.GetContents();
+	const unsigned int pageOffset = objAllocations.pageRanges[nextAtomPageIndex].start;
+	const unsigned int countOnLastPage = objAllocations % m_PageSize;
+	bufferHead[pageOffset + countOnLastPage] = data;
+	objAllocations.count++;
+	
+
+	return true;
 }
 

@@ -51,7 +51,7 @@
 
 struct Page 
 {
-    unsigned int index;
+    size_t index;
     size_t size;
 
     bool IsNull() {
@@ -131,7 +131,7 @@ public:
     size_t GetCurrentSize() const { return m_AtomCount; };
     size_t GetMaxSize() const { return m_MaxAtomCount; };
     size_t GetPageSize() const { return m_PageTable.size(); };
-    size_t GetName() const { return m_Name; };
+    GLuint GetName() const { return m_Name; };
 
 
 private:
@@ -158,9 +158,9 @@ public:
     bool Create(GLenum m_Target, size_t pageSize, size_t pageCount) noexcept;
     void Destroy() noexcept;
 
-    bool AllocatePages(const ObjectID& obj, unsigned int pages);
-    bool PushBackToObject(const ObjectID& obj, const Atom& data);
-    bool DeallocateObject(const ObjectID& obj);
+    [[nodiscard]] bool AllocatePages(const ObjectID& obj, unsigned int pages);
+    [[nodiscard]] bool PushBackToObject(const ObjectID& obj, const Atom& data);
+    [[nodiscard]] bool DeallocateObject(const ObjectID& obj);
 
     std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj);
 
@@ -175,18 +175,38 @@ private:
             return start <= end; // return if range is still valid
         }
 
+        inline bool Has(unsigned int page) const
+        {
+            return page >= start && page <= end;
+        }
+
         inline unsigned int GetSize() const { return end - start; };
     };
 
     struct GPUObjectAllocation
     {
-        std::vector<PageRange> pagesAllocated;
-        size_t countOnLastPage;
+        std::vector<PageRange> pageRanges;
+        unsigned int count;
+
+        unsigned int GetSize() const
+        {
+            unsigned int total = 0;
+            for (const auto& range : pageRanges)
+            {
+                total += range.GetSize();
+            }
+            return total;
+        }
+
+        void Insert(const PageRange& range)
+        {
+
+        }
     };
 
     GPUPersistentlyMappedBuffer<Atom> m_Buffer;
-    std::vector<PageRange> m_FreePages;
-    std::unordered_map<ObjectID, GPUObjectAllocation> m_ObjectPages; // map obj id => allocated pages, count of elements
+    std::vector<PageRange> m_FreePages; // change to set to enforce sorted order
+    std::unordered_map<ObjectID, GPUObjectAllocation> m_ObjectMapping; // map obj id => allocated pages, count of elements
 
     size_t m_PageSize;
 };
