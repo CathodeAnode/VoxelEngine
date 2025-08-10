@@ -334,24 +334,23 @@ template<typename Atom, typename ObjectID>
 bool GPUFixedPagedBuffer<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsigned int pages)
 {
 	assert(pages >= 0);
+
 	if (pages == 0 || m_FreePages == nullptr)
 		return false;
 
-	// Find free pages
 	std::vector<unsigned int> allocatedPages = FindFirstFreePages(pages);
+
+	assert(allocatedPages.size() == pages);
 
 	// Not enough free pages found
 	if (allocatedPages.empty())
 		return false;
 
-	// Reserve them
 	ReservePages(allocatedPages);
 
 	// Add to object mapping
 	GPUObjectAllocation& objAlloc = m_ObjectMapping[obj];
-	objAlloc.pages.insert(objAlloc.pages.end(),
-		std::make_move_iterator(allocatedPages.begin()),
-		std::make_move_iterator(allocatedPages.end()));
+	objAlloc.InsertPages(allocatedPages);
 
 	return true;
 }
@@ -386,5 +385,51 @@ bool GPUFixedPagedBuffer<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, 
 	objAlloc.count++;
 
 	return true;
+}
+
+template<typename Atom, typename ObjectID>
+void GPUFixedPagedBuffer<Atom, ObjectID>::DeallocateObject(const ObjectID& obj)
+{
+	if (!m_ObjectMapping.contains(obj))
+		return;
+
+	GPUObjectAllocation& alloc = m_ObjectMapping[obj];
+
+	FreePages(alloc.pages);
+	m_ObjectMapping.erase(obj);
+}
+
+template<typename Atom, typename ObjectID>
+std::vector<GPUBufferRange> GPUFixedPagedBuffer<Atom, ObjectID>::GetObjectBufferRanges(const ObjectID& obj) const
+{
+	std::vector<GPUBufferRange> result;
+	if (!m_ObjectMapping.contains(obj))
+		return result;
+
+	GPUObjectAllocation& alloc = m_ObjectMapping[obj];
+	const unsigned int writePage = alloc.pages[alloc.count / m_PageSize];
+
+	for (const auto& page : alloc.pages)
+	{	
+		// start of buffer range
+		if (alloc.pages.find(page - 1) == alloc.pages.end())
+		{
+			const unsigned int startPage = page;
+			unsigned int endPage = page;
+
+			if (startPage > writePage)
+				break;
+
+			while (alloc.pages.find(page + 1) != alloc.pages.end())
+				endPage++;
+
+			size_t length = (endPage < writePage) ? endPage * m_FreePages : writePage * m_PageSize + (alloc.count % m_PageSize);
+			result.emplace_back(GPUBufferRange(startPage * m_PageSize, length));
+
+		}
+	}
+
+
+	return result;
 }
 

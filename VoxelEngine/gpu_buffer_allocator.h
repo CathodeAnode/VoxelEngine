@@ -5,7 +5,7 @@
 #include <glfw/glfw3.h>
 
 #include <vector>
-#include <stack>
+#include <unordered_set>
 #include <stdexcept>
 #include <cassert>
 
@@ -161,32 +161,39 @@ public:
 
     [[nodiscard]] bool AllocatePages(const ObjectID& obj, unsigned int pages);
     [[nodiscard]] bool PushBackToObject(const ObjectID& obj, const Atom& data);
-    [[nodiscard]] bool DeallocateObject(const ObjectID& obj);
+    [[nodiscard]] void DeallocateObject(const ObjectID& obj);
 
-    std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj);
+    std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj) const;
 
 private:
     using ByteType = uint8_t;
     const size_t BYTE_BITS = 8;
-    constexpr unsigned int BYTE_TYPE_SIZE = BYTE_BITS * sizeof(ByteType);
+    const unsigned int BYTE_TYPE_SIZE = BYTE_BITS * sizeof(ByteType);
 
     struct GPUObjectAllocation
     {
-        std::vector<unsigned int> pages;
+        std::unordered_set<unsigned int> pages;
         unsigned int count;
 
         inline unsigned int GetSize() const
         {
             return pages.size();
         }
+
+        inline void InsertPages(const std::vector<unsigned int>& p)
+        {
+            pages.insert(p.begin(), p.end());
+        }
     };
 
+private:
     GPUPersistentlyMappedBuffer<Atom> m_Buffer;
     ByteType* m_FreePages;
     std::unordered_map<ObjectID, GPUObjectAllocation> m_ObjectMapping; // map obj id => allocated pages, count of elements
 
     size_t m_PageSize;
 
+private:
     std::vector<unsigned int> FindFirstFreePages(unsigned int n) const
     {
         assert(m_FreePages != nullptr);
@@ -194,7 +201,7 @@ private:
         std::vector<unsigned int> result;
         result.reserve(n);
 
-        const size_t arrSize = ceil(pageCount / (BYTE_BITS * sizeof(ByteType));
+        const size_t arrSize = ceil(pageCount / (BYTE_BITS * sizeof(ByteType)));
         ByteType* freePagesCopy = new ByteType[arrSize];
         memcpy(freePagesCopy.m_FreePages, arrSize);
 
