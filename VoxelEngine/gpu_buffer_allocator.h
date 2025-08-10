@@ -200,9 +200,10 @@ private:
     {
         assert(m_FreePages != nullptr);
 
-        std::vector<unsigned int> result;
-        result.reserve(n);
+        std::vector<unsigned int> pagesFound;
+        pagesFound.reserve(n);
 
+        const size_t pageCount = m_Buffer.GetSize() / m_PageSize;
         const size_t arrSize = ceil(pageCount / (BYTE_BITS * sizeof(ByteType)));
         ByteType* freePagesCopy = new ByteType[arrSize];
         memcpy(freePagesCopy.m_FreePages, arrSize);
@@ -223,19 +224,19 @@ private:
                 currByte++;
             }
 
-            result.push_back(bitPos);
+            pagesFound.push_back(bitPos);
             freePagesCopy[currByte] &= (1 << bitPos); // zero bit at bitPos
         }
 
         delete[] freePagesCopy;
 
         // Not enough pages found
-        if (pagesFound < n)
+        if (pagesFound.size() < n)
         {
-            result.clear();
+            pagesFound.clear();
         }
 
-        return result;
+        return pagesFound;
     }
 
     void ReservePages(const std::vector<unsigned int>& pages)
