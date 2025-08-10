@@ -300,13 +300,22 @@ GPUFixedPagedBuffer<Atom, ObjectID>::GPUFixedPagedBuffer(bool cpuUpdates)
 {}
 
 template<typename Atom, typename ObjectID>
+GPUFixedPagedBuffer<Atom, ObjectID>::~GPUFixedPagedBuffer()
+{
+	Destroy();
+}
+
+template<typename Atom, typename ObjectID>
 bool GPUFixedPagedBuffer<Atom, ObjectID>::Create(GLenum m_Target, size_t pageSize, size_t pageCount) noexcept
 {
 	if (pageSize == 0 || pageCount == 0)
 		return false;
 
 	m_PageSize = pageSize;
-	m_FreePages.emplace_back(PageRange(0, pageCount));
+
+	const size_t arrSize = ceil(pageCount / BYTE_TYPE_SIZE);
+	m_FreePages = new ByteType[arrSize];
+	std::fill(m_FreePages, m_FreePages + arrSize, std::numeric_limits<ByteType>::max());
 
 	return m_Buffer.Create(m_Target, pageSize * pageCount);
 }
@@ -315,7 +324,7 @@ template<typename Atom, typename ObjectID>
 void GPUFixedPagedBuffer<Atom, ObjectID>::Destroy() noexcept
 {
 	m_PageSize = 0;
-	m_FreePages.clear();
+	delete[] m_FreePages;
 	m_ObjectMapping.clear();
 
 	m_Buffer.Destroy();
@@ -325,48 +334,24 @@ template<typename Atom, typename ObjectID>
 bool GPUFixedPagedBuffer<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsigned int pages)
 {
 	assert(pages >= 0);
-
-	if (pages == 0 || m_FreePages.empty())
+	if (pages == 0 || m_FreePages == nullptr)
 		return false;
 
-	std::vector<PageRange> allocatedRanges;
+	// Find free pages
+	std::vector<unsigned int> allocatedPages = FindFirstFreePages(pages);
 
-	// temp free page data struct for rollback if needed
-	auto freePagesBackup = m_FreePages;
-
-	// find pages that will be allocated to obj
-	do 
-	{
-		PageRange& range = m_FreePages.front();
-		const unsigned int rangeSize = range.GetSize();
-		const unsigned int pagesToAllocate = std::min(pages, rangeSize);
-
-		allocatedRanges.emplace_back(PageRange(range.start, range.start + pagesToAllocate));
-
-		// trim range and remove if necessary
-		if (!range.TrimStart(pages))
-		{
-			m_FreePages.erase(m_FreePages.begin());
-		}
-		pages -= pagesToAllocate;
-
-	} while (pages > 0 && !m_FreePages.empty());
-
-	// not enough pages to allocate 
-	if (pages > 0)
-	{
-		m_FreePages = std::move(freePagesBackup); // revert state
+	// Not enough free pages found
+	if (allocatedPages.empty())
 		return false;
-	}
 
-	//if (!m_ObjectPages.contains(obj))
-	//{
-	//	m_ObjectPages[obj] = GPUObjectAllocation();
-	//}
+	// Reserve them
+	ReservePages(allocatedPages);
+
+	// Add to object mapping
 	GPUObjectAllocation& objAlloc = m_ObjectMapping[obj];
-	objAlloc.pageRanges.insert(objAlloc.pageRanges.end(),
-		                           std::move_iterator(allocatedRanges.begin()),
-		                           std::move_iterator(allocatedRanges.end()));
+	objAlloc.pages.insert(objAlloc.pages.end(),
+		std::make_move_iterator(allocatedPages.begin()),
+		std::make_move_iterator(allocatedPages.end()));
 
 	return true;
 }
@@ -374,29 +359,31 @@ bool GPUFixedPagedBuffer<Atom, ObjectID>::AllocatePages(const ObjectID& obj, uns
 template<typename Atom, typename ObjectID>
 bool GPUFixedPagedBuffer<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, const Atom& data)
 {
-	// Check if object has pages allocated
+	// Check if object has any pages
 	if (!m_ObjectMapping.contains(obj))
 	{
 		if (!AllocatePages(obj, 1))
 			return false;
 	}
 
-	GPUObjectAllocation& objAllocations = m_ObjectMapping[obj];
+	GPUObjectAllocation& objAlloc = m_ObjectMapping[obj];
 
-	// Check if last page is full
-	const unsigned int nextAtomPageIndex = (objAllocations.count + 1) / m_PageSize;
-	if (nextAtomPageIndex >= objAllocations.GetSize())
+	// Calculate the current page index for next insertion
+	const unsigned int pageIndex = (objAlloc.count + 1) / m_PageSize;
+	const unsigned int pageElemOffset = (objAlloc.count + 1) % m_PageSize;
+
+	// Allocate new page if needed
+	if (pageIndex >= objAlloc.GetSize())
 	{
 		if (!AllocatePages(obj, 1))
 			return false;
 	}
 
 	Atom* bufferHead = m_Buffer.GetContents();
-	const unsigned int pageOffset = objAllocations.pageRanges[nextAtomPageIndex].start;
-	const unsigned int countOnLastPage = objAllocations % m_PageSize;
-	bufferHead[pageOffset + countOnLastPage] = data;
-	objAllocations.count++;
-	
+	const unsigned int targetPage = objAlloc.pages[pageIndex];
+
+	bufferHead[targetPage * m_PageSize + pageElemOffset] = data;
+	objAlloc.count++;
 
 	return true;
 }

@@ -154,6 +154,7 @@ class GPUFixedPagedBuffer
 {
 public:
     GPUFixedPagedBuffer(bool cpuUpdates = true);
+    ~GPUFixedPagedBuffer();
 
     bool Create(GLenum m_Target, size_t pageSize, size_t pageCount) noexcept;
     void Destroy() noexcept;
@@ -165,50 +166,93 @@ public:
     std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj);
 
 private:
-    struct PageRange {
-        unsigned int start;
-        unsigned int end;
-
-        bool TrimStart(unsigned int n)
-        {
-            start += n;
-            return start <= end; // return if range is still valid
-        }
-
-        inline bool Has(unsigned int page) const
-        {
-            return page >= start && page <= end;
-        }
-
-        inline unsigned int GetSize() const { return end - start; };
-    };
+    using ByteType = uint8_t;
+    const size_t BYTE_BITS = 8;
+    constexpr unsigned int BYTE_TYPE_SIZE = BYTE_BITS * sizeof(ByteType);
 
     struct GPUObjectAllocation
     {
-        std::vector<PageRange> pageRanges;
+        std::vector<unsigned int> pages;
         unsigned int count;
 
-        unsigned int GetSize() const
+        inline unsigned int GetSize() const
         {
-            unsigned int total = 0;
-            for (const auto& range : pageRanges)
-            {
-                total += range.GetSize();
-            }
-            return total;
-        }
-
-        void Insert(const PageRange& range)
-        {
-
+            return pages.size();
         }
     };
 
     GPUPersistentlyMappedBuffer<Atom> m_Buffer;
-    std::vector<PageRange> m_FreePages; // change to set to enforce sorted order
+    ByteType* m_FreePages;
     std::unordered_map<ObjectID, GPUObjectAllocation> m_ObjectMapping; // map obj id => allocated pages, count of elements
 
     size_t m_PageSize;
+
+    std::vector<unsigned int> FindFirstFreePages(unsigned int n) const
+    {
+        assert(m_FreePages != nullptr);
+
+        std::vector<unsigned int> result;
+        result.reserve(n);
+
+        const size_t arrSize = ceil(pageCount / (BYTE_BITS * sizeof(ByteType));
+        ByteType* freePagesCopy = new ByteType[arrSize];
+        memcpy(freePagesCopy.m_FreePages, arrSize);
+
+        unsigned long bitPos = BYTE_TYPE_SIZE;
+        unsigned int currByte = 0;
+        for (int i = 0; i < n; i++)
+        {
+            while (currByte < arrSize && bitPos == BYTE_TYPE_SIZE)
+            {
+                // get trailing zeros
+#ifdef _MSC_VER
+                _BitScanForward64(&bitPos, freePagesCopy[currByte]);
+                if (freePagesCopy[currByte] == 0) bitPos = BYTE_TYPE_SIZE;
+#else
+                bitPos = __builtin_ctzll(freePagesCopy[currByte]);
+#endif
+                currByte++;
+            }
+
+            result.push_back(bitPos);
+            freePagesCopy[currByte] &= (1 << bitPos); // zero bit at bitPos
+        }
+
+        delete[] freePagesCopy;
+
+        // Not enough pages found
+        if (pagesFound < n)
+        {
+            result.clear();
+        }
+
+        return result;
+    }
+
+    void ReservePages(const std::vector<unsigned int>& pages)
+    {
+        assert(m_FreePages != nullptr);
+
+        for (const auto& page : pages)
+        {
+            const size_t byteIdx = page / BYTE_TYPE_SIZE;
+            const size_t bitIdx = page % BYTE_TYPE_SIZE;
+            m_FreePages[byteIdx] &= ~(1 << bitIdx); // Set bit to 0 => reserved
+        }
+    }
+
+    void FreePages(const std::vector<unsigned int>& pages)
+    {
+        assert(m_FreePages != nullptr);
+
+        for (const auto& page : pages)
+        {
+            const size_t byteIdx = page / BYTE_TYPE_SIZE;
+            const size_t bitIdx = page % BYTE_TYPE_SIZE;
+            m_FreePages[byteIdx] |= (1 << bitIdx); // Set bit to 1 => free
+        }
+
+    }
 };
 
 #include "gpu_buffer_allocator.tpp"
