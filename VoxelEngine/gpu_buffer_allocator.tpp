@@ -340,7 +340,7 @@ bool GPUFixedPagedBuffer<Atom, ObjectID>::AllocatePages(const ObjectID& obj, uns
 
 	std::vector<unsigned int> allocatedPages = FindFirstFreePages(pages);
 
-	assert(allocatedPages.size() == pages);
+	assert(allocatedPages.size() == pages || allocatedPages.empty());
 
 	// Not enough free pages found
 	if (allocatedPages.empty())
@@ -350,7 +350,7 @@ bool GPUFixedPagedBuffer<Atom, ObjectID>::AllocatePages(const ObjectID& obj, uns
 
 	// Add to object mapping
 	GPUObjectAllocation& objAlloc = m_ObjectMapping[obj];
-	objAlloc.InsertPages(allocatedPages);
+	objAlloc.PushBackPages(allocatedPages);
 
 	return true;
 }
@@ -407,23 +407,25 @@ std::vector<GPUBufferRange> GPUFixedPagedBuffer<Atom, ObjectID>::GetObjectBuffer
 		return result;
 
 	GPUObjectAllocation& alloc = m_ObjectMapping[obj];
-	const unsigned int writePage = alloc.pages[alloc.count / m_PageSize];
+	const unsigned int writePageIdx = alloc.count / m_PageSize;
+	const unsigned int writePage = alloc.pages[writePageIdx];
 
-	for (const auto& page : alloc.pages)
+	std::unordered_set<unsigned int> pagesSet;
+	pagesSet.insert(alloc.pages.begin(), alloc.pages.begin() + writePageIdx);
+
+	for (const auto& page : pagesSet)
 	{	
 		// start of buffer range
-		if (alloc.pages.find(page - 1) == alloc.pages.end())
+		if (pagesSet.find(page - 1) == pagesSet.end())
 		{
 			const unsigned int startPage = page;
 			unsigned int endPage = page;
 
-			if (startPage > writePage)
-				break;
-
-			while (alloc.pages.find(page + 1) != alloc.pages.end())
+			while (pagesSet.find(page + 1) != pagesSet.end())
 				endPage++;
 
-			size_t length = (endPage < writePage) ? endPage * m_FreePages : writePage * m_PageSize + (alloc.count % m_PageSize);
+			size_t length = (endPage - startPage) * m_FreePages;
+			length -= (endPage == writePage) ? m_PageSize - (alloc.count % m_PageSize) : 0;
 			result.emplace_back(GPUBufferRange(startPage * m_PageSize, length));
 
 		}

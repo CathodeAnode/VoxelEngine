@@ -172,7 +172,7 @@ private:
 
     struct GPUObjectAllocation
     {
-        std::unordered_set<unsigned int> pages;
+        std::vector<unsigned int> pages;
         unsigned int count;
 
         inline unsigned int GetSize() const
@@ -180,9 +180,11 @@ private:
             return pages.size();
         }
 
-        inline void InsertPages(const std::vector<unsigned int>& p)
+        inline void PushBackPages(const std::vector<unsigned int>& p)
         {
-            pages.insert(p.begin(), p.end());
+            pages.insert(pages.end(), 
+                std::move_iterator(p.begin()), 
+                std::move_iterator(p.end()));
         }
     };
 
