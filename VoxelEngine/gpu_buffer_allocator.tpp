@@ -388,6 +388,14 @@ bool GPUFixedPagedBuffer<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, 
 }
 
 template<typename Atom, typename ObjectID>
+void GPUFixedPagedBuffer<Atom, ObjectID>::MoveObject(const ObjectID& src, const ObjectID& dst)
+{
+	FreePages(m_ObjectMapping[src].pages);
+	m_ObjectMapping[dst] = std::move(m_ObjectMapping[src]);
+	m_ObjectMapping.erase(src);
+}
+
+template<typename Atom, typename ObjectID>
 void GPUFixedPagedBuffer<Atom, ObjectID>::DeallocateObject(const ObjectID& obj)
 {
 	if (!m_ObjectMapping.contains(obj))

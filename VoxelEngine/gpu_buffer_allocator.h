@@ -161,7 +161,8 @@ public:
 
     [[nodiscard]] bool AllocatePages(const ObjectID& obj, unsigned int pages);
     [[nodiscard]] bool PushBackToObject(const ObjectID& obj, const Atom& data);
-    [[nodiscard]] void DeallocateObject(const ObjectID& obj);
+    void MoveObject(const ObjectID& src, const ObjectID& dst);
+    void DeallocateObject(const ObjectID& obj);
 
     std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj) const;
 
