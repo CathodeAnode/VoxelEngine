@@ -295,18 +295,18 @@ void GPUPagedBuffer<Atom>::move(size_t srcIndex, size_t dstIndex, size_t length)
 
 // ------------------------------------------------------------------------------------------------------------------
 template<typename Atom, typename ObjectID>
-GPUFixedPagedBuffer<Atom, ObjectID>::GPUFixedPagedBuffer(bool cpuUpdates)
+GPUPagedLRUCache<Atom, ObjectID>::GPUPagedLRUCache(bool cpuUpdates)
 	: m_Buffer(cpuUpdates)
 {}
 
 template<typename Atom, typename ObjectID>
-GPUFixedPagedBuffer<Atom, ObjectID>::~GPUFixedPagedBuffer()
+GPUPagedLRUCache<Atom, ObjectID>::~GPUPagedLRUCache()
 {
 	Destroy();
 }
 
 template<typename Atom, typename ObjectID>
-bool GPUFixedPagedBuffer<Atom, ObjectID>::Create(GLenum m_Target, size_t pageSize, size_t pageCount) noexcept
+bool GPUPagedLRUCache<Atom, ObjectID>::Create(GLenum m_Target, size_t pageSize, size_t pageCount) noexcept
 {
 	if (pageSize == 0 || pageCount == 0)
 		return false;
@@ -321,7 +321,7 @@ bool GPUFixedPagedBuffer<Atom, ObjectID>::Create(GLenum m_Target, size_t pageSiz
 }
 
 template<typename Atom, typename ObjectID>
-void GPUFixedPagedBuffer<Atom, ObjectID>::Destroy() noexcept
+void GPUPagedLRUCache<Atom, ObjectID>::Destroy() noexcept
 {
 	m_PageSize = 0;
 	delete[] m_FreePages;
@@ -331,12 +331,9 @@ void GPUFixedPagedBuffer<Atom, ObjectID>::Destroy() noexcept
 }
 
 template<typename Atom, typename ObjectID>
-bool GPUFixedPagedBuffer<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsigned int pages)
+void GPUPagedLRUCache<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsigned int pages)
 {
-	assert(pages >= 0);
-
-	if (pages == 0 || m_FreePages == nullptr)
-		return false;
+	assert(pages > 0 && m_FreePages != nullptr);
 
 	std::vector<unsigned int> allocatedPages = FindFirstFreePages(pages);
 
@@ -356,7 +353,7 @@ bool GPUFixedPagedBuffer<Atom, ObjectID>::AllocatePages(const ObjectID& obj, uns
 }
 
 template<typename Atom, typename ObjectID>
-bool GPUFixedPagedBuffer<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, const Atom& data)
+void GPUPagedLRUCache<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, const Atom& data)
 {
 	// Check if object has any pages
 	if (!m_ObjectMapping.contains(obj))
@@ -388,7 +385,7 @@ bool GPUFixedPagedBuffer<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, 
 }
 
 template<typename Atom, typename ObjectID>
-void GPUFixedPagedBuffer<Atom, ObjectID>::MoveObject(const ObjectID& src, const ObjectID& dst)
+void GPUPagedLRUCache<Atom, ObjectID>::MoveObject(const ObjectID& src, const ObjectID& dst)
 {
 	FreePages(m_ObjectMapping[src].pages);
 	m_ObjectMapping[dst] = std::move(m_ObjectMapping[src]);
@@ -396,7 +393,7 @@ void GPUFixedPagedBuffer<Atom, ObjectID>::MoveObject(const ObjectID& src, const 
 }
 
 template<typename Atom, typename ObjectID>
-void GPUFixedPagedBuffer<Atom, ObjectID>::DeallocateObject(const ObjectID& obj)
+void GPUPagedLRUCache<Atom, ObjectID>::DeallocateObject(const ObjectID& obj)
 {
 	if (!m_ObjectMapping.contains(obj))
 		return;
@@ -408,7 +405,7 @@ void GPUFixedPagedBuffer<Atom, ObjectID>::DeallocateObject(const ObjectID& obj)
 }
 
 template<typename Atom, typename ObjectID>
-std::vector<GPUBufferRange> GPUFixedPagedBuffer<Atom, ObjectID>::GetObjectBufferRanges(const ObjectID& obj) const
+std::vector<GPUBufferRange> GPUPagedLRUCache<Atom, ObjectID>::GetObjectBufferRanges(const ObjectID& obj) const
 {
 	std::vector<GPUBufferRange> result;
 	if (!m_ObjectMapping.contains(obj))

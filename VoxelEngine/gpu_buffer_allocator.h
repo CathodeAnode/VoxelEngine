@@ -6,6 +6,7 @@
 
 #include <vector>
 #include <unordered_set>
+#include <list>
 #include <stdexcept>
 #include <cassert>
 
@@ -115,7 +116,7 @@ private:
 };
 
 template<typename Atom>
-class GPUPagedBuffer 
+class [[deprecated("Use GPUPagedLRUCache Buffer class Instead")]] GPUPagedBuffer
 {
 public:
     GPUPagedBuffer();
@@ -150,17 +151,17 @@ private:
 };
 
 template<typename Atom, typename ObjectID>
-class GPUFixedPagedBuffer
+class GPUPagedLRUCache
 {
 public:
-    GPUFixedPagedBuffer(bool cpuUpdates = true);
-    ~GPUFixedPagedBuffer();
+    GPUPagedLRUCache(bool cpuUpdates = true);
+    ~GPUPagedLRUCache();
 
     bool Create(GLenum m_Target, size_t pageSize, size_t pageCount) noexcept;
     void Destroy() noexcept;
 
-    [[nodiscard]] bool AllocatePages(const ObjectID& obj, unsigned int pages);
-    [[nodiscard]] bool PushBackToObject(const ObjectID& obj, const Atom& data);
+    void AllocatePages(const ObjectID& obj, unsigned int pages);
+    void PushBackToObject(const ObjectID& obj, const Atom& data);
     void MoveObject(const ObjectID& src, const ObjectID& dst);
     void DeallocateObject(const ObjectID& obj);
 
@@ -174,6 +175,7 @@ private:
     struct GPUObjectAllocation
     {
         std::vector<unsigned int> pages;
+        std::list<ObjectID>::iterator lruIterator;
         unsigned int count;
 
         inline unsigned int GetSize() const
@@ -192,6 +194,7 @@ private:
 private:
     GPUPersistentlyMappedBuffer<Atom> m_Buffer;
     ByteType* m_FreePages;
+    std::list<ObjectID> m_ObjectAccessHistory;
     std::unordered_map<ObjectID, GPUObjectAllocation> m_ObjectMapping; // map obj id => allocated pages, count of elements
 
     size_t m_PageSize;
@@ -234,7 +237,7 @@ private:
         // Not enough pages found
         if (pagesFound.size() < n)
         {
-            pagesFound.clear();
+
         }
 
         return pagesFound;
