@@ -335,19 +335,30 @@ void GPUPagedLRUCache<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsign
 {
 	assert(pages > 0 && m_FreePages != nullptr);
 
-	std::vector<unsigned int> allocatedPages = FindFirstFreePages(pages);
+	std::vector<unsigned int> allocatedPages;
+	allocatedPages.reserve(pages);
+	ReserveFirstFreePages(pages, allocatedPages);
 
-	assert(allocatedPages.size() == pages || allocatedPages.empty());
 
 	// Not enough free pages found
-	if (allocatedPages.empty())
-		return false;
-
-	ReservePages(allocatedPages);
+	while(EvictLRUAndReserve(allocatedPages.size(), allocatedPages)) {}
 
 	// Add to object mapping
-	GPUObjectAllocation& objAlloc = m_ObjectMapping[obj];
-	objAlloc.PushBackPages(allocatedPages);
+	if (m_ObjectMapping.contains(obj))
+	{
+		ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
+		objAlloc.PushBackPages(allocatedPages);
+		UpdateObjectLRU(obj);
+	}
+	else
+	{
+		ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
+		objAlloc.PushBackPages(allocatedPages);
+		m_ObjectAccessHistory.push_front(obj);
+		objData.lruIterator = m_ObjectAccessHistory.begin();
+
+	}
+
 
 	return true;
 }
@@ -362,7 +373,7 @@ void GPUPagedLRUCache<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, con
 			return false;
 	}
 
-	GPUObjectAllocation& objAlloc = m_ObjectMapping[obj];
+	ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
 
 	// Calculate the current page index for next insertion
 	const unsigned int pageIndex = (objAlloc.count + 1) / m_PageSize;
@@ -380,6 +391,7 @@ void GPUPagedLRUCache<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, con
 
 	bufferHead[targetPage * m_PageSize + pageElemOffset] = data;
 	objAlloc.count++;
+	UpdateObjectLRU(obj);
 
 	return true;
 }
@@ -390,6 +402,8 @@ void GPUPagedLRUCache<Atom, ObjectID>::MoveObject(const ObjectID& src, const Obj
 	FreePages(m_ObjectMapping[src].pages);
 	m_ObjectMapping[dst] = std::move(m_ObjectMapping[src]);
 	m_ObjectMapping.erase(src);
+	m_ObjectAccessHistory.erase(src);
+	UpdateObjectLRU(dst);
 }
 
 template<typename Atom, typename ObjectID>
@@ -398,10 +412,11 @@ void GPUPagedLRUCache<Atom, ObjectID>::DeallocateObject(const ObjectID& obj)
 	if (!m_ObjectMapping.contains(obj))
 		return;
 
-	GPUObjectAllocation& alloc = m_ObjectMapping[obj];
+	ObjectAllocationData& alloc = m_ObjectMapping[obj];
 
 	FreePages(alloc.pages);
 	m_ObjectMapping.erase(obj);
+	m_ObjectAccessHistory.erase(obj);
 }
 
 template<typename Atom, typename ObjectID>
@@ -411,7 +426,7 @@ std::vector<GPUBufferRange> GPUPagedLRUCache<Atom, ObjectID>::GetObjectBufferRan
 	if (!m_ObjectMapping.contains(obj))
 		return result;
 
-	GPUObjectAllocation& alloc = m_ObjectMapping[obj];
+	ObjectAllocationData& alloc = m_ObjectMapping[obj];
 	const unsigned int writePageIdx = alloc.count / m_PageSize;
 	const unsigned int writePage = alloc.pages[writePageIdx];
 
@@ -436,6 +451,7 @@ std::vector<GPUBufferRange> GPUPagedLRUCache<Atom, ObjectID>::GetObjectBufferRan
 		}
 	}
 
+	UpdateObjectLRU(obj);
 
 	return result;
 }

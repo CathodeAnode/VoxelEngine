@@ -11,6 +11,7 @@
 #include <cassert>
 
 #include "gpu_buffer_lock.h"
+#include "helpers.h"
 
 //template<typename T>
 //class GPUBufferAllocator
@@ -116,7 +117,7 @@ private:
 };
 
 template<typename Atom>
-class [[deprecated("Use GPUPagedLRUCache Buffer class Instead")]] GPUPagedBuffer
+class [[deprecated("Sht way too inefficient man")]] GPUPagedBuffer
 {
 public:
     GPUPagedBuffer();
@@ -169,25 +170,25 @@ public:
 
 private:
     using ByteType = uint8_t;
-    const size_t BYTE_BITS = 8;
-    const unsigned int BYTE_TYPE_SIZE = BYTE_BITS * sizeof(ByteType);
+    constexpr size_t BYTE_BITS = 8;
+    constexpr unsigned int BYTE_TYPE_SIZE = BYTE_BITS * sizeof(ByteType);
 
-    struct GPUObjectAllocation
+    struct ObjectAllocationData
     {
         std::vector<unsigned int> pages;
-        std::list<ObjectID>::iterator lruIterator;
         unsigned int count;
+        std::list<ObjectID>::iterator lruIterator;
 
-        inline unsigned int GetSize() const
+        inline unsigned int GetSize() const noexcept
         {
             return pages.size();
         }
 
-        inline void PushBackPages(const std::vector<unsigned int>& p)
+        inline void PushBackPages(std::vector<unsigned int>&& p) noexcept
         {
-            pages.insert(pages.end(), 
-                std::move_iterator(p.begin()), 
-                std::move_iterator(p.end()));
+            pages.insert(pages.end(),
+                std::make_move_iterator(p.begin()),
+                std::make_move_iterator(p.end()));
         }
     };
 
@@ -195,52 +196,43 @@ private:
     GPUPersistentlyMappedBuffer<Atom> m_Buffer;
     ByteType* m_FreePages;
     std::list<ObjectID> m_ObjectAccessHistory;
-    std::unordered_map<ObjectID, GPUObjectAllocation> m_ObjectMapping; // map obj id => allocated pages, count of elements
+    std::unordered_map<ObjectID, ObjectAllocationData> m_ObjectMapping; // map obj id => allocated pages, count of elements
 
     size_t m_PageSize;
 
 private:
-    std::vector<unsigned int> FindFirstFreePages(unsigned int n) const
+    bool ReserveFirstFreePages(unsigned int n, std::vector<unsigned int>& pagesReserved)
     {
         assert(m_FreePages != nullptr);
 
-        std::vector<unsigned int> pagesFound;
-        pagesFound.reserve(n);
-
         const size_t pageCount = m_Buffer.GetSize() / m_PageSize;
-        const size_t arrSize = ceil(pageCount / (BYTE_BITS * sizeof(ByteType)));
-        ByteType* freePagesCopy = new ByteType[arrSize];
-        memcpy(freePagesCopy.m_FreePages, arrSize);
+        const size_t freePagesArrSize = ceil(pageCount / BYTE_TYPE_SIZE);
 
-        unsigned long bitPos = BYTE_TYPE_SIZE;
-        unsigned int currByte = 0;
-        for (int i = 0; i < n; i++)
+        for (size_t index = 0; index < freePagesArrSize && n > 0; index++)
         {
-            while (currByte < arrSize && bitPos == BYTE_TYPE_SIZE)
+            ByteType pagesStatus = m_FreePages[index];
+
+            while (pagesStatus != 0 && n > 0)
             {
-                // get trailing zeros
-#ifdef _MSC_VER
-                _BitScanForward64(&bitPos, freePagesCopy[currByte]);
-                if (freePagesCopy[currByte] == 0) bitPos = BYTE_TYPE_SIZE;
-#else
-                bitPos = __builtin_ctzll(freePagesCopy[currByte]);
-#endif
-                currByte++;
+                unsigned long reservedPages = GetTrailingZeros(pagesStatus);
+                pagesStatus >>= reservedPages;
+                unsigned long freePages = GetTrailingOnes(pagesStatus);
+                unsigned long pagesToConsume = std::min(n, freePages);
+
+                    ByteType consumeMask = ~((1 << pagesToConsume) - 1) << reservedPages;
+                m_FreePages[index] ^= consumeMask;
+                n -= pagesToConsume;
+
+                for (unsigned long i = 0; i < pagesToConsume; i++)
+                {
+                    unsigned long pageID = index * BYTE_TYPE_SIZE + reservedPages + i;
+                    pagesReserved.push_back(pageID);
+                }
             }
 
-            pagesFound.push_back(bitPos);
-            freePagesCopy[currByte] &= (1 << bitPos); // zero bit at bitPos
         }
 
-        delete[] freePagesCopy;
-
-        // Not enough pages found
-        if (pagesFound.size() < n)
-        {
-
-        }
-
-        return pagesFound;
+        return n <= 0;
     }
 
     void ReservePages(const std::vector<unsigned int>& pages)
@@ -267,6 +259,44 @@ private:
         }
 
     }
+
+    bool EvictLRUAndReserve(unsigned int n, std::vector<unsigned int>& reservedPages)
+    {
+        ObjectID objToEvict = m_ObjectAccessHistory.back();
+        m_ObjectAccessHistory.pop_back();
+        ObjectAllocationData& objData = m_ObjectMapping[objToEvict];
+
+        const int pagesToFree = objData.GetSize() - n;
+
+
+        if (pagesToFree > 0)
+        {
+            // If we have more pages than needed, free the tail portion
+            pagesToBeFreed.insert(pagesToBeFreed.begin(),
+                objData.pages.begin() + n, objData.pages.end());
+        }
+
+        // Free the pages
+        FreePages(pagesToBeFreed);
+
+        reservedPages.insert(reservedPages.end(),
+            std::make_move_iterator(objData.pages.begin()),
+            std::make_move_iterator(objData.pages.begin() + std::min(n, objData.pages.size()));
+
+        m_ObjectMapping.erase(objToEvict);
+
+        return pagesToFree >= 0;
+    }
+
+    void UpdateObjectLRU(const ObjectID& obj)
+    {
+        assert(m_ObjectMapping.contains(obj));
+
+        ObjectAllocationData& objData = m_ObjectMapping[obj];
+        m_ObjectAccessHistory.splice(m_ObjectAccessHistory.begin(), m_ObjectAccessHistory, objData.lruIterator);
+        objData.lruIterator = m_ObjectAccessHistory.begin();
+    }
+
 };
 
 #include "gpu_buffer_allocator.tpp"
