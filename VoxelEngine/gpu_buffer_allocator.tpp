@@ -365,7 +365,7 @@ void GPUPagedLRUCache<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsign
 		ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
 		objAlloc.PushBackPages(allocatedPages);
 		m_ObjectAccessHistory.push_front(obj);
-		objData.lruIterator = m_ObjectAccessHistory.begin();
+		objAlloc.lruIterator = m_ObjectAccessHistory.begin();
 
 	}
 

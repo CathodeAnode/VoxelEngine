@@ -5,6 +5,7 @@
 #include <glfw/glfw3.h>
 
 #include <vector>
+#include <unordered_map>
 #include <unordered_set>
 #include <list>
 #include <stdexcept>
@@ -158,7 +159,7 @@ public:
     GPUPagedLRUCache(bool cpuUpdates = true);
     ~GPUPagedLRUCache();
 
-    bool Create(GLenum m_Target, size_t pageSize, size_t pageCount) noexcept;
+    bool Create(GLenum target, size_t pageSize, size_t pageCount) noexcept;
     void Destroy() noexcept;
 
     void AllocatePages(const ObjectID& obj, unsigned int pages);
@@ -170,8 +171,8 @@ public:
 
 private:
     using ByteType = uint8_t;
-    constexpr size_t BYTE_BITS = 8;
-    constexpr unsigned int BYTE_TYPE_SIZE = BYTE_BITS * sizeof(ByteType);
+    inline static constexpr size_t BYTE_BITS = 8;
+    inline static constexpr unsigned int BYTE_TYPE_SIZE = BYTE_BITS * sizeof(ByteType);
 
     struct ObjectAllocationData
     {
@@ -295,7 +296,7 @@ private:
 
         reservedPages.insert(reservedPages.end(),
             std::make_move_iterator(objData.pages.begin()),
-            std::make_move_iterator(objData.pages.begin() + std::min(n, objData.pages.size()));
+            std::make_move_iterator(objData.pages.begin() + std::min(n, objData.pages.size())));
 
         m_ObjectMapping.erase(objToEvict);
 
