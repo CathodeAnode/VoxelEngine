@@ -250,6 +250,18 @@ private:
     void FreePages(const std::vector<unsigned int>& pages)
     {
         assert(m_FreePages != nullptr);
+#ifndef NDEBUG
+        const size_t pageCount = m_Buffer.GetSize() / m_PageSize;
+        const size_t arrSize = ceil(pageCount / BYTE_TYPE_SIZE);
+        if (pageCount % BYTE_TYPE_SIZE > 0)
+        {
+            const uint8_t ghostPages = BYTE_TYPE_SIZE - pageCount % BYTE_TYPE_SIZE;
+            for (const auto& page : pages)
+            {
+                assert(page < arrSize * BYTE_TYPE_SIZE - ghostPages);
+            }
+        }
+#endif
 
         for (const auto& page : pages)
         {

@@ -306,7 +306,7 @@ GPUPagedLRUCache<Atom, ObjectID>::~GPUPagedLRUCache()
 }
 
 template<typename Atom, typename ObjectID>
-bool GPUPagedLRUCache<Atom, ObjectID>::Create(GLenum m_Target, size_t pageSize, size_t pageCount) noexcept
+bool GPUPagedLRUCache<Atom, ObjectID>::Create(GLenum target, size_t pageSize, size_t pageCount) noexcept
 {
 	if (pageSize == 0 || pageCount == 0)
 		return false;
@@ -317,7 +317,16 @@ bool GPUPagedLRUCache<Atom, ObjectID>::Create(GLenum m_Target, size_t pageSize, 
 	m_FreePages = new ByteType[arrSize];
 	std::fill(m_FreePages, m_FreePages + arrSize, std::numeric_limits<ByteType>::max());
 
-	return m_Buffer.Create(m_Target, pageSize * pageCount);
+	// reserve ghost pages in data struct
+	if (pageCount % BYTE_TYPE_SIZE > 0) 
+	{
+		const uint8_t lastElemUsedPages = pageCount % BYTE_TYPE_SIZE;
+		const ByteType ghostPagesMask = ~((1u << (lastElemUsedPages)) - 1);
+		m_FreePages[arrSize - 1] ^= ghostPagesMask;
+	}
+
+
+	return m_Buffer.Create(target, pageSize * pageCount);
 }
 
 template<typename Atom, typename ObjectID>
@@ -326,6 +335,7 @@ void GPUPagedLRUCache<Atom, ObjectID>::Destroy() noexcept
 	m_PageSize = 0;
 	delete[] m_FreePages;
 	m_ObjectMapping.clear();
+	m_ObjectAccessHistory.clear();
 
 	m_Buffer.Destroy();
 }
@@ -369,8 +379,7 @@ void GPUPagedLRUCache<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, con
 	// Check if object has any pages
 	if (!m_ObjectMapping.contains(obj))
 	{
-		if (!AllocatePages(obj, 1))
-			return false;
+		AllocatePages(obj, 1);
 	}
 
 	ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
@@ -382,8 +391,7 @@ void GPUPagedLRUCache<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, con
 	// Allocate new page if needed
 	if (pageIndex >= objAlloc.GetSize())
 	{
-		if (!AllocatePages(obj, 1))
-			return false;
+		AllocatePages(obj, 1);
 	}
 
 	Atom* bufferHead = m_Buffer.GetContents();
