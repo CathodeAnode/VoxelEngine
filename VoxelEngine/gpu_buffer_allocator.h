@@ -201,7 +201,7 @@ private:
     size_t m_PageSize;
 
 private:
-    bool ReserveFirstFreePages(unsigned int n, std::vector<unsigned int>& pagesReserved)
+    bool _ReserveFirstFreePages(unsigned int n, std::vector<unsigned int>& pagesReserved)
     {
         assert(m_FreePages != nullptr);
 
@@ -214,18 +214,18 @@ private:
 
             while (pagesStatus != 0 && n > 0)
             {
-                unsigned long reservedPages = GetTrailingZeros(pagesStatus);
-                pagesStatus >>= reservedPages;
-                unsigned long freePages = GetTrailingOnes(pagesStatus);
-                unsigned long pagesToConsume = std::min(n, freePages);
+                unsigned long consecutiveReservedPages = GetTrailingZeros(pagesStatus);
+                pagesStatus >>= consecutiveReservedPages;
+                unsigned long consecutiveFreePages = GetTrailingOnes(pagesStatus);
+                unsigned long pagesToConsume = std::min(n, consecutiveFreePages);
 
-                    ByteType consumeMask = ~((1 << pagesToConsume) - 1) << reservedPages;
+                ByteType consumeMask = ~((1 << pagesToConsume) - 1) << consecutiveReservedPages;
                 m_FreePages[index] ^= consumeMask;
                 n -= pagesToConsume;
 
-                for (unsigned long i = 0; i < pagesToConsume; i++)
+                for (unsigned long i = 1; i <= pagesToConsume; i++)
                 {
-                    unsigned long pageID = index * BYTE_TYPE_SIZE + reservedPages + i;
+                    unsigned long pageID = index * BYTE_TYPE_SIZE + consecutiveReservedPages + i;
                     pagesReserved.push_back(pageID);
                 }
             }
@@ -235,7 +235,7 @@ private:
         return n <= 0;
     }
 
-    void ReservePages(const std::vector<unsigned int>& pages)
+    void _ReservePages(const std::vector<unsigned int>& pages)
     {
         assert(m_FreePages != nullptr);
 
@@ -247,7 +247,7 @@ private:
         }
     }
 
-    void FreePages(const std::vector<unsigned int>& pages)
+    void _FreePages(const std::vector<unsigned int>& pages)
     {
         assert(m_FreePages != nullptr);
 #ifndef NDEBUG
@@ -258,7 +258,7 @@ private:
             const uint8_t ghostPages = BYTE_TYPE_SIZE - pageCount % BYTE_TYPE_SIZE;
             for (const auto& page : pages)
             {
-                assert(page < arrSize * BYTE_TYPE_SIZE - ghostPages);
+                assert(page < (arrSize * BYTE_TYPE_SIZE) - ghostPages, "Not allowed to free ghost pages.");
             }
         }
 #endif
@@ -272,8 +272,10 @@ private:
 
     }
 
-    bool EvictLRUAndReserve(unsigned int n, std::vector<unsigned int>& reservedPages)
+    bool _EvictLRUAndReserve(unsigned int n, std::vector<unsigned int>& reservedPages)
     {
+        assert(!m_ObjectAccessHistory.empty());
+
         ObjectID objToEvict = m_ObjectAccessHistory.back();
         m_ObjectAccessHistory.pop_back();
         ObjectAllocationData& objData = m_ObjectMapping[objToEvict];
@@ -284,12 +286,12 @@ private:
         if (pagesToFree > 0)
         {
             // If we have more pages than needed, free the tail portion
+            std::vector pagesToBeFreed;
             pagesToBeFreed.insert(pagesToBeFreed.begin(),
                 objData.pages.begin() + n, objData.pages.end());
+            _FreePages(pagesToBeFreed);
         }
 
-        // Free the pages
-        FreePages(pagesToBeFreed);
 
         reservedPages.insert(reservedPages.end(),
             std::make_move_iterator(objData.pages.begin()),
@@ -297,10 +299,10 @@ private:
 
         m_ObjectMapping.erase(objToEvict);
 
-        return pagesToFree >= 0;
+        return pagesToFree < 0;
     }
 
-    void UpdateObjectLRU(const ObjectID& obj)
+    void _UpdateObjectLRU(const ObjectID& obj)
     {
         assert(m_ObjectMapping.contains(obj));
 
