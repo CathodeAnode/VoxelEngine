@@ -62,7 +62,7 @@ struct Page
     }
 };
 
-template<typename Atom>
+template<typename Atom, IBufferLockManager LockManager = GPUBufferLockManager>
 class GPUPersistentlyMappedBuffer
 {
 public:
@@ -84,7 +84,7 @@ public:
     GLuint GetName() const { return m_Name; };
 
 private:
-    GPUBufferLockManager m_LockManager;
+    LockManager m_LockManager;
     Atom* m_BufferContents;
     GLuint m_Name;
     GLenum m_Target;
@@ -113,8 +113,24 @@ public:
     GLsizeiptr GetSize() const { return m_Buffer.GetSize(); }
 
 private:
-    GPUPersistentlyMappedBuffer<Atom> m_Buffer;
+    GPUPersistentlyMappedBuffer<Atom, NullBufferLockManager> m_Buffer;
     GLsizeiptr m_Head = 0;
+};
+
+template<typename Atom>
+class GPUOpqaueBuffer
+{
+public:
+    GPUOpqaueBuffer(bool _cpuUpdates = true);
+
+    bool Create(GLenum _target, GLuint _count);
+    void Destroy();
+
+
+private:
+    GPUCircularBuffer<Atom> m_CircularBuffer;
+    GLsizeiptr m_Head = 0;
+    GLsizeiptr m_Tail = 0;
 };
 
 template<typename Atom>
@@ -148,8 +164,6 @@ private:
     size_t m_MaxAtomCount;
 
     void move(size_t srcIndex, size_t dstIndex, size_t length);
-
-
 };
 
 template<typename Atom, typename ObjectID>
@@ -168,6 +182,8 @@ public:
     void DeallocateObject(const ObjectID& obj);
 
     std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj) const;
+
+    inline bool Has(ObjectID obj) const { return m_ObjectMapping.contains(obj); };
 
 private:
     using ByteType = uint8_t;
@@ -194,7 +210,7 @@ private:
     };
 
 private:
-    GPUPersistentlyMappedBuffer<Atom> m_Buffer;
+    GPUPersistentlyMappedBuffer<Atom, NullBufferLockManager> m_Buffer;
     ByteType* m_FreePages;
     std::list<ObjectID> m_ObjectAccessHistory;
     std::unordered_map<ObjectID, ObjectAllocationData> m_ObjectMapping; // map obj id => allocated pages, count of elements

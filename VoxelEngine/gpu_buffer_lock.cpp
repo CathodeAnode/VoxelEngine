@@ -53,14 +53,13 @@ void GPUBufferLockManager::Wait(GLsync* _syncObj)
             }
 
             if (waitRet == GL_WAIT_FAILED) {
-                //assert(!"Not sure what to do here. Probably raise an exception or something.");
-                std::cout << "GPU sync wait failed????\n";
+                assert(!"Not sure what to do here. Probably raise an exception or something.");
                 return;
             }
 
             // After the first time, need to start flushing, and wait for a looong time.
             waitFlags = GL_SYNC_FLUSH_COMMANDS_BIT;
-            waitDuration = m_KOneSecondInNanoSeconds;
+            waitDuration = k_OneSecondInNanoSeconds;
         }
     }
     else {

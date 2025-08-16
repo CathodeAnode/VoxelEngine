@@ -1,19 +1,19 @@
 #include "gpu_buffer_allocator.h"
-template<typename Atom>
-GPUPersistentlyMappedBuffer<Atom>::GPUPersistentlyMappedBuffer(bool _cpuUpdates)
+template<typename Atom, IBufferLockManager LockManager>
+GPUPersistentlyMappedBuffer<Atom, LockManager>::GPUPersistentlyMappedBuffer(bool _cpuUpdates)
 	: m_LockManager(_cpuUpdates)
 	, m_BufferContents()
 	, m_Name()
 	, m_Target()
 {}
-template<typename Atom>
-GPUPersistentlyMappedBuffer<Atom>::~GPUPersistentlyMappedBuffer()
+template<typename Atom, IBufferLockManager LockManager>
+GPUPersistentlyMappedBuffer<Atom, LockManager>::~GPUPersistentlyMappedBuffer()
 {
 	Destroy();
 }
 
-template<typename Atom>
-bool GPUPersistentlyMappedBuffer<Atom>::Create(GLenum _target, GLuint _count)
+template<typename Atom, IBufferLockManager LockManager>
+bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count)
 {
 	if (m_BufferContents) {
 		Destroy();
@@ -43,8 +43,8 @@ bool GPUPersistentlyMappedBuffer<Atom>::Create(GLenum _target, GLuint _count)
 	return true;
 }
 
-template<typename Atom>
-void GPUPersistentlyMappedBuffer<Atom>::Destroy()
+template<typename Atom, IBufferLockManager LockManager>
+void GPUPersistentlyMappedBuffer<Atom, LockManager>::Destroy()
 {
 	glBindBuffer(m_Target, m_Name);
 	glUnmapBuffer(m_Target);
@@ -54,32 +54,32 @@ void GPUPersistentlyMappedBuffer<Atom>::Destroy()
 	m_Name = 0;
 }
 
-template<typename Atom>
-void GPUPersistentlyMappedBuffer<Atom>::WaitForLockedRange(size_t _lockBegin, size_t _lockLength)
+template<typename Atom, IBufferLockManager LockManager>
+void GPUPersistentlyMappedBuffer<Atom, LockManager>::WaitForLockedRange(size_t _lockBegin, size_t _lockLength)
 {
 	m_LockManager.WaitForLockedRange(_lockBegin * sizeof(Atom), _lockLength * sizeof(Atom));
 }
 
-template<typename Atom>
-void GPUPersistentlyMappedBuffer<Atom>::LockRange(size_t _lockBegin, size_t _lockLength)
+template<typename Atom, IBufferLockManager LockManager>
+void GPUPersistentlyMappedBuffer<Atom, LockManager>::LockRange(size_t _lockBegin, size_t _lockLength)
 {
 	m_LockManager.LockRange(_lockBegin * sizeof(Atom), _lockLength * sizeof(Atom));
 }
 
-template<typename Atom>
-void GPUPersistentlyMappedBuffer<Atom>::BindBuffer()
+template<typename Atom, IBufferLockManager LockManager>
+void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBuffer()
 {
 	glBindBuffer(m_Target, m_Name);
 }
 
-template<typename Atom>
-void GPUPersistentlyMappedBuffer<Atom>::BindBufferBase(GLuint _index)
+template<typename Atom, IBufferLockManager LockManager>
+void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferBase(GLuint _index)
 {
 	glBindBufferBase(m_Target, _index, m_Name);
 }
 
-template<typename Atom>
-void GPUPersistentlyMappedBuffer<Atom>::BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _count)
+template<typename Atom, IBufferLockManager LockManager>
+void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _count)
 {
 	glBindBufferRange(m_Target, _index, m_Name , _head * sizeof(Atom), _count * sizeof(Atom));
 }

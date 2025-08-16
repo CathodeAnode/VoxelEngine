@@ -4,6 +4,15 @@
 #include <glad\glad.h>
 #include <vector>
 #include <iostream>
+#include <concepts>
+#include <cassert>
+
+
+template<typename T>
+concept IBufferLockManager = requires(T t, size_t begin, size_t length) {
+	{ t.WaitForLockedRange(begin, length) } -> std::same_as<void>;
+	{ t.LockRange(begin, length) } -> std::same_as<void>;
+} && std::constructible_from<T, bool>;
 
 struct GPUBufferRange 
 {
@@ -41,7 +50,15 @@ private:
 	// if true, CPU updates, else GPU updates
 	bool m_CPUUpdates;
 
-	const uint64_t m_KOneSecondInNanoSeconds = 1000000000;
+	const uint64_t k_OneSecondInNanoSeconds = 1000000000;
+};
+
+class NullBufferLockManager
+{
+public:
+	NullBufferLockManager(bool) {}
+	void WaitForLockedRange(size_t, size_t) {}
+	void LockRange(size_t, size_t) {}
 };
 
 #endif
