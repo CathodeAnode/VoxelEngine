@@ -57,8 +57,8 @@ class NullBufferLockManager
 {
 public:
 	NullBufferLockManager(bool) {}
-	void WaitForLockedRange(size_t, size_t) {}
-	void LockRange(size_t, size_t) {}
+	inline void WaitForLockedRange(size_t, size_t) {}
+	inline void LockRange(size_t, size_t) {}
 };
 
 #endif

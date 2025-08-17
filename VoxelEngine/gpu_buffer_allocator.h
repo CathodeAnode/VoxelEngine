@@ -79,19 +79,19 @@ public:
     void BindBufferBase(GLuint _index);
     void BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _count);
 
-    Atom* GetContents() { return m_BufferContents; };
-    GLsizeiptr GetSize() const { return m_CountAtoms; };
-    GLuint GetName() const { return m_Name; };
+    inline Atom* GetContents() { return m_BufferContents; };
+    inline GLsizeiptr GetSize() const { return m_CountAtoms; };
+    inline GLuint GetName() const { return m_Name; };
 
 private:
     LockManager m_LockManager;
     Atom* m_BufferContents;
     GLuint m_Name;
     GLenum m_Target;
-    GLsizeiptr m_CountAtoms;
+    uint32_t m_CountAtoms;
 };
 
-template<typename Atom>
+template<typename Atom, IBufferLockManager LockManager = GPUBufferLockManager>
 class GPUCircularBuffer
 {
 public:
@@ -101,36 +101,52 @@ public:
     void Destroy();
 
     Atom* Reserve(GLsizeiptr _count);
-    GLsizeiptr OnUsageComplete(GLsizeiptr _count);
+    void OnUsageComplete(GLsizeiptr _count);
 
     void BindBuffer();
     void BindBufferBase(GLuint _index);
     void BindBufferHeadRange(GLuint _index, GLsizeiptr _count);
     void BindBufferRange(GLuint _index, GLsizeiptr _offset, GLsizeiptr _count);
 
-    GLsizeiptr GetHead() const { return m_Head; }
-    void* GetHeadOffset() const { return (void*)(m_Head * sizeof(Atom)); }
-    GLsizeiptr GetSize() const { return m_Buffer.GetSize(); }
+    inline GLsizeiptr GetHead() const { return m_Head; }
+    inline void* GetHeadOffset() const { return (void*)(m_Head * sizeof(Atom)); }
+    inline GLsizeiptr GetSize() const { return m_Buffer.GetSize(); }
 
 private:
-    GPUPersistentlyMappedBuffer<Atom, NullBufferLockManager> m_Buffer;
+    GPUPersistentlyMappedBuffer<Atom, LockManager> m_Buffer;
     GLsizeiptr m_Head = 0;
 };
 
 template<typename Atom>
-class GPUOpqaueBuffer
+class GPUOrphanBuffer
 {
 public:
-    GPUOpqaueBuffer(bool _cpuUpdates = true);
+    GPUOrphanBuffer(bool _cpuUpdates = true);
 
-    bool Create(GLenum _target, GLuint _count);
+    bool Create(GLenum target, GLuint count, uint8_t numOfBuffers);
     void Destroy();
 
+    void AdvanceHead();
+    void AdvanceTail();
+
+    void BindHeadBuffer();
+    void BindHeadBufferRange(GLsizeiptr count);
+
+    void BindTailBuffer();
+    void BindTailBufferRange(GLsizeiptr count);
+
+    inline GLsizeiptr GetHead() const { return m_CircularBuffer.GetHead(); }
+    inline void* GetHeadOffset() const { return m_CircularBuffer.GetHeadOffset(); }
+
+    inline GLsizeiptr GetTail() const { return m_Tail; }
+    inline void* GetTailOffset() const { return (void*)(m_Tail * sizeof(Atom)); }
+
+    inline GLsizeiptr GetSize() const { return m_CountPerBuffer; }
 
 private:
-    GPUCircularBuffer<Atom> m_CircularBuffer;
-    GLsizeiptr m_Head = 0;
+    GPUCircularBuffer<Atom, NullBufferLockManager> m_CircularBuffer;
     GLsizeiptr m_Tail = 0;
+    uint32_t m_CountPerBuffer;
 };
 
 template<typename Atom>

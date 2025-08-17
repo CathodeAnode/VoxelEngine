@@ -86,27 +86,27 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferRange(GLuint _ind
 
 // ------------------------------------------------------------------------------------------------------------------
 
-template<typename Atom>
-GPUCircularBuffer<Atom>::GPUCircularBuffer(bool _cpuUpdates)
+template<typename Atom, IBufferLockManager LockManager>
+GPUCircularBuffer<Atom, LockManager>::GPUCircularBuffer(bool _cpuUpdates)
 	: m_Buffer(_cpuUpdates)
 {}
 
-template<typename Atom>
-bool GPUCircularBuffer<Atom>::Create(GLenum _target, GLuint _count)
+template<typename Atom, IBufferLockManager LockManager>
+bool GPUCircularBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count)
 {
 	m_Head = 0;
 	return m_Buffer.Create(_target, _count);
 }
 
-template<typename Atom>
-void GPUCircularBuffer<Atom>::Destroy()
+template<typename Atom, IBufferLockManager LockManager>
+void GPUCircularBuffer<Atom, LockManager>::Destroy()
 {
 	m_Buffer.Destroy();
 	m_Head = 0;
 }
 
-template<typename Atom>
-Atom* GPUCircularBuffer<Atom>::Reserve(GLsizeiptr _count)
+template<typename Atom, IBufferLockManager LockManager>
+Atom* GPUCircularBuffer<Atom, LockManager>::Reserve(GLsizeiptr _count)
 {
 	if (_count > m_Buffer.GetSize()) {
 		std::cout << "Requested an update of size " << _count << " for a m_Buffer of size " << m_Buffer.GetSize() << " atoms.\n";
@@ -123,38 +123,99 @@ Atom* GPUCircularBuffer<Atom>::Reserve(GLsizeiptr _count)
 	return &m_Buffer.GetContents()[lockStart];
 }
 
-template<typename Atom>
-GLsizeiptr GPUCircularBuffer<Atom>::OnUsageComplete(GLsizeiptr _count)
+template<typename Atom, IBufferLockManager LockManager>
+void GPUCircularBuffer<Atom, LockManager>::OnUsageComplete(GLsizeiptr _count)
 {
 	m_Buffer.LockRange(m_Head, _count);
-	GLsizeiptr oldHead = m_Head;
 	m_Head = (m_Head + _count) % m_Buffer.GetSize();
-	return oldHead;
 }
 
-template<typename Atom>
-void GPUCircularBuffer<Atom>::BindBuffer()
+template<typename Atom, IBufferLockManager LockManager>
+void GPUCircularBuffer<Atom, LockManager>::BindBuffer()
 {
 	m_Buffer.BindBuffer();
 }
 
-template<typename Atom>
-void GPUCircularBuffer<Atom>::BindBufferBase(GLuint _index)
+template<typename Atom, IBufferLockManager LockManager>
+void GPUCircularBuffer<Atom, LockManager>::BindBufferBase(GLuint _index)
 {
 	m_Buffer.BindBufferBase(_index);
 }
 
 
-template<typename Atom>
-void GPUCircularBuffer<Atom>::BindBufferHeadRange(GLuint _index, GLsizeiptr _count)
+template<typename Atom, IBufferLockManager LockManager>
+void GPUCircularBuffer<Atom, LockManager>::BindBufferHeadRange(GLuint _index, GLsizeiptr _count)
 {
 	m_Buffer.BindBufferRange(_index, m_Head, _count);
 }
 
-template<typename Atom>
-void GPUCircularBuffer<Atom>::BindBufferRange(GLuint _index, GLsizeiptr _offset, GLsizeiptr _count)
+template<typename Atom, IBufferLockManager LockManager>
+void GPUCircularBuffer<Atom, LockManager>::BindBufferRange(GLuint _index, GLsizeiptr _offset, GLsizeiptr _count)
 {
 	m_Buffer.BindBufferRange(_index, _offset, _count);
+}
+
+// ------------------------------------------------------------------------------------------------------------------
+
+template<typename Atom>
+inline GPUOrphanBuffer<Atom>::GPUOrphanBuffer(bool _cpuUpdates)
+	: m_CircularBuffer(_cpuUpdates)
+{}
+
+template<typename Atom>
+bool GPUOrphanBuffer<Atom>::Create(GLenum target, GLuint count, uint8_t numOfBuffers)
+{
+	assert(numOfBuffers > 0);
+
+	m_CountPerBuffer = ceil(count / numOfBuffers);
+	GLuint roundedCount = m_CountPerBuffer * numOfBuffers;
+	m_Tail = 0;
+
+	return m_CircularBuffer.Create(target, roundedCount);
+}
+
+template<typename Atom>
+void GPUOrphanBuffer<Atom>::Destroy()
+{
+	m_CountPerBuffer = 0;
+	m_Tail = 0;
+	m_CircularBuffer.Destroy();
+}
+
+template<typename Atom>
+void GPUOrphanBuffer<Atom>::AdvanceHead()
+{
+	m_CircularBuffer.OnUsageComplete(m_CountPerBuffer);
+}
+
+template<typename Atom>
+void GPUOrphanBuffer<Atom>::AdvanceTail()
+{
+	m_Tail = (m_Tail + m_CountPerBuffer) % m_CircularBuffer.GetSize();
+}
+
+template<typename Atom>
+void GPUOrphanBuffer<Atom>::BindHeadBuffer()
+{
+	m_CircularBuffer.BindBufferHeadRange(0, m_CountPerBuffer);
+}
+
+template<typename Atom>
+void GPUOrphanBuffer<Atom>::BindHeadBufferRange(GLsizeiptr count)
+{
+	m_CircularBuffer.BindBufferHeadRange(0, count);
+}
+
+template<typename Atom>
+void GPUOrphanBuffer<Atom>::BindTailBuffer()
+{
+	m_CircularBuffer.BindBufferRange(0, m_Tail, m_CountPerBuffer);
+}
+
+template<typename Atom>
+void GPUOrphanBuffer<Atom>::BindTailBufferRange(GLsizeiptr count)
+{
+	m_CircularBuffer.BindBufferRange(0, m_Tail, count);
 }
 
 // ------------------------------------------------------------------------------------------------------------------
