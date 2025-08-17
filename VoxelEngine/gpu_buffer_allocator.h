@@ -7,7 +7,7 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
-#include <list>
+#include <forward_list>
 #include <stdexcept>
 #include <cassert>
 
@@ -228,7 +228,7 @@ private:
 private:
     GPUPersistentlyMappedBuffer<Atom, NullBufferLockManager> m_Buffer;
     ByteType* m_FreePages;
-    std::list<ObjectID> m_ObjectAccessHistory;
+    std::forward_list<ObjectID> m_ObjectAccessHistory;
     std::unordered_map<ObjectID, ObjectAllocationData> m_ObjectMapping; // map obj id => allocated pages, count of elements
 
     size_t m_PageSize;
