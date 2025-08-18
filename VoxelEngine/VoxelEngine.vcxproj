@@ -157,6 +157,7 @@
     <ClInclude Include="chunk.h" />
     <ClInclude Include="gpu_buffer_allocator.h" />
     <ClInclude Include="gpu_buffer_lock.h" />
+    <ClInclude Include="helpers.h" />
     <ClInclude Include="joystick.h" />
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="voxel_ray_cast.h" />

@@ -6,6 +6,8 @@
 
 #include <vector>
 
+using QuadMeshData = uint32_t; //TODO: use bitfields struct instead
+
 enum class QuadFaceDir {
 	Up,     // +Y
 	Down,   // -Y
@@ -27,7 +29,7 @@ enum class QuadFaceDir {
  * Bits 28 - 31 (4 bits): Reserved
  */
 struct ChunkQuads {
-	std::vector<uint32_t> quadData;
+	std::vector<QuadMeshData> quadData;
 	std::vector<uint16_t> voxelType;
 
 

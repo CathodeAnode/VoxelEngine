@@ -61,7 +61,7 @@ public:
 					if (m_Chunks.getChunk(encodedChunkCoords) == nullptr) continue;
 
 					Page pageOffset = m_Renderer.GetDataPageOffsets(m_ChunkCoordsPageID[encodedChunkCoords]);
-					if (pageOffset.isNull()) {
+					if (pageOffset.IsNull()) {
 						ChunkQuads mesh = m_Mesher.meshChunk(m_Chunks, chunkCoords);
 						const size_t pageId = m_Renderer.UploadMesh(mesh.quadData);
 						pageOffset = m_Renderer.GetDataPageOffsets(m_ChunkCoordsPageID[encodedChunkCoords]);
@@ -173,10 +173,10 @@ private:
 	VoxelMesher<ChunkType> m_Mesher;
 	VoxelRenderer m_Renderer;
 
-	size_t m_WorldSize; // NxNxN m_Chunks
+	unsigned int m_WorldSize; // NxNxN m_Chunks
 	int m_RenderDistance;
-	size_t m_MaxRenderableChunks;
-	size_t m_ChunksRendered;
+	unsigned int m_MaxRenderableChunks;
+	unsigned int m_ChunksRendered;
 	glm::ivec3 m_LastPlayerGridCoords;
 
 	std::unordered_map<uint64_t, size_t> m_ChunkCoordsPageID;

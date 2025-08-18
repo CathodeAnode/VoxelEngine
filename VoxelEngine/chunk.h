@@ -7,7 +7,7 @@
 #include <limits>
 
 
-template<typename T, size_t ChunkSize>
+template<typename T, unsigned int ChunkSize>
 class Chunk {
 public:
 	using ValueType = T;

@@ -9,12 +9,26 @@
 
 #include "chunk.h"
 #include "chunk_grid.h"
+#include "voxel_mesher.h"
 #include "types.h"
 #include "gpu_buffer_allocator.h"
 
+// What happens if:
+//	1. an upload causes an eviction on an object we are currently rendering or will render on next frame (bcuz of small cache size)
+//		- solve by not allowing small caches (ex: min cache size 5 * maxObjectRendered)
+//	2. we re-upload an object we are currently rendering
+
+// additions needed:
+//	1. rotation for each obj??
+//	2. scale for each obj??
+
+// how to?
+//	1. implement a func to only update positionSSBO of current objects being rendered
+//	2. support rendering of dynamic objects (currently ObjectID uses position of chunk. so how to assign an id for objects that move)
+
 struct DrawArraysIndirectCommand {
 	unsigned int count = 4;
-	unsigned int  instanceCount;
+	unsigned int instanceCount;
 	unsigned int first = 0;
 	unsigned int baseInstance;
 };
@@ -24,19 +38,19 @@ public:
 	VoxelRenderer();
 	~VoxelRenderer();
 
-	void Init(unsigned int quadBufferSize, unsigned int m_MaxObjectsRendered);
+	void Init(unsigned int quadBufferSize, unsigned int maxObjectsRendered);
 
-	size_t UploadMesh(const std::vector<uint32_t>& meshData);
+	template<typename T, unsigned int ChunkSize>
+	void Upload(const Chunk<T, ChunkSize>& chunk, const VoxelMesher<Chunk<T, ChunkSize>>& mesher);
 
-	bool UpdateMesh(const std::vector<uint32_t>& newMeshData, const size_t& pageId);
+	template<typename ChunkType>
+	void Upload(const ChunkGrid<ChunkType>& chunkGrid, const VoxelMesher<ChunkType>& mesher);
 
-	Page GetDataPageOffsets(const size_t& m_Id);
+	void UpdatePosition(uint64_t objectID, const glm::vec3& newPosition);
 
-	// Reserve methods
-	DrawArraysIndirectCommand* GetDrawCommandsWritePtr();
-	glm::vec4* GetPositionDataWritePtr();
+	bool DrawOnNextFrame(uint64_t objectID, const glm::vec3& position);
 
-	void CompleteBuffersWrite(size_t _objectRendererd);
+	void NextFrame();
 
 	void ToggleDrawLines();
 
@@ -49,9 +63,9 @@ public:
 private:
 	unsigned int m_VAO, m_QuadVBO;
 
-	GPUPagedBuffer<uint32_t> m_DataBuffer;
-	GPUCircularBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
-	GPUCircularBuffer<glm::vec4> m_PositionSSBO;
+	GPUPagedLRUCache<QuadMeshData, uint64_t> m_DataBuffer;
+	GPUOrphanBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
+	GPUOrphanBuffer<glm::vec4> m_PositionSSBO;
 
 
 	float m_QuadVertices[20] = {
@@ -65,12 +79,10 @@ private:
 	bool m_DrawLines;
 	size_t m_MaxObjectsRendered;
 	size_t m_ObjectsRendered = 0;
-	GLsizeiptr m_RenderHead = 0;
-	void* m_IndirectCmdsRenderHead;
 
 
 
-	const int kTripleBuffer = 3;
+	const int k_TripleBuffer = 3;
 };
 
 #endif

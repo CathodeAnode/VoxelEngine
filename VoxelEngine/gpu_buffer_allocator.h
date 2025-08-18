@@ -209,8 +209,8 @@ private:
     struct ObjectAllocationData
     {
         std::vector<unsigned int> pages;
+        std::forward_list<ObjectID>::iterator lruIterator;
         unsigned int count;
-        std::list<ObjectID>::iterator lruIterator;
 
         inline unsigned int GetSize() const noexcept
         {
