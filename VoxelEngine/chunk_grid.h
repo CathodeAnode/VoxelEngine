@@ -8,10 +8,12 @@
 #include <unordered_map>
 #include <stdexcept>
 #include <limits>
+#include <cassert>
 #include <iostream>
 
 #include "chunk.h"
 #include "types.h"
+#include "uid_manager.h"
 
 #define MAX_GRID_INT 1048575
 
@@ -21,30 +23,81 @@ public:
 	ChunkGrid(char* serializedData); // load from serialized data
 
 	// generate flat world with given size
-	ChunkGrid(int m_WorldSize, float _voxelScale = 1.0f) :
-		m_VoxelScale(_voxelScale)
+	ChunkGrid(int m_WorldSize, float _voxelScale = 1.0f) 
+		: m_VoxelScale(_voxelScale)
+		, m_Uid(UIDManager::Generate())
+	{}
+
+	~ChunkGrid() 
 	{
-		//m_Chunks.reserve(11000);
+		m_Chunks.clear(); // deallocate chunks
 	}
 
-	~ChunkGrid() {
+	// Copy constructor
+	ChunkGrid(const ChunkGrid& other)
+		: m_VoxelScale(other.m_VoxelScale)
+		, m_Uid(UIDManager::Generate())
+	{
 		m_Chunks.clear();
+		for (const auto& [index, chunk] : other.m_Chunks) 
+		{
+			m_Chunks[index] = chunk; // chunk copy constructor generates new UID
+		}
 	}
 
-	ChunkGrid() {};
+	// Copy assignment
+	ChunkGrid& operator=(const ChunkGrid& other)
+	{
+		if (this != &other) 
+		{
+			m_VoxelScale = other.m_VoxelScale;
+			m_Uid = UIDManager::Generate(); // generate new UID
+
+			m_Chunks.clear();
+			for (const auto& [index, chunk] : other.m_Chunks) {
+				m_Chunks[index] = chunk; // chunk copy constructor generates new UID
+			}
+		}
+		return *this;
+	}
+
+	// Move constructor
+	ChunkGrid(ChunkGrid&& other) noexcept
+		: m_VoxelScale(other.m_VoxelScale)
+		, m_Uid(other.m_Uid)
+	{
+		m_Chunks.clear();
+		m_Chunks = std::move(other.m_Chunks);
+	}
+
+	// Move assignment
+	ChunkGrid& operator=(ChunkGrid&& other) noexcept
+	{
+		if (this != &other) 
+		{
+			m_Chunks.clear();
+			m_Chunks = std::move(other.m_Chunks);
+			m_VoxelScale = other.m_VoxelScale;
+			m_Uid = other.m_Uid;
+		}
+		return *this;
+	}
 
 	//TODO: change to take pointers instead of making a copy of chunk (optmization)
-	void addChunk(const ChunkType& chunk, const glm::ivec3& chunkGridLocation) {
+	void addChunk(const ChunkType& chunk, const glm::ivec3& chunkGridLocation) 
+	{
 		uint64_t chunkIndex = EncodeChunkCoords(chunkGridLocation);
 		m_Chunks[chunkIndex] = chunk;
 	}
 
-	ChunkType* getChunk(const glm::ivec3& chunkGridLocation) {
+	ChunkType* getChunk(const glm::ivec3& chunkGridLocation) 
+	{
 		uint64_t chunkIndex = EncodeChunkCoords(chunkGridLocation);
 		return getChunk(chunkIndex);
 	}
 
-	ChunkType* getChunk(const uint64_t& index) {
+	ChunkType* getChunk(const uint64_t& index) 
+	{
 		if (m_Chunks.contains(index)) {
 			return &m_Chunks.at(index);
 		}
@@ -52,7 +105,8 @@ public:
 		return nullptr;
 	}
 
-	bool isVoxelSolid(int x, int y, int z) const {
+	bool isVoxelSolid(int x, int y, int z) const 
+	{
 		const int ChunkSize = ChunkType::Size;
 
 		bool result = false;
@@ -74,11 +128,13 @@ public:
 		return result;
 	}
 
-	bool isVoxelSolid(const glm::ivec3& pos) const {
+	bool isVoxelSolid(const glm::ivec3& pos) const 
+	{
 		return isVoxelSolid(pos.x, pos.y, pos.z);
 	}
 
-	uint16_t getVoxelData(int x, int y, int z) const {
+	uint16_t getVoxelData(int x, int y, int z) const 
+	{
 		const int ChunkSize = ChunkType::Size;
 
 		int chunkX = floor(x / (float)ChunkSize);
@@ -97,18 +153,19 @@ public:
 		return std::numeric_limits<uint16_t>::max();
 	}
 
-	uint16_t getVoxelData(glm::ivec3 coords) const {
+	uint16_t getVoxelData(glm::ivec3 coords) const 
+	{
 		return getVoxelData(coords.x, coords.y, coords.z);
 	}
 
 	char* serialize();
 
-	static uint64_t EncodeChunkCoords(int x, int y, int z) {
-		if (x < -MAX_GRID_INT - 1 || x > MAX_GRID_INT ||
+	static uint64_t EncodeChunkCoords(int x, int y, int z) 
+	{
+		assert(x < -MAX_GRID_INT - 1 || x > MAX_GRID_INT ||
 			y < -MAX_GRID_INT - 1 || y > MAX_GRID_INT ||
-			z < -MAX_GRID_INT - 1 || z > MAX_GRID_INT) {
-			throw std::out_of_range("Chunk coordinate out of supported range [-1048576, 1048575]");
-		}
+			z < -MAX_GRID_INT - 1 || z > MAX_GRID_INT,
+			"Chunk coordinate out of supported range [-1048576, 1048575]");
 
 		
 		uint64_t index = ((uint64_t)(z) + (MAX_GRID_INT + 1)) & 0x1FFFFF;
@@ -123,9 +180,9 @@ public:
 	static uint64_t EncodeChunkCoords(const glm::ivec3& chunkGridLocation) { return EncodeChunkCoords(chunkGridLocation.x, chunkGridLocation.y, chunkGridLocation.z); };
 
 
-	static glm::ivec3 DecodeChunkCoords(uint64_t index) {
+	static glm::ivec3 DecodeChunkCoords(uint64_t index) 
+	{
 		glm::ivec3 coords;
-
 
 		coords.x = (int)((index & 0x1FFFFF) - (MAX_GRID_INT + 1));
 		index >>= 21;
@@ -140,6 +197,8 @@ public:
 	}
 
 	inline float getVoxelScale() const { return m_VoxelScale; };
+
+	inline VoxelObjectID GetUID() const { return m_Uid; };
 
 
 	std::unordered_map<uint64_t, ChunkType>::iterator begin() const { return m_Chunks.begin(); }
@@ -159,6 +218,8 @@ private:
 	*/
 	std::unordered_map<uint64_t, ChunkType> m_Chunks;
 	float m_VoxelScale;
+	VoxelObjectID m_Uid;
+	
 };
 
 typedef ChunkGrid<Chunk8> ChunkGrid8;

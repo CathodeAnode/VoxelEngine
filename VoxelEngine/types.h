@@ -7,6 +7,9 @@
 #include <vector>
 
 using QuadMeshData = uint32_t; //TODO: use bitfields struct instead
+using Color = uint32_t;
+using VoxelObjectID = uint32_t;
+
 
 enum class QuadFaceDir {
 	Up,     // +Y
@@ -36,7 +39,7 @@ struct ChunkQuads {
 	void addQuad(int x, int y, int z, int w, int h, int dir, uint16_t voxelData) {
 		//std::cout << "Face: " << dir << " pos: (" << x << "," << y << "," << z << ") "
 		//	<< "size: (" << w << "x" << h << ")\n";
-		uint32_t quadVal = 0;
+		QuadMeshData quadVal = 0;
 		quadVal |= (x & 0x1F) << 0;
 		quadVal |= (y & 0x1F) << 5;
 		quadVal |= (z & 0x1F) << 10;

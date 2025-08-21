@@ -26,6 +26,7 @@
 //	1. implement a func to only update positionSSBO of current objects being rendered
 //	2. support rendering of dynamic objects (currently ObjectID uses position of chunk. so how to assign an id for objects that move)
 
+
 struct DrawArraysIndirectCommand {
 	unsigned int count = 4;
 	unsigned int instanceCount;
@@ -40,15 +41,15 @@ public:
 
 	void Init(unsigned int quadBufferSize, unsigned int maxObjectsRendered);
 
-	template<typename T, unsigned int ChunkSize>
-	void Upload(const Chunk<T, ChunkSize>& chunk, const VoxelMesher<Chunk<T, ChunkSize>>& mesher);
+	template<typename ChunkType>
+	void Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& coords, const VoxelMesher<ChunkType>& mesher);
 
 	template<typename ChunkType>
 	void Upload(const ChunkGrid<ChunkType>& chunkGrid, const VoxelMesher<ChunkType>& mesher);
 
-	void UpdatePosition(uint64_t objectID, const glm::vec3& newPosition);
+	bool UpdatePosition(VoxelObjectID objectID, const glm::vec3& newPosition);
 
-	bool DrawOnNextFrame(uint64_t objectID, const glm::vec3& position);
+	bool DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position);
 
 	void NextFrame();
 
@@ -63,9 +64,12 @@ public:
 private:
 	unsigned int m_VAO, m_QuadVBO;
 
-	GPUPagedLRUCache<QuadMeshData, uint64_t> m_DataBuffer;
+	GPUPagedLRUCache<QuadMeshData, VoxelObjectID> m_DataCache;
 	GPUOrphanBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
 	GPUOrphanBuffer<glm::vec4> m_PositionSSBO;
+
+	std::vector<VoxelObjectID> m_ObjectsRenderedInCurrentFrame;
+	std::vector<VoxelObjectID> m_ObjectsRenderedInNextFrame;
 
 
 	float m_QuadVertices[20] = {
@@ -78,11 +82,20 @@ private:
 
 	bool m_DrawLines;
 	size_t m_MaxObjectsRendered;
-	size_t m_ObjectsRendered = 0;
-
-
 
 	const int k_TripleBuffer = 3;
+
+	void _UpdateFrame();
 };
+
+// object upload cases
+// case 1: object not in cache
+//	- no problem just upload normally to gpu cache
+// case 2: object in cache but not being rendered
+//	- also upload normally and old object will evenually get evicted from cache as it fills up
+//	- only need to figure out a way to reclaim VoxelObjectHandle to be able to assgin for other objects
+//		- answer: dont reclaim VoxelObjectHandle instead keep incrmenting until loop around back to 0
+//		- bug prone if theorilically we keep VoxelObjectHandle = 1 in cache until we loop around back to 0 (solution assert cache doesnt have that VoxelObjectHandle id in cache)
+// case 3: object in cache and being rendered
 
 #endif

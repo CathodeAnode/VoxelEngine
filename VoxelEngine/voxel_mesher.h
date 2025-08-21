@@ -27,7 +27,7 @@ private:
 	static constexpr int CS_P2 = CS_P * CS_P;
 	static constexpr int CS_P3 = CS_P2 * CS_P;
 
-	static uintC_t getPaddedColumnRowBits(ChunkGrid<ChunkType>& world, int x, int y, const glm::ivec3& chunkLocation) {
+	static uintC_t _GetPaddedColumnRowBits(ChunkGrid<ChunkType>& world, int x, int y, const glm::ivec3& chunkLocation) {
 		// Reject completely invalid or corner out-of-bounds accesses
 		if ((x <= 0 && y <= 0) || x < 0 || y < 0 ||
 			(x >= CS_P && y >= CS_P) ||
@@ -69,7 +69,7 @@ private:
 		return 0;
 	}
 
-	static glm::ivec3 getAxisIndex(const int axis, const int a, const int b, const int c) {
+	static glm::ivec3 _GetAxisIndex(const int axis, const int a, const int b, const int c) {
 		glm::ivec3 voxelCoords;
 		switch (axis) {
 		case 0:
@@ -84,6 +84,19 @@ private:
 		}
 
 		return voxelCoords;
+	}
+
+	static QuadMeshData _CompressQuadData(uint8_t x, uint8_t y, uint8_t z, uint8_t w, uint8_t h, uint8_t dir)
+	{
+		QuadMeshData ret = 0;
+		ret |= (x & 0x1F) << 0;
+		ret |= (y & 0x1F) << 5;
+		ret |= (z & 0x1F) << 10;
+		ret |= (w & 0x1F) << 15;
+		ret |= (h & 0x1F) << 20;
+		ret |= (dir & 0x07) << 25;
+
+		return ret;
 	}
 
 public:
@@ -104,18 +117,18 @@ public:
 		// face culling
 		for (int a = 1; a < CS_P - 1; a++) {
 			for (int b = 1; b < CS_P - 1; b++) {
-				const uintC_t columnBits = getPaddedColumnRowBits(chunkGrid, b, a, chunkLocation);
+				const uintC_t columnBits = _GetPaddedColumnRowBits(chunkGrid, b, a, chunkLocation);
 				const int baIndex = (b - 1) + (a - 1) * CS;
 				const int abIndex = (a - 1) + (b - 1) * CS;
 
 
 				// +ve, -ve z
-				faceMasks[baIndex + 0 * CS_2] = (columnBits & ~getPaddedColumnRowBits(chunkGrid, b, a + 1, chunkLocation));
-				faceMasks[baIndex + 1 * CS_2] = (columnBits & ~getPaddedColumnRowBits(chunkGrid, b, a - 1, chunkLocation));
+				faceMasks[baIndex + 0 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b, a + 1, chunkLocation));
+				faceMasks[baIndex + 1 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b, a - 1, chunkLocation));
 
 				// +ve, -ve x
-				faceMasks[abIndex + 2 * CS_2] = (columnBits & ~getPaddedColumnRowBits(chunkGrid, b + 1, a, chunkLocation));
-				faceMasks[abIndex + 3 * CS_2] = (columnBits & ~getPaddedColumnRowBits(chunkGrid, b - 1, a, chunkLocation));
+				faceMasks[abIndex + 2 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b + 1, a, chunkLocation));
+				faceMasks[abIndex + 3 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b - 1, a, chunkLocation));
 
 				// TODO: fix me, adjacent chunk padding
 				// +ve, -ve y
@@ -192,10 +205,12 @@ public:
 							w++;
 						}
 
+
 						switch (axis) {
 						case 0:
 						case 1:
 							mesh.addQuad(row, y, layer, w, h, axis, 0);
+
 							break;
 						case 2:
 						case 3:
@@ -314,18 +329,18 @@ public:
 	
 						bitsHere &= ~(1ull << bitPos);
 
-						const uint16_t type = chunk->getVoxelData(getAxisIndex(axis, right , forward, bitPos));
+						const uint16_t type = chunk->getVoxelData(_GetAxisIndex(axis, right , forward, bitPos));
 						uint8_t& forwardMergedRef = forwardMerged[rightCS + bitPos];
 						uint8_t& rightMergedRef = rightMerged[bitPos];
 
 						if (rightMergedRef == 0 && (bitsForward >> bitPos & 1) &&
-							type == chunk->getVoxelData(getAxisIndex(axis, right, forward + 1, bitPos))) {
+							type == chunk->getVoxelData(_GetAxisIndex(axis, right, forward + 1, bitPos))) {
 							forwardMergedRef++;
 							continue;
 						}
 
 						if ((bitsRight >> bitPos & 1) && forwardMergedRef == forwardMerged[(rightCS + CS) + bitPos]
-							&& type == chunk->getVoxelData(getAxisIndex(axis, right + 1, forward, bitPos))) {
+							&& type == chunk->getVoxelData(_GetAxisIndex(axis, right + 1, forward, bitPos))) {
 							forwardMergedRef = 0;
 							rightMergedRef++;
 							continue;

@@ -118,5 +118,11 @@
     <ClInclude Include="gpu_buffer_lock.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="helpers.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="uid_manager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
