@@ -39,7 +39,7 @@ public:
 	VoxelRenderer();
 	~VoxelRenderer();
 
-	void Init(unsigned int quadBufferSize, unsigned int maxObjectsRendered);
+	void Init(size_t cachePages, size_t cachePageSize, size_t renderBufferSize);
 
 	template<typename ChunkType>
 	void Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& coords, const VoxelMesher<ChunkType>& mesher);
@@ -85,17 +85,15 @@ private:
 
 	const int k_TripleBuffer = 3;
 
-	void _UpdateFrame();
+	void _RefreshFrame();
 };
 
 // object upload cases
 // case 1: object not in cache
 //	- no problem just upload normally to gpu cache
 // case 2: object in cache but not being rendered
-//	- also upload normally and old object will evenually get evicted from cache as it fills up
-//	- only need to figure out a way to reclaim VoxelObjectHandle to be able to assgin for other objects
-//		- answer: dont reclaim VoxelObjectHandle instead keep incrmenting until loop around back to 0
-//		- bug prone if theorilically we keep VoxelObjectHandle = 1 in cache until we loop around back to 0 (solution assert cache doesnt have that VoxelObjectHandle id in cache)
+//	- upload mesh under a temp UID, then move temp UID to real UID
 // case 3: object in cache and being rendered
+//	- same as case 2 but call RefreshFrame
 
 #endif

@@ -79,9 +79,9 @@ public:
     void BindBufferBase(GLuint _index);
     void BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _count);
 
-    inline Atom* GetContents() { return m_BufferContents; };
-    inline GLsizeiptr GetSize() const { return m_CountAtoms; };
-    inline GLuint GetName() const { return m_Name; };
+    inline Atom* GetContents() { return m_BufferContents; }
+    inline GLsizeiptr GetSize() const { return m_CountAtoms; }
+    inline GLuint GetName() const { return m_Name; }
 
 private:
     LockManager m_LockManager;
@@ -163,10 +163,10 @@ public:
     bool UpdatePage(const size_t& pageId, const std::vector<Atom>& data) noexcept;
 
     Page GetPageOffset(const size_t& pageId) noexcept;
-    size_t GetCurrentSize() const { return m_AtomCount; };
-    size_t GetMaxSize() const { return m_MaxAtomCount; };
-    size_t GetPageSize() const { return m_PageTable.size(); };
-    GLuint GetName() const { return m_Name; };
+    size_t GetCurrentSize() const { return m_AtomCount; }
+    size_t GetMaxSize() const { return m_MaxAtomCount; }
+    size_t GetPageSize() const { return m_PageTable.size(); }
+    GLuint GetName() const { return m_Name; }
 
 
 private:
@@ -199,8 +199,9 @@ public:
 
     std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj) const;
 
-    inline bool Has(ObjectID obj) const { return m_ObjectMapping.contains(obj); };
-
+    inline bool Has(ObjectID obj) const { return m_ObjectMapping.contains(obj); }
+    inline GLuint GetName() const { return m_Buffer.GetName(); }
+ 
 private:
     using ByteType = uint8_t;
     inline static constexpr size_t BYTE_BITS = 8;

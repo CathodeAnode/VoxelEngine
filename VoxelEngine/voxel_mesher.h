@@ -14,6 +14,7 @@
 #include "chunk.h"
 #include "types.h"
 #include "chunk_grid.h"
+#include "voxel_mesh_writer.h"
 
 
 template<typename ChunkType> class VoxelMesher
@@ -27,7 +28,7 @@ private:
 	static constexpr int CS_P2 = CS_P * CS_P;
 	static constexpr int CS_P3 = CS_P2 * CS_P;
 
-	static uintC_t _GetPaddedColumnRowBits(ChunkGrid<ChunkType>& world, int x, int y, const glm::ivec3& chunkLocation) {
+	static uintC_t _GetPaddedColumnRowBits(const ChunkGrid<ChunkType>& world, int x, int y, const glm::ivec3& chunkLocation) {
 		// Reject completely invalid or corner out-of-bounds accesses
 		if ((x <= 0 && y <= 0) || x < 0 || y < 0 ||
 			(x >= CS_P && y >= CS_P) ||
@@ -61,7 +62,7 @@ private:
 			chunkY = y - 1;
 		}
 
-		ChunkType* chunk = world.getChunk(chunkLocation + offset);
+		ChunkType* const chunk = world.getChunk(chunkLocation + offset);
 		if (chunk) {
 			return chunk->getColumnRow(chunkX, chunkY);
 		}
@@ -101,11 +102,11 @@ private:
 
 public:
 
-	// TODO implement voxel type support for tan tan greedy meshing (faces 0-4)
-	ChunkQuads meshChunk(ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation) {
-		ChunkQuads mesh;
-
-		ChunkType* chunk = chunkGrid.getChunk(chunkLocation);
+	// TODO : implement voxel type support for tan tan greedy meshing (faces 0-4)
+	template<VoxelMeshWriter container>
+	void meshChunk(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation, container& out)
+	{
+		ChunkType* const chunk = chunkGrid.getChunk(chunkLocation);
 		if (chunk == nullptr || chunk->isEmpty()) {
 			return mesh;
 		}
@@ -205,18 +206,19 @@ public:
 							w++;
 						}
 
-
+						QuadMeshData quad;
 						switch (axis) {
 						case 0:
 						case 1:
-							mesh.addQuad(row, y, layer, w, h, axis, 0);
-
+							quad = _CompressQuadData(row, y, layer, w, h, axis);
 							break;
 						case 2:
 						case 3:
-							mesh.addQuad(layer, y, row, w, h, axis, 0);
+							quad = _CompressQuadData(layer, y, row, w, h, axis);
 							break;
 						}
+
+						out.Write(quad, 0);
 
 
 						y += h;
@@ -356,15 +358,14 @@ public:
 						forwardMergedRef = 0;
 						rightMergedRef = 0;
 
-						mesh.addQuad(meshLeft, meshUp, meshFront, meshWidth, meshLength, face, type);
+						QuadMeshData quad = _CompressQuadData(meshLeft, meshUp, meshFront, meshWidth, meshLength, face);
+						out.Write(quad, type);
 
 					}
 				}
 			}
 		}
 		
-
-		return mesh;
 	}
 
 	//std::unordered_map<uint64_t, ChunkQuads> meshChunkGrid(ChunkGrid<ChunkType>& chunkGrid) {

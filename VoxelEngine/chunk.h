@@ -16,6 +16,8 @@ public:
 	using ValueType = T;
 	static constexpr unsigned int Size = ChunkSize;
 
+	// TODO : remove filled bool, always create empty chunk
+	// & Create another consturtor that takes input to generate voxel data in chunk
 	Chunk(bool filled=false) 
 	{
 		m_OpaqueData = new T[ChunkSize * ChunkSize];
@@ -26,6 +28,10 @@ public:
 				m_VoxelData[i] = 0x000000808080; // grey color
 			}
 			//toggleBit(4, 7, 4);
+		}
+		else
+		{
+			std::fill(m_OpaqueData, m_OpaqueData + ChunkSize * ChunkSize, T(0));
 		}
 		
 	};
@@ -163,7 +169,7 @@ private:
 	/* maps block indes to a rgb color or texture, air blocks dont have a mapping
 	 * if msb is set to 0, block is colored with first 8 bits for rgb, other 8 bits ignored
 	 * if msb is set to 1, block is textured with texture id as uint16_t (max textures: 32,768)*/
-	std::unordered_map<unsigned int, uint16_t> m_VoxelData; 
+	std::unordered_map<unsigned int, uint16_t> m_VoxelData;  // TODO : Change to array of Color type (uint32_t) (Why: this is bad for cache locality)
 	VoxelObjectID m_Uid;
 };
 

@@ -2,11 +2,11 @@
 
 
 VoxelRenderer::VoxelRenderer()
-    : m_IndirectCommandBuffer(true)
+    : m_DataCache(true)
+    , m_IndirectCommandBuffer(true)
     , m_PositionSSBO(true)
     , m_DrawLines(false)
-{
-}
+{}
 
 VoxelRenderer::~VoxelRenderer() 
 {
@@ -14,23 +14,15 @@ VoxelRenderer::~VoxelRenderer()
     glDeleteBuffers(1, &m_QuadVBO);
 }
 
-void VoxelRenderer::Init(unsigned int _quadBufferSize, unsigned int _maxObjectsRendered)
+void VoxelRenderer::Init(size_t cachePages, size_t cachePageSize, size_t renderBufferSize)
 {
-    m_MaxObjectsRendered = _maxObjectsRendered;
+    assert(cachePages * cachePageSize * 5 > renderBufferSize, "Cache Size too small");
 
-    m_DataBuffer.Create(GL_ARRAY_BUFFER, _quadBufferSize);
-    m_IndirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, kTripleBuffer * _maxObjectsRendered);
-    m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, kTripleBuffer * _maxObjectsRendered);
+    m_IndirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, renderBufferSize, k_TripleBuffer);
+    m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, renderBufferSize, k_TripleBuffer);
+    m_DataCache.Create(GL_ARRAY_BUFFER, cachePageSize, cachePages);
 
-    //for (int i = 0; i < 4; i += 5) { 
-    //    m_QuadVertices[i] *= quadScale;
-    //    m_QuadVertices[i + 1] *= quadScale;
-    //    m_QuadVertices[i + 2] *= quadScale;
-    //}
-
-
-
-// setup default quad that will be instanced
+    // setup default quad that will be instanced
     glGenVertexArrays(1, &m_VAO);
     glBindVertexArray(m_VAO);
 
@@ -51,45 +43,21 @@ void VoxelRenderer::Init(unsigned int _quadBufferSize, unsigned int _maxObjectsR
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     glEnableVertexAttribArray(2);
-    glBindBuffer(GL_ARRAY_BUFFER, m_DataBuffer.GetName());
+    glBindBuffer(GL_ARRAY_BUFFER, m_DataCache.GetName());
     glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(uint32_t), (void*)0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glVertexAttribDivisor(2, 1);
     glBindVertexArray(0);
 }
 
-size_t VoxelRenderer::UploadMesh(const std::vector<uint32_t>& meshData)
+template<typename ChunkType>
+inline void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& coords, const VoxelMesher<ChunkType>& mesher)
 {
-    return m_DataBuffer.UploadPageData(meshData);
+    //ChunkType* chunk = 
+
+    //if(m_DataCache.Has())
 }
 
-bool VoxelRenderer::UpdateMesh(const std::vector<uint32_t>& newMeshData, const size_t& pageId)
-{
-    return m_DataBuffer.UpdatePage(pageId, newMeshData);
-}
-
-Page VoxelRenderer::GetDataPageOffsets(const size_t& m_Id)
-{
-    return m_DataBuffer.GetPageOffset(m_Id);
-}
-
-DrawArraysIndirectCommand* VoxelRenderer::GetDrawCommandsWritePtr()
-{
-    return m_IndirectCommandBuffer.Reserve(m_MaxObjectsRendered);
-}
-
-glm::vec4* VoxelRenderer::GetPositionDataWritePtr()
-{
-    return m_PositionSSBO.Reserve(m_MaxObjectsRendered);
-}
-
-void VoxelRenderer::CompleteBuffersWrite(size_t _objectRendererd)
-{
-    m_IndirectCmdsRenderHead = m_IndirectCommandBuffer.GetHeadOffset();
-    m_RenderHead = m_PositionSSBO.OnUsageComplete(m_MaxObjectsRendered);
-    m_IndirectCommandBuffer.OnUsageComplete(m_MaxObjectsRendered);
-    m_ObjectsRendered = _objectRendererd;
-}
 
 void VoxelRenderer::ToggleDrawLines()
 {
@@ -99,8 +67,6 @@ void VoxelRenderer::ToggleDrawLines()
 
 void VoxelRenderer::render() 
 {
-    if (m_ObjectsRendered == 0) return;
-
     glBindVertexArray(m_VAO);
     m_PositionSSBO.BindBufferRange(0, m_RenderHead, m_ObjectsRendered);
 
@@ -117,4 +83,3 @@ void VoxelRenderer::render()
     glBindVertexArray(0);
 
 }
-

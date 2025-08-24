@@ -32,11 +32,16 @@ enum class QuadFaceDir {
  * Bits 28 - 31 (4 bits): Reserved
  */
 struct ChunkQuads {
-	std::vector<QuadMeshData> quadData;
-	std::vector<uint16_t> voxelType;
+	std::vector<QuadMeshData> chunkQuads;
+	std::vector<Color> quadColors;
 
+	void AddRawQuad(QuadMeshData quadData, Color quadColor)
+	{
+		chunkQuads.push_back(quadData);
+		quadColors.push_back(quadColor);
+	}
 
-	void addQuad(int x, int y, int z, int w, int h, int dir, uint16_t voxelData) {
+	void AddQuad(int x, int y, int z, int w, int h, int dir, Color quadColor) {
 		//std::cout << "Face: " << dir << " pos: (" << x << "," << y << "," << z << ") "
 		//	<< "size: (" << w << "x" << h << ")\n";
 		QuadMeshData quadVal = 0;
@@ -47,8 +52,8 @@ struct ChunkQuads {
 		quadVal |= (h & 0x1F) << 20;
 		quadVal |= (dir & 0x07) << 25;
 		
-		quadData.push_back(quadVal);
-		voxelType.push_back(voxelData);
+		chunkQuads.push_back(quadVal);
+		quadColors.push_back(quadColor);
   	}
 };
 

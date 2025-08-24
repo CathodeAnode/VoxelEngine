@@ -96,7 +96,21 @@ public:
 		return getChunk(chunkIndex);
 	}
 
-	ChunkType* getChunk(const uint64_t& index) 
+	ChunkType* getChunk(uint64_t index)
+	{
+		if (m_Chunks.contains(index)) {
+			return &m_Chunks.at(index);
+		}
+
+		return nullptr;
+	}
+	ChunkType* const getChunk(const glm::ivec3& chunkGridLocation) const
+	{
+		uint64_t chunkIndex = EncodeChunkCoords(chunkGridLocation);
+		return getChunk(chunkIndex);
+	}
+
+	ChunkType* const getChunk(uint64_t index) const
 	{
 		if (m_Chunks.contains(index)) {
 			return &m_Chunks.at(index);
