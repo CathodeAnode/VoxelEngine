@@ -103,12 +103,12 @@ private:
 public:
 
 	// TODO : implement voxel type support for tan tan greedy meshing (faces 0-4)
-	template<VoxelMeshWriter container>
-	void meshChunk(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation, container& out)
+	template<VoxelMeshWriter MeshWriter>
+	void MeshChunk(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out)
 	{
 		ChunkType* const chunk = chunkGrid.getChunk(chunkLocation);
 		if (chunk == nullptr || chunk->isEmpty()) {
-			return mesh;
+			return;
 		}
 
 		std::vector<uintC_t> faceMasks(CS_2 * 6, 0);
@@ -368,23 +368,15 @@ public:
 		
 	}
 
-	//std::unordered_map<uint64_t, ChunkQuads> meshChunkGrid(ChunkGrid<ChunkType>& chunkGrid) {
-	//	std::unordered_map<uint64_t, ChunkQuads> meshes;
-	//	
-	//	std::unordered_map<uint64_t, ChunkType>& chunks = chunkGrid.getChunksGrid();
-
-	//	glm::ivec3 gridCoords;
-	//	ChunkQuads mesh;
-	//	for (const auto& [index, _] : chunks) {
-	//		gridCoords = ChunkGrid<ChunkType>::getChunkCoords(index);
-	//		mesh = meshChunk(chunkGrid, gridCoords);
-
-	//		meshes[index] = mesh;
-	//	}
-
-
-	//	return meshes;
-	//}
+	template<VoxelMeshWriter MeshWriter>
+	void MeshChunkGrid(const ChunkGrid<ChunkType>& chunkGrid, MeshWriter& out) 
+	{	
+		for (const auto& [index, _] : chunkGrid) 
+		{
+			gridCoords = ChunkGrid<ChunkType>::getChunkCoords(index);
+			meshChunk(chunkGrid, gridCoords, out);
+		}
+	}
 };
 
 

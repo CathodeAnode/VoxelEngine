@@ -14,13 +14,16 @@ VoxelRenderer::~VoxelRenderer()
     glDeleteBuffers(1, &m_QuadVBO);
 }
 
-void VoxelRenderer::Init(size_t cachePages, size_t cachePageSize, size_t renderBufferSize)
+void VoxelRenderer::Init(size_t cachePages, size_t cachePageSize, size_t indirectBufferSize)
 {
-    assert(cachePages * cachePageSize * 5 > renderBufferSize, "Cache Size too small");
+    assert(cachePages * cachePageSize * 5 > indirectBufferSize, "Cache Size too small");
 
-    m_IndirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, renderBufferSize, k_TripleBuffer);
-    m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, renderBufferSize, k_TripleBuffer);
+    m_IndirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, indirectBufferSize, k_TripleBuffer);
+    m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
     m_DataCache.Create(GL_ARRAY_BUFFER, cachePageSize, cachePages);
+
+    m_ObjectsRenderedInCurrentFrame.reserve(indirectBufferSize);
+    m_ObjectsRenderedInNextFrame.reserve(indirectBufferSize);
 
     // setup default quad that will be instanced
     glGenVertexArrays(1, &m_VAO);
@@ -51,13 +54,68 @@ void VoxelRenderer::Init(size_t cachePages, size_t cachePageSize, size_t renderB
 }
 
 template<typename ChunkType>
-inline void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& coords, const VoxelMesher<ChunkType>& mesher)
+inline void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkCoords, const VoxelMesher<ChunkType>& mesher)
 {
-    //ChunkType* chunk = 
+    ChunkType* chunk = chunkGrid.getChunk(chunkCoords);
+    VoxelObjectID chunkUID = chunk->GetUid();
+    GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
 
-    //if(m_DataCache.Has())
+
+    if (std::find(m_ObjectsRenderedInCurrentFrame.begin(), 
+                  m_ObjectsRenderedInCurrentFrame.end(), 
+                  chunkUID) != m_ObjectsRenderedInCurrentFrame.end())
+    {
+        VoxelObjectID tempUID = UIDManager::Generate();
+        meshWriter.SetTargetObject(tempUID);
+        mesher.MeshChunk(chunkGrid, chunkCoords, meshWriter);
+
+        m_DataCache.Swap(tempUID, chunkUID);
+        _RefreshFrame();
+        m_DataCache.DeallocateObject(tempUID);
+    }
+    else
+    {
+        meshWriter.SetTargetObject(chunkUID);
+        mesher.MeshChunk(chunkGrid, chunkCoords, meshWriter);
+    }
 }
 
+template<typename ChunkType>
+void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const VoxelMesher<ChunkType>& mesher)
+{
+    VoxelObjectID gridUID = chunkGrid.GetUid();
+    GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
+
+    if (std::find(m_ObjectsRenderedInCurrentFrame.begin(),
+        m_ObjectsRenderedInCurrentFrame.end(),
+        gridUID) != m_ObjectsRenderedInCurrentFrame.end())
+    {
+        VoxelObjectID tempUID = UIDManager::Generate();
+        meshWriter.SetTargetObject(tempUID);
+        mesher.MeshChunkGrid(chunkGrid, meshWriter);
+
+        m_DataCache.Swap(tempUID, gridUID);
+        _RefreshFrame();
+        m_DataCache.DeallocateObject(tempUID);
+    }
+    else
+    {
+        meshWriter.SetTargetObject(gridUID);
+        mesher.MeshChunkGrid(chunkGrid, meshWriter);
+    }
+}
+
+
+bool VoxelRenderer::DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position)
+{
+    if(!m_DataCache.Has(objectID))
+        return false;
+
+    std::vector<GPUBufferRange> memoryRanges = m_DataCache.GetObjectBufferRanges(objectID);
+
+
+    return true;
+}
 
 void VoxelRenderer::ToggleDrawLines()
 {

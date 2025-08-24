@@ -80,7 +80,7 @@ public:
     void BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _count);
 
     inline Atom* GetContents() { return m_BufferContents; }
-    inline GLsizeiptr GetSize() const { return m_CountAtoms; }
+    inline size_t GetSize() const { return m_CountAtoms; }
     inline GLuint GetName() const { return m_Name; }
 
 private:
@@ -110,7 +110,7 @@ public:
 
     inline GLsizeiptr GetHead() const { return m_Head; }
     inline void* GetHeadOffset() const { return (void*)(m_Head * sizeof(Atom)); }
-    inline GLsizeiptr GetSize() const { return m_Buffer.GetSize(); }
+    inline size_t GetSize() const { return m_Buffer.GetSize(); }
 
 private:
     GPUPersistentlyMappedBuffer<Atom, LockManager> m_Buffer;
@@ -141,7 +141,7 @@ public:
     inline GLsizeiptr GetTail() const { return m_Tail; }
     inline void* GetTailOffset() const { return (void*)(m_Tail * sizeof(Atom)); }
 
-    inline GLsizeiptr GetSize() const { return m_CountPerBuffer; }
+    inline size_t GetSize() const { return m_CountPerBuffer; }
 
 private:
     GPUCircularBuffer<Atom, NullBufferLockManager> m_CircularBuffer;
@@ -195,6 +195,7 @@ public:
     void AllocatePages(const ObjectID& obj, unsigned int pages);
     void PushBackToObject(const ObjectID& obj, const Atom& data);
     void MoveObject(const ObjectID& src, const ObjectID& dst);
+    void Swap(const ObjectID& obj1, const ObjectID& obj2);
     void DeallocateObject(const ObjectID& obj);
 
     std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj) const;
@@ -336,7 +337,7 @@ private:
         return pagesToFree < 0;
     }
 
-    void _UpdateObjectLRU(const ObjectID& obj)
+    void _UpdateLRU(const ObjectID& obj)
     {
         assert(m_ObjectMapping.contains(obj));
 

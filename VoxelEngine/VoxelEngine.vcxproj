@@ -140,6 +140,7 @@
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mouse.cpp" />
+    <ClCompile Include="voxel_mesh_writer.cpp" />
     <ClCompile Include="voxel_ray_cast.cpp" />
     <ClCompile Include="voxel_renderer.cpp" />
     <ClCompile Include="screen.cpp" />
@@ -161,6 +162,7 @@
     <ClInclude Include="joystick.h" />
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="uid_manager.h" />
+    <ClInclude Include="voxel_mesh_writer.h" />
     <ClInclude Include="voxel_ray_cast.h" />
     <ClInclude Include="world.h" />
     <ClInclude Include="voxel_mesher.h" />

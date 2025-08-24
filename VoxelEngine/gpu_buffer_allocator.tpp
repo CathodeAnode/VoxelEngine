@@ -419,7 +419,7 @@ void GPUPagedLRUCache<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsign
 	{
 		ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
 		objAlloc.PushBackPages(allocatedPages);
-		_UpdateObjectLRU(obj);
+		_UpdateLRU(obj);
 	}
 	else
 	{
@@ -460,7 +460,7 @@ void GPUPagedLRUCache<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, con
 
 	bufferHead[targetPage * m_PageSize + pageElemOffset] = data;
 	objAlloc.count++;
-	_UpdateObjectLRU(obj);
+	_UpdateLRU(obj);
 
 	return true;
 }
@@ -472,7 +472,15 @@ void GPUPagedLRUCache<Atom, ObjectID>::MoveObject(const ObjectID& src, const Obj
 	m_ObjectMapping[dst] = std::move(m_ObjectMapping[src]);
 	m_ObjectMapping.erase(src);
 	m_ObjectAccessHistory.erase(src);
-	_UpdateObjectLRU(dst);
+	_UpdateLRU(dst);
+}
+
+template<typename Atom, typename ObjectID>
+void GPUPagedLRUCache<Atom, ObjectID>::Swap(const ObjectID& obj1, const ObjectID& obj2)
+{
+	std::swap(m_ObjectMapping[obj1], m_ObjectMapping[obj2]);
+	_UpdateLRU(obj1);
+	_UpdateLRU(obj2);
 }
 
 template<typename Atom, typename ObjectID>
@@ -491,9 +499,8 @@ void GPUPagedLRUCache<Atom, ObjectID>::DeallocateObject(const ObjectID& obj)
 template<typename Atom, typename ObjectID>
 std::vector<GPUBufferRange> GPUPagedLRUCache<Atom, ObjectID>::GetObjectBufferRanges(const ObjectID& obj) const
 {
+	assert(m_ObjectMapping.contains(obj));
 	std::vector<GPUBufferRange> result;
-	if (!m_ObjectMapping.contains(obj))
-		return result;
 
 	ObjectAllocationData& alloc = m_ObjectMapping[obj];
 	const unsigned int writePageIdx = alloc.count / m_PageSize;
@@ -513,14 +520,14 @@ std::vector<GPUBufferRange> GPUPagedLRUCache<Atom, ObjectID>::GetObjectBufferRan
 			while (pagesSet.find(page + 1) != pagesSet.end())
 				endPage++;
 
-			size_t length = (endPage - startPage) * m_FreePages;
+			size_t length = (endPage - startPage) * m_PageSize;
 			length -= (endPage == writePage) ? m_PageSize - (alloc.count % m_PageSize) : 0;
 			result.emplace_back(GPUBufferRange(startPage * m_PageSize, length));
 
 		}
 	}
 
-	_UpdateObjectLRU(obj);
+	_UpdateLRU(obj);
 
 	return result;
 }

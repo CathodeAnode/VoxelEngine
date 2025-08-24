@@ -6,6 +6,7 @@
 #include <glfw/glfw3.h>
 
 #include <vector>
+#include <algorithm>
 
 #include "chunk.h"
 #include "chunk_grid.h"
@@ -92,8 +93,8 @@ private:
 // case 1: object not in cache
 //	- no problem just upload normally to gpu cache
 // case 2: object in cache but not being rendered
-//	- upload mesh under a temp UID, then move temp UID to real UID
+//	- upload mesh normally under its own UID (same as case 1)
 // case 3: object in cache and being rendered
-//	- same as case 2 but call RefreshFrame
+//	- upload mesh under a temp ID then refresh frame
 
 #endif

@@ -14,6 +14,7 @@ class CPUVoxelMeshWriter
 {
 public:
 	CPUVoxelMeshWriter(ChunkQuads& chunkQuads);
+
 	void Write(QuadMeshData quadData, Color quadColor);
 
 private:
