@@ -83,6 +83,8 @@ private:
 
 	bool m_DrawLines;
 	size_t m_MaxObjectsRendered;
+	size_t m_CurrentIndirectCmdsCount = 0;
+	size_t m_NextIndirectCmdsCount = 0;
 
 	const int k_TripleBuffer = 3;
 

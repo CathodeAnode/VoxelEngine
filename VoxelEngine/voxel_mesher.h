@@ -373,8 +373,8 @@ public:
 	{	
 		for (const auto& [index, _] : chunkGrid) 
 		{
-			gridCoords = ChunkGrid<ChunkType>::getChunkCoords(index);
-			meshChunk(chunkGrid, gridCoords, out);
+			glm::ivec3 chunkCoords = ChunkGrid<ChunkType>::getChunkCoords(index);
+			meshChunk(chunkGrid, chunkCoords, out);
 		}
 	}
 };

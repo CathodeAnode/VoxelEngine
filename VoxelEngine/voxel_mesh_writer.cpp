@@ -1,6 +1,7 @@
 #include "voxel_mesh_writer.h"
 
 CPUVoxelMeshWriter::CPUVoxelMeshWriter(ChunkQuads& chunkQuads)
+	: m_Container(chunkQuads)
 {
 	m_Container = chunkQuads;
 }
@@ -13,6 +14,7 @@ void CPUVoxelMeshWriter::Write(QuadMeshData quadData, Color quadColor)
 // ------------------------------------------------------------------------------------------------------------------
 
 GPUVoxelMeshCacheWriter::GPUVoxelMeshCacheWriter(GPUPagedLRUCache<QuadMeshData, VoxelObjectID>& cache)
+	: m_Cache(cache)
 {
 	m_Cache = cache;
 }

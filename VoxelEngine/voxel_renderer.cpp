@@ -112,9 +112,42 @@ bool VoxelRenderer::DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& pos
         return false;
 
     std::vector<GPUBufferRange> memoryRanges = m_DataCache.GetObjectBufferRanges(objectID);
+    DrawArraysIndirectCommand* cmds = m_IndirectCommandBuffer.GetHeadContents();
+    glm::vec4* paddedPos = m_PositionSSBO.GetHeadContents();
+
+    for (const auto& range : memoryRanges)
+    {
+        cmds->count = 4;
+        cmds->first = 0;
+        cmds->baseInstance = range.startOffset;
+        cmds->instanceCount = range.length;
+
+        paddedPos->x = position.x;
+        paddedPos->y = position.y;
+        paddedPos->z = position.z;
+        paddedPos->w = 0;
+
+        cmds++;
+        paddedPos++;
+    }
+
+    m_NextIndirectCmdsCount += memoryRanges.size();
+    m_ObjectsRenderedInNextFrame.push_back(objectID);
 
 
     return true;
+}
+
+void VoxelRenderer::NextFrame()
+{
+    m_ObjectsRenderedInNextFrame.swap(m_ObjectsRenderedInCurrentFrame);
+    std::swap(m_CurrentIndirectCmdsCount, m_NextIndirectCmdsCount);
+
+    m_IndirectCommandBuffer.AdvanceHead();
+    m_PositionSSBO.AdvanceHead();
+
+    m_IndirectCommandBuffer.AdvanceTail();
+    m_PositionSSBO.AdvanceTail();
 }
 
 void VoxelRenderer::ToggleDrawLines()
@@ -126,13 +159,13 @@ void VoxelRenderer::ToggleDrawLines()
 void VoxelRenderer::render() 
 {
     glBindVertexArray(m_VAO);
-    m_PositionSSBO.BindBufferRange(0, m_RenderHead, m_ObjectsRendered);
+    m_PositionSSBO.BindTailBufferRange(m_CurrentIndirectCmdsCount);
 
     if (m_DrawLines) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 
-    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, m_IndirectCmdsRenderHead, m_ObjectsRendered, 0);
+    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, m_IndirectCommandBuffer.GetHeadOffset(), m_CurrentIndirectCmdsCount, 0);
 
     if (m_DrawLines) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

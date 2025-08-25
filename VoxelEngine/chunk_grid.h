@@ -212,7 +212,7 @@ public:
 
 	inline float getVoxelScale() const { return m_VoxelScale; };
 
-	inline VoxelObjectID GetUID() const { return m_Uid; };
+	inline VoxelObjectID GetUid() const { return m_Uid; };
 
 
 	std::unordered_map<uint64_t, ChunkType>::iterator begin() const { return m_Chunks.begin(); }
