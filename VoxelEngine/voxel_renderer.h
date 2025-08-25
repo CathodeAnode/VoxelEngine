@@ -99,4 +99,57 @@ private:
 // case 3: object in cache and being rendered
 //	- upload mesh under a temp ID then refresh frame
 
+
+template<typename ChunkType>
+void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkCoords, const VoxelMesher<ChunkType>& mesher)
+{
+	const ChunkType* chunk = chunkGrid.getChunk(chunkCoords);
+	VoxelObjectID chunkUID = chunk->GetUid();
+	GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
+
+
+	if (std::find(m_ObjectsRenderedInCurrentFrame.begin(),
+		m_ObjectsRenderedInCurrentFrame.end(),
+		chunkUID) != m_ObjectsRenderedInCurrentFrame.end())
+	{
+		VoxelObjectID tempUID = UIDManager::Generate();
+		meshWriter.SetTargetObject(tempUID);
+		mesher.MeshChunk(chunkGrid, chunkCoords, meshWriter);
+
+		m_DataCache.Swap(tempUID, chunkUID);
+		_RefreshFrame();
+		m_DataCache.DeallocateObject(tempUID);
+	}
+	else
+	{
+		meshWriter.SetTargetObject(chunkUID);
+		mesher.MeshChunk(chunkGrid, chunkCoords, meshWriter);
+	}
+}
+
+template<typename ChunkType>
+void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const VoxelMesher<ChunkType>& mesher)
+{
+	VoxelObjectID gridUID = chunkGrid.GetUid();
+	GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
+
+	if (std::find(m_ObjectsRenderedInCurrentFrame.begin(),
+		m_ObjectsRenderedInCurrentFrame.end(),
+		gridUID) != m_ObjectsRenderedInCurrentFrame.end())
+	{
+		VoxelObjectID tempUID = UIDManager::Generate();
+		meshWriter.SetTargetObject(tempUID);
+		mesher.MeshChunkGrid(chunkGrid, meshWriter);
+
+		m_DataCache.Swap(tempUID, gridUID);
+		_RefreshFrame();
+		m_DataCache.DeallocateObject(tempUID);
+	}
+	else
+	{
+		meshWriter.SetTargetObject(gridUID);
+		mesher.MeshChunkGrid(chunkGrid, meshWriter);
+	}
+}
+
 #endif

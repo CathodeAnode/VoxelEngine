@@ -3,9 +3,9 @@
 
 #include <intrin.h>
 
-constexpr unsigned long BITS_IN_ULL = sizeof(unsigned long long) * 8;
+inline constexpr unsigned long BITS_IN_ULL = sizeof(unsigned long long) * 8;
 
-unsigned long GetTrailingZeros(unsigned long long val)
+inline unsigned long GetTrailingZeros(unsigned long long val)
 {
     if (val == 0) return BITS_IN_ULL;
 
@@ -18,7 +18,7 @@ unsigned long GetTrailingZeros(unsigned long long val)
     return ret;
 }
 
-unsigned long GetTrailingOnes(unsigned long long val)
+inline unsigned long GetTrailingOnes(unsigned long long val)
 {
     if (val == 0) return 0;
 

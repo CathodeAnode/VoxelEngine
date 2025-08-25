@@ -23,7 +23,7 @@ public:
 	ChunkGrid(char* serializedData); // load from serialized data
 
 	// generate flat world with given size
-	ChunkGrid(int m_WorldSize, float _voxelScale = 1.0f) 
+	ChunkGrid(float _voxelScale = 1.0f) 
 		: m_VoxelScale(_voxelScale)
 		, m_Uid(UIDManager::Generate())
 	{}
@@ -104,13 +104,13 @@ public:
 
 		return nullptr;
 	}
-	ChunkType* const getChunk(const glm::ivec3& chunkGridLocation) const
+	const ChunkType* getChunk(const glm::ivec3& chunkGridLocation) const
 	{
 		uint64_t chunkIndex = EncodeChunkCoords(chunkGridLocation);
 		return getChunk(chunkIndex);
 	}
 
-	ChunkType* const getChunk(uint64_t index) const
+	const ChunkType* getChunk(uint64_t index) const
 	{
 		if (m_Chunks.contains(index)) {
 			return &m_Chunks.at(index);
@@ -176,9 +176,9 @@ public:
 
 	static uint64_t EncodeChunkCoords(int x, int y, int z) 
 	{
-		assert(x < -MAX_GRID_INT - 1 || x > MAX_GRID_INT ||
-			y < -MAX_GRID_INT - 1 || y > MAX_GRID_INT ||
-			z < -MAX_GRID_INT - 1 || z > MAX_GRID_INT,
+		assert(x >= -MAX_GRID_INT - 1 || x <= MAX_GRID_INT ||
+			y >= -MAX_GRID_INT - 1 || y <= MAX_GRID_INT ||
+			z >= -MAX_GRID_INT - 1 || z <= MAX_GRID_INT,
 			"Chunk coordinate out of supported range [-1048576, 1048575]");
 
 		

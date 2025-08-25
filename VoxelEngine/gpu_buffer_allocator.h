@@ -7,7 +7,7 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
-#include <forward_list>
+#include <list>
 #include <stdexcept>
 #include <cassert>
 
@@ -137,6 +137,7 @@ public:
 
     inline GLsizeiptr GetHead() const { return m_CircularBuffer.GetHead(); }
     inline void* GetHeadOffset() const { return m_CircularBuffer.GetHeadOffset(); }
+    inline Atom* GetHeadContents() { return m_CircularBuffer.Reserve(m_CountPerBuffer); }
 
     inline GLsizeiptr GetTail() const { return m_Tail; }
     inline void* GetTailOffset() const { return (void*)(m_Tail * sizeof(Atom)); }
@@ -198,7 +199,7 @@ public:
     void Swap(const ObjectID& obj1, const ObjectID& obj2);
     void DeallocateObject(const ObjectID& obj);
 
-    std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj) const;
+    std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj);
 
     inline bool Has(ObjectID obj) const { return m_ObjectMapping.contains(obj); }
     inline GLuint GetName() const { return m_Buffer.GetName(); }
@@ -211,7 +212,7 @@ private:
     struct ObjectAllocationData
     {
         std::vector<unsigned int> pages;
-        std::forward_list<ObjectID>::iterator lruIterator;
+        std::list<ObjectID>::iterator lruIterator;
         unsigned int count;
 
         inline unsigned int GetSize() const noexcept
@@ -230,7 +231,7 @@ private:
 private:
     GPUPersistentlyMappedBuffer<Atom, NullBufferLockManager> m_Buffer;
     ByteType* m_FreePages;
-    std::forward_list<ObjectID> m_ObjectAccessHistory;
+    std::list<ObjectID> m_ObjectAccessHistory;
     std::unordered_map<ObjectID, ObjectAllocationData> m_ObjectMapping; // map obj id => allocated pages, count of elements
 
     size_t m_PageSize;
@@ -252,7 +253,7 @@ private:
                 unsigned long consecutiveReservedPages = GetTrailingZeros(pagesStatus);
                 pagesStatus >>= consecutiveReservedPages;
                 unsigned long consecutiveFreePages = GetTrailingOnes(pagesStatus);
-                unsigned long pagesToConsume = std::min(n, consecutiveFreePages);
+                unsigned long pagesToConsume = std::min(static_cast<unsigned long>(n), consecutiveFreePages);
 
                 ByteType consumeMask = ~((1 << pagesToConsume) - 1) << consecutiveReservedPages;
                 m_FreePages[index] ^= consumeMask;
@@ -321,23 +322,24 @@ private:
         if (pagesToFree > 0)
         {
             // If we have more pages than needed, free the tail portion
-            std::vector pagesToBeFreed;
+            std::vector<unsigned int> pagesToBeFreed;
             pagesToBeFreed.insert(pagesToBeFreed.begin(),
                 objData.pages.begin() + n, objData.pages.end());
             _FreePages(pagesToBeFreed);
         }
 
 
+        size_t numPagesToMove = std::min(static_cast<size_t>(n), objData.pages.size());
         reservedPages.insert(reservedPages.end(),
             std::make_move_iterator(objData.pages.begin()),
-            std::make_move_iterator(objData.pages.begin() + std::min(n, objData.pages.size())));
+            std::make_move_iterator(objData.pages.begin() + numPagesToMove));
 
         m_ObjectMapping.erase(objToEvict);
 
         return pagesToFree < 0;
     }
 
-    void _UpdateLRU(const ObjectID& obj)
+    void _MarkRecentlyUsed(const ObjectID& obj)
     {
         assert(m_ObjectMapping.contains(obj));
 

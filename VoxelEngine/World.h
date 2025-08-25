@@ -26,8 +26,9 @@ public:
 	World(int _worldSize, unsigned int _renderDistance) 
 		: m_WorldSize(_worldSize * _worldSize * _worldSize)
 		, m_RenderDistance(_renderDistance)
+		, m_Chunks()
 	{
-		m_LastPlayerGridCoords = glm::ivec3(MAX_GRID_INT, MAX_GRID_INT, MAX_GRID_INT) + 100;
+		m_LastPlayerGridCoords = glm::ivec3(MAX_GRID_INT, MAX_GRID_INT, MAX_GRID_INT) - 10;
 		m_MaxRenderableChunks = pow(m_RenderDistance, 3);
 		m_Renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, m_MaxRenderableChunks * AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK);
 

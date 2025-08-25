@@ -418,20 +418,17 @@ void GPUPagedLRUCache<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsign
 	if (m_ObjectMapping.contains(obj))
 	{
 		ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
-		objAlloc.PushBackPages(allocatedPages);
-		_UpdateLRU(obj);
+		objAlloc.PushBackPages(std::move(allocatedPages));
+		_MarkRecentlyUsed(obj);
 	}
 	else
 	{
 		ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
-		objAlloc.PushBackPages(allocatedPages);
+		objAlloc.PushBackPages(std::move(allocatedPages));
 		m_ObjectAccessHistory.push_front(obj);
 		objAlloc.lruIterator = m_ObjectAccessHistory.begin();
 
 	}
-
-
-	return true;
 }
 
 template<typename Atom, typename ObjectID>
@@ -460,9 +457,7 @@ void GPUPagedLRUCache<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, con
 
 	bufferHead[targetPage * m_PageSize + pageElemOffset] = data;
 	objAlloc.count++;
-	_UpdateLRU(obj);
-
-	return true;
+	_MarkRecentlyUsed(obj);
 }
 
 template<typename Atom, typename ObjectID>
@@ -472,15 +467,15 @@ void GPUPagedLRUCache<Atom, ObjectID>::MoveObject(const ObjectID& src, const Obj
 	m_ObjectMapping[dst] = std::move(m_ObjectMapping[src]);
 	m_ObjectMapping.erase(src);
 	m_ObjectAccessHistory.erase(src);
-	_UpdateLRU(dst);
+	_MarkRecentlyUsed(dst);
 }
 
 template<typename Atom, typename ObjectID>
 void GPUPagedLRUCache<Atom, ObjectID>::Swap(const ObjectID& obj1, const ObjectID& obj2)
 {
 	std::swap(m_ObjectMapping[obj1], m_ObjectMapping[obj2]);
-	_UpdateLRU(obj1);
-	_UpdateLRU(obj2);
+	_MarkRecentlyUsed(obj1);
+	_MarkRecentlyUsed(obj2);
 }
 
 template<typename Atom, typename ObjectID>
@@ -493,16 +488,16 @@ void GPUPagedLRUCache<Atom, ObjectID>::DeallocateObject(const ObjectID& obj)
 
 	_FreePages(alloc.pages);
 	m_ObjectMapping.erase(obj);
-	m_ObjectAccessHistory.erase(obj);
+	m_ObjectAccessHistory.erase(alloc.lruIterator);
 }
 
 template<typename Atom, typename ObjectID>
-std::vector<GPUBufferRange> GPUPagedLRUCache<Atom, ObjectID>::GetObjectBufferRanges(const ObjectID& obj) const
+std::vector<GPUBufferRange> GPUPagedLRUCache<Atom, ObjectID>::GetObjectBufferRanges(const ObjectID& obj)
 {
 	assert(m_ObjectMapping.contains(obj));
 	std::vector<GPUBufferRange> result;
 
-	ObjectAllocationData& alloc = m_ObjectMapping[obj];
+	const ObjectAllocationData& alloc = m_ObjectMapping.at(obj);
 	const unsigned int writePageIdx = alloc.count / m_PageSize;
 	const unsigned int writePage = alloc.pages[writePageIdx];
 
@@ -527,7 +522,7 @@ std::vector<GPUBufferRange> GPUPagedLRUCache<Atom, ObjectID>::GetObjectBufferRan
 		}
 	}
 
-	_UpdateLRU(obj);
+	_MarkRecentlyUsed(obj);
 
 	return result;
 }

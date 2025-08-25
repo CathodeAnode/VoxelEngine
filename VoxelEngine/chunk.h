@@ -107,7 +107,7 @@ public:
 		return true;
 	}
 
-	uint16_t getVoxelData(int x, int y, int z) 
+	uint16_t getVoxelData(int x, int y, int z) const
 	{
 		if (m_VoxelData.contains(x + y * ChunkSize + z * ChunkSize * ChunkSize)) 
 		{
@@ -117,19 +117,14 @@ public:
 		return std::numeric_limits<uint16_t>::max();
 	}
 
-	uint16_t getVoxelData(glm::ivec3 coords) 
+	inline uint16_t getVoxelData(glm::ivec3 coords) const
 	{
 		return getVoxelData(coords.x, coords.y, coords.z);
 	}
 
-	T getColumnRow(int x, int y) 
+	T getColumnRow(int x, int y) const
 	{
 		return m_OpaqueData[x + (y * ChunkSize)];
-	}
-
-	T getColumnRow(int index) 
-	{
-		return m_OpaqueData[index];
 	}
 
 	// Toggle the x, y, z-th bit in the m_OpaqueData

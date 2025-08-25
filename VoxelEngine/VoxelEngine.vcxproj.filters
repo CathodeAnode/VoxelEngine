@@ -60,6 +60,9 @@
     <ClCompile Include="voxel_mesh_writer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="uid_manager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="core_vertex_shader.glsl">

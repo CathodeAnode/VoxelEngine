@@ -140,6 +140,7 @@
     <ClCompile Include="keyboard.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mouse.cpp" />
+    <ClCompile Include="uid_manager.cpp" />
     <ClCompile Include="voxel_mesh_writer.cpp" />
     <ClCompile Include="voxel_ray_cast.cpp" />
     <ClCompile Include="voxel_renderer.cpp" />

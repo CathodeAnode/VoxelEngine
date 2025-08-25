@@ -10,10 +10,9 @@ public:
 
 	static inline VoxelObjectID Generate() { return ++s_UID; }
 private:
-	static std::atomic<VoxelObjectID> s_UID;
+	static inline std::atomic<VoxelObjectID> s_UID{0};
 };
 
-std::atomic<VoxelObjectID> s_UID = 0;
 
 #endif
 

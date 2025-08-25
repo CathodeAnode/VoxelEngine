@@ -62,7 +62,7 @@ private:
 			chunkY = y - 1;
 		}
 
-		ChunkType* const chunk = world.getChunk(chunkLocation + offset);
+		const ChunkType* chunk = world.getChunk(chunkLocation + offset);
 		if (chunk) {
 			return chunk->getColumnRow(chunkX, chunkY);
 		}
@@ -104,9 +104,9 @@ public:
 
 	// TODO : implement voxel type support for tan tan greedy meshing (faces 0-4)
 	template<VoxelMeshWriter MeshWriter>
-	void MeshChunk(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out)
+	void MeshChunk(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out) const
 	{
-		ChunkType* const chunk = chunkGrid.getChunk(chunkLocation);
+		const ChunkType* chunk = chunkGrid.getChunk(chunkLocation);
 		if (chunk == nullptr || chunk->isEmpty()) {
 			return;
 		}
@@ -369,7 +369,7 @@ public:
 	}
 
 	template<VoxelMeshWriter MeshWriter>
-	void MeshChunkGrid(const ChunkGrid<ChunkType>& chunkGrid, MeshWriter& out) 
+	void MeshChunkGrid(const ChunkGrid<ChunkType>& chunkGrid, MeshWriter& out) const
 	{	
 		for (const auto& [index, _] : chunkGrid) 
 		{
