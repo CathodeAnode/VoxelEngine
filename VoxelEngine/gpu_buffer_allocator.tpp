@@ -163,15 +163,15 @@ inline GPUOrphanBuffer<Atom>::GPUOrphanBuffer(bool _cpuUpdates)
 {}
 
 template<typename Atom>
-bool GPUOrphanBuffer<Atom>::Create(GLenum target, GLuint count, uint8_t numOfBuffers)
+bool GPUOrphanBuffer<Atom>::Create(GLenum target, GLuint countPerBuffer, uint8_t numOfBuffers)
 {
 	assert(numOfBuffers > 0);
 
-	m_CountPerBuffer = ceil(count / numOfBuffers);
-	GLuint roundedCount = m_CountPerBuffer * numOfBuffers;
+	m_CountPerBuffer = countPerBuffer;
+	GLuint totalCount = m_CountPerBuffer * numOfBuffers;
 	m_Tail = 0;
 
-	return m_CircularBuffer.Create(target, roundedCount);
+	return m_CircularBuffer.Create(target, totalCount);
 }
 
 template<typename Atom>
@@ -408,11 +408,14 @@ void GPUPagedLRUCache<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsign
 
 	std::vector<unsigned int> allocatedPages;
 	allocatedPages.reserve(pages);
-	_ReserveFirstFreePages(pages, allocatedPages);
-
+	
 
 	// Not enough free pages found
-	while(_EvictLRUAndReserve(allocatedPages.size(), allocatedPages)) {}
+	bool sufficientPagesFound = _ReserveFirstFreePages(pages, allocatedPages);
+	while (!sufficientPagesFound)
+	{
+		sufficientPagesFound = _EvictLRUAndReserve(pages - allocatedPages.size(), allocatedPages);
+	}
 
 	// Add to object mapping
 	if (m_ObjectMapping.contains(obj))
@@ -443,11 +446,11 @@ void GPUPagedLRUCache<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, con
 	ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
 
 	// Calculate the current page index for next insertion
-	const unsigned int pageIndex = (objAlloc.count + 1) / m_PageSize;
-	const unsigned int pageElemOffset = (objAlloc.count + 1) % m_PageSize;
+	const unsigned int pageIndex = ceil((objAlloc.count + 1) / m_PageSize);
+	const unsigned int pageElemOffset = objAlloc.count % m_PageSize;
 
 	// Allocate new page if needed
-	if (pageIndex >= objAlloc.GetSize())
+	if (pageIndex > objAlloc.GetSize())
 	{
 		AllocatePages(obj, 1);
 	}
@@ -498,25 +501,29 @@ std::vector<GPUBufferRange> GPUPagedLRUCache<Atom, ObjectID>::GetObjectBufferRan
 	std::vector<GPUBufferRange> result;
 
 	const ObjectAllocationData& alloc = m_ObjectMapping.at(obj);
-	const unsigned int writePageIdx = alloc.count / m_PageSize;
+	const unsigned int writePageIdx = (alloc.count - 1) / m_PageSize;
 	const unsigned int writePage = alloc.pages[writePageIdx];
 
 	std::unordered_set<unsigned int> pagesSet;
-	pagesSet.insert(alloc.pages.begin(), alloc.pages.begin() + writePageIdx);
+	pagesSet.insert(alloc.pages.begin(), alloc.pages.begin() + writePageIdx + 1);
 
 	for (const auto& page : pagesSet)
 	{	
-		// start of buffer range
+		// if start of buffer range
 		if (pagesSet.find(page - 1) == pagesSet.end())
 		{
 			const unsigned int startPage = page;
 			unsigned int endPage = page;
 
-			while (pagesSet.find(page + 1) != pagesSet.end())
+			while (pagesSet.find(endPage + 1) != pagesSet.end())
 				endPage++;
 
-			size_t length = (endPage - startPage) * m_PageSize;
-			length -= (endPage == writePage) ? m_PageSize - (alloc.count % m_PageSize) : 0;
+
+			size_t pagesRange = (endPage - startPage);
+			size_t usedInLastPage = alloc.count % m_PageSize;
+			usedInLastPage = (usedInLastPage == 0 ? m_PageSize : usedInLastPage);
+
+			size_t length = pagesRange * m_PageSize + usedInLastPage;
 			result.emplace_back(GPUBufferRange(startPage * m_PageSize, length));
 
 		}

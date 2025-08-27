@@ -111,6 +111,7 @@ public:
     inline GLsizeiptr GetHead() const { return m_Head; }
     inline void* GetHeadOffset() const { return (void*)(m_Head * sizeof(Atom)); }
     inline size_t GetSize() const { return m_Buffer.GetSize(); }
+    inline GLuint GetName() const { return m_Buffer.GetName(); }
 
 private:
     GPUPersistentlyMappedBuffer<Atom, LockManager> m_Buffer;
@@ -123,7 +124,7 @@ class GPUOrphanBuffer
 public:
     GPUOrphanBuffer(bool _cpuUpdates = true);
 
-    bool Create(GLenum target, GLuint count, uint8_t numOfBuffers);
+    bool Create(GLenum target, GLuint countPerBuffer, uint8_t numOfBuffers);
     void Destroy();
 
     void AdvanceHead();
@@ -143,6 +144,7 @@ public:
     inline void* GetTailOffset() const { return (void*)(m_Tail * sizeof(Atom)); }
 
     inline size_t GetSize() const { return m_CountPerBuffer; }
+    inline GLuint GetName() const { return m_CircularBuffer.GetName(); }
 
 private:
     GPUCircularBuffer<Atom, NullBufferLockManager> m_CircularBuffer;
@@ -213,7 +215,7 @@ private:
     {
         std::vector<unsigned int> pages;
         std::list<ObjectID>::iterator lruIterator;
-        unsigned int count;
+        size_t count;
 
         inline unsigned int GetSize() const noexcept
         {
@@ -244,11 +246,11 @@ private:
         const size_t pageCount = m_Buffer.GetSize() / m_PageSize;
         const size_t freePagesArrSize = ceil(pageCount / BYTE_TYPE_SIZE);
 
-        for (size_t index = 0; index < freePagesArrSize && n > 0; index++)
+        for (size_t index = 0; index < freePagesArrSize; index++)
         {
             ByteType pagesStatus = m_FreePages[index];
 
-            while (pagesStatus != 0 && n > 0)
+            while (pagesStatus != 0)
             {
                 unsigned long consecutiveReservedPages = GetTrailingZeros(pagesStatus);
                 pagesStatus >>= consecutiveReservedPages;
@@ -256,19 +258,24 @@ private:
                 unsigned long pagesToConsume = std::min(static_cast<unsigned long>(n), consecutiveFreePages);
 
                 ByteType consumeMask = ~((1 << pagesToConsume) - 1) << consecutiveReservedPages;
-                m_FreePages[index] ^= consumeMask;
+                m_FreePages[index] &= consumeMask;
                 n -= pagesToConsume;
 
-                for (unsigned long i = 1; i <= pagesToConsume; i++)
+                for (unsigned long i = 0; i < pagesToConsume; i++)
                 {
                     unsigned long pageID = index * BYTE_TYPE_SIZE + consecutiveReservedPages + i;
                     pagesReserved.push_back(pageID);
                 }
+
+                if (n == 0)
+                    return true;
             }
 
         }
 
-        return n <= 0;
+        assert(n > 0, "Something went wrong: Allocated more pages than needed");
+
+        return false;
     }
 
     void _ReservePages(const std::vector<unsigned int>& pages)

@@ -21,6 +21,9 @@ void VoxelRenderer::Init(size_t cachePages, size_t cachePageSize, size_t indirec
     m_IndirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, indirectBufferSize, k_TripleBuffer);
     m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
     m_DataCache.Create(GL_ARRAY_BUFFER, cachePageSize, cachePages);
+    
+    m_IndirectCommandBuffer.AdvanceHead();
+    m_PositionSSBO.AdvanceHead();
 
     m_ObjectsRenderedInCurrentFrame.reserve(indirectBufferSize);
     m_ObjectsRenderedInNextFrame.reserve(indirectBufferSize);
@@ -53,10 +56,9 @@ void VoxelRenderer::Init(size_t cachePages, size_t cachePageSize, size_t indirec
     glBindVertexArray(0);
 }
 
-bool VoxelRenderer::DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position)
+void VoxelRenderer::DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position)
 {
-    if(!m_DataCache.Has(objectID))
-        return false;
+    assert(m_DataCache.Has(objectID), "Error: Object must be uploaded before drawing");
 
     std::vector<GPUBufferRange> memoryRanges = m_DataCache.GetObjectBufferRanges(objectID);
     DrawArraysIndirectCommand* cmds = m_IndirectCommandBuffer.GetHeadContents();
@@ -80,21 +82,20 @@ bool VoxelRenderer::DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& pos
 
     m_NextIndirectCmdsCount += memoryRanges.size();
     m_ObjectsRenderedInNextFrame.push_back(objectID);
-
-
-    return true;
 }
 
 void VoxelRenderer::NextFrame()
 {
     m_ObjectsRenderedInNextFrame.swap(m_ObjectsRenderedInCurrentFrame);
-    std::swap(m_CurrentIndirectCmdsCount, m_NextIndirectCmdsCount);
 
     m_IndirectCommandBuffer.AdvanceHead();
     m_PositionSSBO.AdvanceHead();
 
     m_IndirectCommandBuffer.AdvanceTail();
     m_PositionSSBO.AdvanceTail();
+
+    m_CurrentIndirectCmdsCount = m_NextIndirectCmdsCount;
+    m_NextIndirectCmdsCount = 0;
 }
 
 void VoxelRenderer::ToggleDrawLines()
@@ -107,12 +108,16 @@ void VoxelRenderer::render()
 {
     glBindVertexArray(m_VAO);
     m_PositionSSBO.BindTailBufferRange(m_CurrentIndirectCmdsCount);
+    //assert(glGetError() == GL_NO_ERROR);
+
+    //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_PositionSSBO.GetName());
 
     if (m_DrawLines) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 
     glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, m_IndirectCommandBuffer.GetHeadOffset(), m_CurrentIndirectCmdsCount, 0);
+    //assert(glGetError() == GL_NO_ERROR);
 
     if (m_DrawLines) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);

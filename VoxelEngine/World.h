@@ -40,7 +40,6 @@ public:
 	{
 		// step 1: convert player world coordinates to grid coordinates
 		const int chunkSize = ChunkType::Size;
-
 		const glm::ivec3 playerGridCoords(
 			floor(playerWorldCoords.x / (float)chunkSize), 
 			floor(playerWorldCoords.y / (float)chunkSize),
@@ -72,12 +71,12 @@ public:
 					glm::ivec3 chunkWorldPos = chunkCoords * chunkSize;
 
 
-					bool isMeshed = m_Renderer.DrawOnNextFrame(chunk->GetUid(), chunkWorldPos);
-					if (!isMeshed)
+					const VoxelObjectID chunkUID = chunk->GetUid();
+					if (!m_Renderer.IsCached(chunkUID))
 					{
 						m_Renderer.Upload(m_Chunks, chunkCoords, m_Mesher);
-						m_Renderer.DrawOnNextFrame(chunk->GetUid(), chunkWorldPos);
 					}
+					m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
 				}
 			}
 		}
