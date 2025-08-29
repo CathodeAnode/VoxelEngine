@@ -76,11 +76,15 @@ void VoxelRenderer::DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& pos
         paddedPos->z = position.z;
         paddedPos->w = 0;
 
+        std::cout << "Indirect Commands: (base = " << range.startOffset << ", count = " << range.length << ")\n";
+        std::cout << "Position: (x = " << position.x << ", y = " << position.y << ", z = " << position.z << ")\n";
+
         cmds++;
         paddedPos++;
     }
 
     m_NextIndirectCmdsCount += memoryRanges.size();
+    std::cout << "Object Commands Count = " << memoryRanges.size() << std::endl;
     m_ObjectsRenderedInNextFrame.push_back(objectID);
 }
 
@@ -96,6 +100,7 @@ void VoxelRenderer::NextFrame()
 
     m_CurrentIndirectCmdsCount = m_NextIndirectCmdsCount;
     m_NextIndirectCmdsCount = 0;
+    
 }
 
 void VoxelRenderer::ToggleDrawLines()

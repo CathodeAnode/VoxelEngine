@@ -15,7 +15,7 @@
 
 // Cache Currently set to 25mb (temp, need testing to find optimal sizing)
 // Calculated overhead from free pages data struct for 25mb cache: 15.6kb
-#define CACHE_PAGE_SIZE 50
+#define CACHE_PAGE_SIZE 2 // TODO CHANGE BACK TO 50
 #define CACHE_NUM_OF_PAGES 125000
 
 

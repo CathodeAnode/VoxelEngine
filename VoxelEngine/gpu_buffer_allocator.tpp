@@ -446,11 +446,11 @@ void GPUPagedLRUCache<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, con
 	ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
 
 	// Calculate the current page index for next insertion
-	const unsigned int pageIndex = ceil((objAlloc.count + 1) / m_PageSize);
+	const unsigned int pageIndex = objAlloc.count / m_PageSize;
 	const unsigned int pageElemOffset = objAlloc.count % m_PageSize;
 
 	// Allocate new page if needed
-	if (pageIndex > objAlloc.GetSize())
+	if (pageIndex >= objAlloc.GetSize())
 	{
 		AllocatePages(obj, 1);
 	}

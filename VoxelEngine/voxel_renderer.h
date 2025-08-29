@@ -44,26 +44,16 @@ public:
 
 	template<typename ChunkType>
 	void Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& coords, const VoxelMesher<ChunkType>& mesher);
-
 	template<typename ChunkType>
 	void Upload(const ChunkGrid<ChunkType>& chunkGrid, const VoxelMesher<ChunkType>& mesher);
 
 	bool UpdatePosition(VoxelObjectID objectID, const glm::vec3& newPosition);
-
 	void DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position);
-
-	inline bool IsCached(VoxelObjectID objectID) { return m_DataCache.Has(objectID); }
-
 	void NextFrame();
-
-	void ToggleDrawLines();
-
-	/**
-	 * Renders quads from data buffer with set indirect commands
-	 */
 	void render();
 
-
+	inline bool IsCached(VoxelObjectID objectID) { return m_DataCache.Has(objectID); }
+	void ToggleDrawLines();
 private:
 	unsigned int m_VAO, m_QuadVBO;
 

@@ -28,7 +28,7 @@
 
 
 void processInput(Screen& screen, double dt, World8& world);
-void displayFPSOnWindow(float frameFPS, int numOfFrames);
+void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos);
 
 int countFPS = 0;
 float sumFPS = 0;
@@ -86,8 +86,8 @@ int main() {
 	Chunk8 filledChunk(true);
 	World8 world(100, 10);
 
-	for (int x = -20; x <= 20; x++) {
-		for (int z = -20; z <= 20; z++) {
+	for (int x = -2; x <= 2; x++) {
+		for (int z = -2; z <= 2; z++) {
 			world.AddChunk(glm::ivec3(x, -1, z), filledChunk);
 		}
 	}
@@ -141,7 +141,7 @@ int main() {
 
 		// send back buffer to front buffer
 		screen.update();
-		displayFPSOnWindow(fps, 400);
+		displayFPSOnWindow(fps, 400, camera.pos);
 	}
 
 	GLenum err;
@@ -212,9 +212,8 @@ void processInput(Screen& screen, double dt, World8& world) {
 	mainJ.update();
 }
 
-void displayFPSOnWindow(float frameFPS, int numOfFrames) {
+void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos) {
 	if (countFPS > numOfFrames) {
-		screen.setTitle(("VoxelEngine - FPS: " + std::to_string(sumFPS/ countFPS)).c_str());
 		countFPS = 0;
 		sumFPS = 0;
 
@@ -224,4 +223,12 @@ void displayFPSOnWindow(float frameFPS, int numOfFrames) {
 		sumFPS += frameFPS;
 		countFPS++;
 	}
+
+
+	std::string title = "VoxelEngine - FPS: " + std::to_string(sumFPS / countFPS) +
+		" | Pos(" +
+		std::to_string(cameraPos.x) + ", " +
+		std::to_string(cameraPos.y) + ", " +
+		std::to_string(cameraPos.z) + ")";
+	screen.setTitle(title.c_str());
 }
