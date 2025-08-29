@@ -50,7 +50,7 @@ public:
 	bool UpdatePosition(VoxelObjectID objectID, const glm::vec3& newPosition);
 	void DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position);
 	void NextFrame();
-	void render();
+	void Render();
 
 	inline bool IsCached(VoxelObjectID objectID) { return m_DataCache.Has(objectID); }
 	void ToggleDrawLines();

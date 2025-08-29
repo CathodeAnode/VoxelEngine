@@ -86,8 +86,8 @@ int main() {
 	Chunk8 filledChunk(true);
 	World8 world(100, 10);
 
-	for (int x = -2; x <= 2; x++) {
-		for (int z = -2; z <= 2; z++) {
+	for (int x = -20; x <= 20; x++) {
+		for (int z = -20; z <= 20; z++) {
 			world.AddChunk(glm::ivec3(x, -1, z), filledChunk);
 		}
 	}
@@ -135,7 +135,7 @@ int main() {
 		shaderPrgm.setMat4("view", *view.lock());
 		shaderPrgm.setMat4("projection", *projection.lock());
 		world.UpdateVisibleChunksByDistance(camera.pos);
-		world.render();
+		world.Render();
 		//std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;
 
 
@@ -214,6 +214,14 @@ void processInput(Screen& screen, double dt, World8& world) {
 
 void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos) {
 	if (countFPS > numOfFrames) {
+		// this is taking alot of cpu cycles
+		std::string title = "VoxelEngine - FPS: " + std::to_string(sumFPS / countFPS) +
+			" | Pos(" +
+			std::to_string(cameraPos.x) + ", " +
+			std::to_string(cameraPos.y) + ", " +
+			std::to_string(cameraPos.z) + ")";
+
+		screen.setTitle(title.c_str());
 		countFPS = 0;
 		sumFPS = 0;
 
@@ -224,11 +232,4 @@ void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos) {
 		countFPS++;
 	}
 
-
-	std::string title = "VoxelEngine - FPS: " + std::to_string(sumFPS / countFPS) +
-		" | Pos(" +
-		std::to_string(cameraPos.x) + ", " +
-		std::to_string(cameraPos.y) + ", " +
-		std::to_string(cameraPos.z) + ")";
-	screen.setTitle(title.c_str());
 }

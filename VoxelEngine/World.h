@@ -86,9 +86,9 @@ public:
 		m_LastPlayerGridCoords = playerGridCoords;
 	}
 
-	void render() 
+	void Render() 
 	{
-		m_Renderer.render();
+		m_Renderer.Render();
 	}
 
 	//void setBlock(const glm::ivec3& coords, uint16_t type);
