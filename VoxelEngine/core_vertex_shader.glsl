@@ -53,7 +53,7 @@ void main() {
     }
     else if(q.direction == 0u) {
         // +z face
-        quadPos = quadPos + vec3(0.0f, 0.0, 1.0f);
+        quadPos = quadPos - vec3(0.0f, 0.0, 1.0f);
         quadPos.xy *= vec2(q.width, q.height);
         quadPos += vec3(q.x,q.y,q.z);
     }

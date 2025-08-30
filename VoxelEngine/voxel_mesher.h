@@ -12,9 +12,10 @@
 #include <chrono>
 
 #include "chunk.h"
-#include "types.h"
 #include "chunk_grid.h"
 #include "voxel_mesh_writer.h"
+#include "types.h"
+#include "helpers.h"
 
 
 template<typename ChunkType> class VoxelMesher
@@ -30,12 +31,10 @@ private:
 
 	static uintC_t _GetPaddedColumnRowBits(const ChunkGrid<ChunkType>& world, int x, int y, const glm::ivec3& chunkLocation) {
 		// Reject completely invalid or corner out-of-bounds accesses
-		if ((x <= 0 && y <= 0) || x < 0 || y < 0 ||
-			(x >= CS_P && y >= CS_P) ||
-			(x == 0 && y == CS_P - 1) ||
-			(x == CS_P - 1 && y == 0)) {
-			throw std::out_of_range("Invalid coordinates");
-		}
+		assert((x > 0 && y > 0) || x >= 0 || y >= 0 ||
+			(x < CS_P && y < CS_P) ||
+			(x != 0 && y != CS_P - 1) ||
+			(x != CS_P - 1 && y != 0), "Invalid coordinates");
 
 		glm::ivec3 offset(0);
 		int chunkX = x - 1;
@@ -115,7 +114,7 @@ public:
 		std::vector<uint8_t> forwardMerged(CS_2, 0);
 		std::vector<uint8_t> rightMerged(CS, 0);
 
-		// face culling
+		// face hulling
 		for (int a = 1; a < CS_P - 1; a++) {
 			for (int b = 1; b < CS_P - 1; b++) {
 				const uintC_t columnBits = _GetPaddedColumnRowBits(chunkGrid, b, a, chunkLocation);
@@ -167,26 +166,14 @@ public:
 					while (y < CS) {
 						tempCol = col >> y;
 
-						// get trailing zeros
-						#ifdef _MSC_VER
-						_BitScanForward64(&bitPos, tempCol);
-						if (tempCol == 0) bitPos = CS;
-						#else
-						bitPos = __builtin_ctzll(tempCol);
-						#endif
+						bitPos = GetTrailingZeros(tempCol);
 
 						y += bitPos;
 
 						if (y >= CS) break;
 
 						tempCol = col >> y;
-						// get trailling ones
-						#ifdef _MSC_VER
-						_BitScanForward64(&bitPos, ~tempCol);
-						if (~tempCol == 0) bitPos = CS;
-						#else
-						bitPos = __builtin_ctzll(~tempCol);
-						#endif
+						bitPos = GetTrailingOnes(tempCol);
 
 						h = bitPos;
 
@@ -210,7 +197,7 @@ public:
 						switch (axis) {
 						case 0:
 						case 1:
-							quad = _CompressQuadData(row, y, layer, w, h, axis);
+							quad = _CompressQuadData(row, y, CS - layer, w, h, axis);
 							break;
 						case 2:
 						case 3:
