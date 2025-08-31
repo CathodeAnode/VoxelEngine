@@ -13,11 +13,13 @@ uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
-layout(std430, binding = 0) readonly buffer ChunkBuffer {
+layout(std430, binding = 0) readonly buffer ChunkBuffer 
+{
     vec4 positions[]; 
 };
 
-struct VoxelQuad {
+struct VoxelQuad 
+{
     uint x;
     uint y;
     uint z;
@@ -27,7 +29,8 @@ struct VoxelQuad {
     uint reserved;
 };
 
-VoxelQuad unpackVoxelQuad(uint data) {
+VoxelQuad unpackVoxelQuad(uint data) 
+{
     VoxelQuad quad;
 
     quad.x    = (data >>  0) & 0x1Fu; // 0b00011111
@@ -41,53 +44,60 @@ VoxelQuad unpackVoxelQuad(uint data) {
     return quad;
 }
 
-void main() {
+void main() 
+{
     VoxelQuad q = unpackVoxelQuad(aData);
     vec3 quadPos = aPos;
   
 
-    if(q.direction == 1u) {
+    if(q.direction == 1u) 
+    {
         // -z face
+        quadPos = quadPos + vec3(0.0f, 0.0, 1.0f);
         quadPos.xy *= vec2(q.width, q.height);
         quadPos += vec3(q.x,q.y,q.z);
     }
-    else if(q.direction == 0u) {
+    else if(q.direction == 0u) 
+    {
         // +z face
-        quadPos = quadPos - vec3(0.0f, 0.0, 1.0f);
         quadPos.xy *= vec2(q.width, q.height);
         quadPos += vec3(q.x,q.y,q.z);
     }
-    else if(q.direction == 3u) {
+    else if(q.direction == 3u) 
+    {
         // -x face
         quadPos = quadPos.zyx;
         quadPos.yz *= vec2(q.height, q.width);
         quadPos += vec3(q.x,q.y,q.z);
 
     }
-    else if(q.direction == 2u) {
+    else if(q.direction == 2u) 
+    {
         // +x face
         quadPos = quadPos.zyx;
         quadPos.yz *= vec2(q.height, q.width);
         quadPos += vec3(q.x,q.y,q.z);
         quadPos.x += 1.0f;
     }
-    else if(q.direction == 4u) {
+    else if(q.direction == 4u) 
+    {
         // +y face
         quadPos = quadPos.xzy;
         quadPos.xz *= vec2(q.width, q.height);
         quadPos += vec3(q.x,q.y,q.z);
         quadPos.y += 1.0f;
     }
-    else if(q.direction == 5u) {
+    else if(q.direction == 5u) 
+    {
         // -y face
         quadPos = quadPos.xzy;
         quadPos.xz *= vec2(q.width, q.height);
         quadPos += vec3(q.x,q.y,q.z);
     }
-
+    
     
     quadPos += positions[gl_DrawID].xyz;
-
+    //quadPos += vec3(positions[gl_DrawID].x, positions[gl_DrawID].y, -positions[gl_DrawID].z);
 
 	gl_Position = projection * view * vec4(quadPos, 1.0f);
     face = q.direction;

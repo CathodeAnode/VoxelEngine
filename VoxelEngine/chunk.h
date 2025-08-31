@@ -122,9 +122,9 @@ public:
 		return getVoxelData(coords.x, coords.y, coords.z);
 	}
 
-	T getColumnRow(int x, int y) const
+	T getColumnRow(int x, int z) const
 	{
-		return m_OpaqueData[x + (y * ChunkSize)];
+		return m_OpaqueData[x + (z * ChunkSize)];
 	}
 
 	// Toggle the x, y, z-th bit in the m_OpaqueData
