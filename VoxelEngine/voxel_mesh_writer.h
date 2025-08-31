@@ -5,7 +5,7 @@
 #include "gpu_buffer_allocator.h"
 
 template<typename T>
-concept VoxelMeshWriter = requires(T t, QuadMeshData data, Color type)
+concept VoxelMeshWriter = requires(T t, QuadMeshData data, RGBAColor type)
 {
 	t.Write(data, type);
 };
@@ -15,7 +15,7 @@ class CPUVoxelMeshWriter
 public:
 	CPUVoxelMeshWriter(ChunkQuads& chunkQuads);
 
-	void Write(QuadMeshData quadData, Color quadColor);
+	void Write(QuadMeshData quadData, RGBAColor quadColor);
 
 private:
 	ChunkQuads& m_Container;
@@ -26,7 +26,7 @@ class GPUVoxelMeshCacheWriter
 public:
 	GPUVoxelMeshCacheWriter(GPUPagedLRUCache<QuadMeshData, VoxelObjectID>& cache);
 
-	void Write(QuadMeshData quadData, Color quadColor);
+	void Write(QuadMeshData quadData, RGBAColor quadColor);
 	void SetTargetObject(VoxelObjectID obj);
 
 private:

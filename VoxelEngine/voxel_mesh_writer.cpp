@@ -6,7 +6,7 @@ CPUVoxelMeshWriter::CPUVoxelMeshWriter(ChunkQuads& chunkQuads)
 	m_Container = chunkQuads;
 }
 
-void CPUVoxelMeshWriter::Write(QuadMeshData quadData, Color quadColor)
+void CPUVoxelMeshWriter::Write(QuadMeshData quadData, RGBAColor quadColor)
 {
 	m_Container.AddRawQuad(quadData, quadColor);
 }
@@ -19,7 +19,7 @@ GPUVoxelMeshCacheWriter::GPUVoxelMeshCacheWriter(GPUPagedLRUCache<QuadMeshData, 
 	m_Cache = cache;
 }
 
-void GPUVoxelMeshCacheWriter::Write(QuadMeshData quadData, Color quadColor)
+void GPUVoxelMeshCacheWriter::Write(QuadMeshData quadData, RGBAColor quadColor)
 {
 	m_Cache.PushBackToObject(m_TargetObjectID, quadData);
 	// TODO: pushback both quad color & data

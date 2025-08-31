@@ -7,7 +7,7 @@
 #include <vector>
 
 using QuadMeshData = uint32_t; //TODO: use bitfields struct instead
-using Color = uint32_t;
+using RGBAColor = uint32_t;
 using VoxelObjectID = uint32_t;
 
 
@@ -33,15 +33,15 @@ enum class QuadFaceDir {
  */
 struct ChunkQuads {
 	std::vector<QuadMeshData> chunkQuads;
-	std::vector<Color> quadColors;
+	std::vector<RGBAColor> quadColors;
 
-	void AddRawQuad(QuadMeshData quadData, Color quadColor)
+	void AddRawQuad(QuadMeshData quadData, RGBAColor quadColor)
 	{
 		chunkQuads.push_back(quadData);
 		quadColors.push_back(quadColor);
 	}
 
-	void AddQuad(int x, int y, int z, int w, int h, int dir, Color quadColor) {
+	void AddQuad(int x, int y, int z, int w, int h, int dir, RGBAColor quadColor) {
 		//std::cout << "Face: " << dir << " pos: (" << x << "," << y << "," << z << ") "
 		//	<< "size: (" << w << "x" << h << ")\n";
 		QuadMeshData quadVal = 0;

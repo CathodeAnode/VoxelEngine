@@ -25,7 +25,7 @@ public:
 	// generate flat world with given size
 	ChunkGrid(float _voxelScale = 1.0f) 
 		: m_VoxelScale(_voxelScale)
-		, m_Uid(UIDManager::Generate())
+		, k_Uid(UIDManager::Generate())
 	{}
 
 	~ChunkGrid() 
@@ -36,7 +36,7 @@ public:
 	// Copy constructor
 	ChunkGrid(const ChunkGrid& other)
 		: m_VoxelScale(other.m_VoxelScale)
-		, m_Uid(UIDManager::Generate())
+		, k_Uid(UIDManager::Generate())
 	{
 		m_Chunks.clear();
 		for (const auto& [index, chunk] : other.m_Chunks) 
@@ -45,26 +45,10 @@ public:
 		}
 	}
 
-	// Copy assignment
-	ChunkGrid& operator=(const ChunkGrid& other)
-	{
-		if (this != &other) 
-		{
-			m_VoxelScale = other.m_VoxelScale;
-			m_Uid = UIDManager::Generate(); // generate new UID
-
-			m_Chunks.clear();
-			for (const auto& [index, chunk] : other.m_Chunks) {
-				m_Chunks[index] = chunk; // chunk copy constructor generates new UID
-			}
-		}
-		return *this;
-	}
-
 	// Move constructor
 	ChunkGrid(ChunkGrid&& other) noexcept
 		: m_VoxelScale(other.m_VoxelScale)
-		, m_Uid(other.m_Uid)
+		, k_Uid(other.k_Uid)
 	{
 		m_Chunks.clear();
 		m_Chunks = std::move(other.m_Chunks);
@@ -78,7 +62,6 @@ public:
 			m_Chunks.clear();
 			m_Chunks = std::move(other.m_Chunks);
 			m_VoxelScale = other.m_VoxelScale;
-			m_Uid = other.m_Uid;
 		}
 		return *this;
 	}
@@ -135,7 +118,7 @@ public:
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
 			int yC = ((y % ChunkSize) + ChunkSize) % ChunkSize;
 			int zC = ((z % ChunkSize) + ChunkSize) % ChunkSize;
-			result = m_Chunks.at(chunkIndex).isSolid(xC, yC, zC);
+			result = m_Chunks.at(chunkIndex).IsSolid(xC, yC, zC);
 		}
 
 
@@ -212,7 +195,7 @@ public:
 
 	inline float getVoxelScale() const { return m_VoxelScale; };
 
-	inline VoxelObjectID GetUid() const { return m_Uid; };
+	inline VoxelObjectID GetUid() const { return k_Uid; };
 
 
 	std::unordered_map<uint64_t, ChunkType>::iterator begin() const { return m_Chunks.begin(); }
@@ -232,7 +215,7 @@ private:
 	*/
 	std::unordered_map<uint64_t, ChunkType> m_Chunks;
 	float m_VoxelScale;
-	VoxelObjectID m_Uid;
+	const VoxelObjectID k_Uid;
 	
 };
 

@@ -29,6 +29,7 @@ private:
 	static constexpr int CS_P2 = CS_P * CS_P;
 	static constexpr int CS_P3 = CS_P2 * CS_P;
 
+
 	static uintC_t _GetPaddedColumnRowBits(const ChunkGrid<ChunkType>& world, int x, int z, const glm::ivec3& chunkLocation) {
 		// Reject completely invalid or corner out-of-bounds accesses
 		assert((x > 0 && z > 0) || x >= 0 || z >= 0 ||
@@ -63,7 +64,7 @@ private:
 
 		const ChunkType* chunk = world.getChunk(chunkLocation + offset);
 		if (chunk) {
-			return chunk->getColumnRow(chunkX, chunkZ);
+			return chunk->GetColumnRow(chunkX, chunkZ);
 		}
 
 		return 0;
@@ -110,7 +111,7 @@ public:
 	{
 		// TODO ideally you wouldnt have to check if the chunk is valid, change to assert if possible
 		const ChunkType* chunk = chunkGrid.getChunk(chunkLocation);
-		if (chunk == nullptr || chunk->isEmpty()) {
+		if (chunk == nullptr || chunk->IsEmpty()) {
 			return;
 		}
 
@@ -217,7 +218,6 @@ public:
 				}
 			}
 		}
-
 
 		//// Greedy meshing face 0-3
 		//for (int face = 0; face < 4; face++)

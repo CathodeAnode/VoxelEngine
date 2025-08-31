@@ -30,6 +30,9 @@
 void processInput(Screen& screen, double dt, World8& world);
 void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos);
 
+template<typename ChunkType> 
+ChunkType GenerateRampChunk();
+
 int countFPS = 0;
 float sumFPS = 0;
 
@@ -84,13 +87,20 @@ int main() {
 	*/
 	auto start = std::chrono::high_resolution_clock::now();
 	Chunk8 filledChunk(true);
+	filledChunk.ToggleBit(0, 0, 0);
+	filledChunk.ToggleBit(7, 0, 0);
+	filledChunk.ToggleBit(0, 7, 0);
+	filledChunk.ToggleBit(7, 7, 0);
 	World8 world(100, 10);
 
-	for (int x = -20; x <= 20; x++) {
+	for (int x = -20; x <= 20; x++) { 
 		for (int z = -20; z <= 20; z++) {
-			world.AddChunk(glm::ivec3(x, -1, z), filledChunk);
+			world.AddChunk(glm::ivec3(x, -1, z), GenerateRampChunk<Chunk8>());
 		}
 	}
+	
+	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
+	//world.AddChunk(glm::ivec3(0, -1, 1), filledChunk);
 
 	auto end = std::chrono::high_resolution_clock::now();
 	std::chrono::duration<double> duration = end - start;
@@ -106,6 +116,7 @@ int main() {
 	Shader shaderPrgm = Shader("core_vertex_shader.glsl", "core_fragment_shader.glsl");
 
 	shaderPrgm.use();
+	//camera.speed = 40.0f;
 
 
 	// create transformation for screen
@@ -232,4 +243,28 @@ void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos) {
 		countFPS++;
 	}
 
+}
+
+template<typename ChunkType>
+ChunkType GenerateRampChunk()
+{
+	ChunkType result;
+	RGBAColor color = 0x080808FF;
+
+
+	for (int y = 0; y < ChunkType::Size; y++)
+	{
+		for (int x = 0; x < ChunkType::Size; x++)
+		{
+			for (int z = 0; z < ChunkType::Size; z++)
+			{
+				if (y < x + (ChunkType::Size / 4))
+				{
+					result.SetVoxel(x, y, z, color);
+				}
+			}
+		}
+	}
+
+	return result;
 }

@@ -59,11 +59,14 @@ void VoxelRenderer::Init(size_t cachePages, size_t cachePageSize, size_t indirec
 void VoxelRenderer::DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position)
 {
     assert(m_DataCache.Has(objectID), "Error: Object must be uploaded before drawing");
-
+    
     std::vector<GPUBufferRange> memoryRanges = m_DataCache.GetObjectBufferRanges(objectID);
     DrawArraysIndirectCommand* cmds = m_IndirectCommandBuffer.GetHeadContents() + m_NextIndirectCmdsCount;
     glm::vec4* paddedPos = m_PositionSSBO.GetHeadContents() + m_NextIndirectCmdsCount;
 
+    // optimization can be done here if we can guarantee object buffer ranges wont be defragmented
+    // but that would require completely changing the archtecture of the GPUcache object lol
+    // having one range for each object is better bcuz we would only have one indirect cmd per object
     for (const auto& range : memoryRanges)
     {
         cmds->count = 4;

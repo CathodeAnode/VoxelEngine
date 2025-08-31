@@ -9,6 +9,7 @@
 #include "types.h"
 #include "uid_manager.h"
 
+#define DEFAULT_VOXEL_COLOR 0x808080FF
 
 template<typename T, unsigned int ChunkSize>
 class Chunk {
@@ -19,30 +20,31 @@ public:
 	// TODO : remove filled bool, always create empty chunk
 	// & Create another consturtor that takes input to generate voxel data in chunk
 	Chunk(bool filled=false) 
+		: k_Uid(UIDManager::Generate())
 	{
 		m_OpaqueData = new T[ChunkSize * ChunkSize];
-		m_Uid = UIDManager::Generate();
+		m_ColorData = new RGBAColor[ChunkSize * ChunkSize * ChunkSize];
 		if (filled) {
 			std::fill(m_OpaqueData, m_OpaqueData + ChunkSize * ChunkSize, ~T(0));  // set all bits to 1
-			for (int i = 0; i < ChunkSize * ChunkSize * ChunkSize; i++) {
-				m_VoxelData[i] = 0x000000808080; // grey color
-			}
-			//toggleBit(4, 7, 4);
+			std::fill(m_ColorData, m_ColorData + ChunkSize * ChunkSize * ChunkSize, DEFAULT_VOXEL_COLOR);
 		}
 		else
 		{
 			std::fill(m_OpaqueData, m_OpaqueData + ChunkSize * ChunkSize, T(0));
+			std::fill(m_ColorData, m_ColorData + ChunkSize * ChunkSize * ChunkSize, RGBAColor(0));
 		}
 		
 	};
 
 	// Copy constructor
-	Chunk(const Chunk& other) 
+	Chunk(const Chunk& other)
+		: k_Uid(UIDManager::Generate())
 	{
 		m_OpaqueData = new T[ChunkSize * ChunkSize];
+		m_ColorData = new RGBAColor[ChunkSize * ChunkSize * ChunkSize];
+
 		std::memcpy(m_OpaqueData, other.m_OpaqueData, ChunkSize * ChunkSize * sizeof(T));
-		m_VoxelData = other.m_VoxelData;
-		m_Uid = UIDManager::Generate();
+		std::memcpy(m_ColorData, other.m_ColorData, ChunkSize * ChunkSize * ChunkSize * sizeof(RGBAColor));
 	}
 
 	// copy assignment
@@ -50,22 +52,30 @@ public:
 	{
 		if (this != &other) 
 		{
+			delete[] m_OpaqueData;
+			delete[] m_ColorData;
+
 			m_OpaqueData = new T[ChunkSize * ChunkSize];
+			m_ColorData = new RGBAColor[ChunkSize * ChunkSize * ChunkSize];
+
 			std::memcpy(m_OpaqueData, other.m_OpaqueData, ChunkSize * ChunkSize * sizeof(T));
-			m_VoxelData = other.m_VoxelData;
-			m_Uid = UIDManager::Generate();
+			std::memcpy(m_ColorData, other.m_ColorData, ChunkSize * ChunkSize * ChunkSize * sizeof(RGBAColor));
 		}
 		return *this;
 	}
 
 	// Move constructor
-	Chunk(Chunk&& other) noexcept 
+	Chunk(Chunk&& other) noexcept
+		: k_Uid(other.k_Uid)
 	{
 		delete[] m_OpaqueData;
+		delete[] m_ColorData;
+
 		m_OpaqueData = std::move(other.m_OpaqueData);
-		m_VoxelData = std::move(other.m_VoxelData);
-		m_Uid = other.GetUid();
+		m_ColorData = std::move(other.m_ColorData);
+
 		other.m_OpaqueData = nullptr;
+		other.m_ColorData = nullptr;
 	}
 
 	// Move assignment
@@ -74,10 +84,13 @@ public:
 		if (this != &other) 
 		{
 			delete[] m_OpaqueData;
+			delete[] m_ColorData;
+
 			m_OpaqueData = std::move(other.m_OpaqueData);
-			m_VoxelData = std::move(other.m_VoxelData);
-			m_Uid = other.GetUid();
+			m_ColorData = std::move(other.m_ColorData);
+
 			other.m_OpaqueData = nullptr;
+			other.m_ColorData = nullptr;
 		}
 		return *this;
 	}
@@ -87,16 +100,17 @@ public:
 		if (m_OpaqueData) 
 		{
 			delete[] m_OpaqueData;
+			delete[] m_ColorData;
 		}
 	};
 	
-	bool isSolid(int x, int y, int z) const 
+	bool IsSolid(int x, int y, int z) const 
 	{
 		int rowIndex = x + y * ChunkSize;
 		return m_OpaqueData[rowIndex] << z;
 	}
-
-	bool isEmpty() const 
+	
+	bool IsEmpty() const 
 	{
 		for (int i = 0; i < ChunkSize * ChunkSize; i++) 
 		{
@@ -107,31 +121,34 @@ public:
 		return true;
 	}
 
-	uint16_t getVoxelData(int x, int y, int z) const
+	inline RGBAColor GetVoxelData(int x, int y, int z) const
 	{
-		if (m_VoxelData.contains(x + y * ChunkSize + z * ChunkSize * ChunkSize)) 
-		{
-			return m_VoxelData.at(x + y * ChunkSize + z * ChunkSize * ChunkSize);
-		}
-
-		return std::numeric_limits<uint16_t>::max();
+		return m_ColorData.at(x + y * ChunkSize + z * ChunkSize * ChunkSize);
 	}
 
-	inline uint16_t getVoxelData(glm::ivec3 coords) const
+	inline RGBAColor GetVoxelData(glm::ivec3 coords) const
 	{
-		return getVoxelData(coords.x, coords.y, coords.z);
+		return GetVoxelData(coords.x, coords.y, coords.z);
 	}
 
-	T getColumnRow(int x, int z) const
+	inline T GetColumnRow(int x, int z) const
 	{
 		return m_OpaqueData[x + (z * ChunkSize)];
 	}
 
-	// Toggle the x, y, z-th bit in the m_OpaqueData
-	void toggleBit(int x, int y, int z) 
+	void ToggleBit(int x, int y, int z) 
 	{
 		int index = x + z * ChunkSize;
-		m_OpaqueData[index] ^= (1u << y);  // Toggle the z-th bit using XOR
+		m_OpaqueData[index] ^= (T(1) << y);
+	}
+
+	void SetVoxel(int x, int y, int z, RGBAColor color)
+	{
+		// TODO add assertions
+
+		int index = x + z * ChunkSize;
+		m_OpaqueData[index] |= (T(1) << y);
+		m_ColorData[index + y * ChunkSize * ChunkSize] = color;
 	}
 
 	void printData() 
@@ -156,16 +173,13 @@ public:
 		}
 	}
 
-	inline VoxelObjectID GetUid() const { return m_Uid; };
+	inline VoxelObjectID GetUid() const { return k_Uid; };
 
 	char* serialize();
 private:
 	T* m_OpaqueData = nullptr; // 1 for block, 0 for air (z-major order)
-	/* maps block indes to a rgb color or texture, air blocks dont have a mapping
-	 * if msb is set to 0, block is colored with first 8 bits for rgb, other 8 bits ignored
-	 * if msb is set to 1, block is textured with texture id as uint16_t (max textures: 32,768)*/
-	std::unordered_map<unsigned int, uint16_t> m_VoxelData;  // TODO : Change to array of Color type (uint32_t) (Why: this is bad for cache locality)
-	VoxelObjectID m_Uid;
+	RGBAColor* m_ColorData;
+	const VoxelObjectID k_Uid;
 };
 
 typedef Chunk<uint8_t, 8> Chunk8;
