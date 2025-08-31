@@ -154,9 +154,8 @@ public:
 		//	}
 		//}
 
-
-		// TAN TAN Greedy Mesher (face 0-3)
-		for (uint8_t axis = 0; axis < 4; axis++)
+		// Greedy Meshing compression
+		for (uint8_t axis = 0; axis < 6; axis++)
 		{
 			for (uint8_t layer = 0; layer < CS; layer++)
 			{
@@ -199,6 +198,10 @@ public:
 						case 2:
 						case 3:
 							quad = _CompressQuadData(layer, y, row, w, h, axis);
+							break;
+						case 4:
+						case 5:
+							quad = _CompressQuadData(row, y, layer, w, h, axis);
 							break;
 						}
 
@@ -303,66 +306,66 @@ public:
 		//	}
 		//}
 
-		// Greedy meshing faces 4-5
-		for (int face = 4; face < 6; face++) 
-		{
-			const int axis = face / 2;
+		//// Greedy meshing faces 4-5
+		//for (int face = 4; face < 6; face++) 
+		//{
+		//	const int axis = face / 2;
 
-			for (int forward = 0; forward < CS; forward++) 
-			{
-				const int bitsLocation = forward * CS + face * CS_2;
-				const int bitsForwardLocation = (forward + 1) * CS + face * CS_2;
+		//	for (int forward = 0; forward < CS; forward++) 
+		//	{
+		//		const int bitsLocation = forward * CS + face * CS_2;
+		//		const int bitsForwardLocation = (forward + 1) * CS + face * CS_2;
 
-				for (int right = 0; right < CS; right++)
-				{
-					uintC_t bitsHere = faceMasks[right + bitsLocation];
-					if (bitsHere == 0) continue;
+		//		for (int right = 0; right < CS; right++)
+		//		{
+		//			uintC_t bitsHere = faceMasks[right + bitsLocation];
+		//			if (bitsHere == 0) continue;
 
-					const uintC_t bitsForward = forward < CS - 1 ? faceMasks[right + bitsForwardLocation] : 0;
-					const uintC_t bitsRight = right < CS - 1 ? faceMasks[right + 1 + bitsLocation] : 0;
-					const int rightCS = right * CS;
+		//			const uintC_t bitsForward = forward < CS - 1 ? faceMasks[right + bitsForwardLocation] : 0;
+		//			const uintC_t bitsRight = right < CS - 1 ? faceMasks[right + 1 + bitsLocation] : 0;
+		//			const int rightCS = right * CS;
 
-					while (bitsHere) {
-						unsigned long bitPos = GetTrailingZeros(bitsHere);
+		//			while (bitsHere) {
+		//				unsigned long bitPos = GetTrailingZeros(bitsHere);
 
-						bitsHere &= ~(uintC_t(1) << bitPos);
+		//				bitsHere &= ~(uintC_t(1) << bitPos);
 
-						const uint16_t type = chunk->getVoxelData(_GetAxisIndex(axis, right , forward, bitPos));
-						uint8_t& forwardMergedRef = forwardMerged[rightCS + bitPos];
-						uint8_t& rightMergedRef = rightMerged[bitPos];
+		//				const uint16_t type = chunk->getVoxelData(_GetAxisIndex(axis, right , forward, bitPos));
+		//				uint8_t& forwardMergedRef = forwardMerged[rightCS + bitPos];
+		//				uint8_t& rightMergedRef = rightMerged[bitPos];
 
-						if (rightMergedRef == 0 && (bitsForward >> bitPos & 1) &&
-							type == chunk->getVoxelData(_GetAxisIndex(axis, right, forward + 1, bitPos))) 
-						{
-							forwardMergedRef++;
-							continue;
-						}
+		//				if (rightMergedRef == 0 && (bitsForward >> bitPos & 1) &&
+		//					type == chunk->getVoxelData(_GetAxisIndex(axis, right, forward + 1, bitPos))) 
+		//				{
+		//					forwardMergedRef++;
+		//					continue;
+		//				}
 
-						if ((bitsRight >> bitPos & 1) && forwardMergedRef == forwardMerged[(rightCS + CS) + bitPos]
-							&& type == chunk->getVoxelData(_GetAxisIndex(axis, right + 1, forward, bitPos))) 
-						{
-							forwardMergedRef = 0;
-							rightMergedRef++;
-							continue;
-						}
+		//				if ((bitsRight >> bitPos & 1) && forwardMergedRef == forwardMerged[(rightCS + CS) + bitPos]
+		//					&& type == chunk->getVoxelData(_GetAxisIndex(axis, right + 1, forward, bitPos))) 
+		//				{
+		//					forwardMergedRef = 0;
+		//					rightMergedRef++;
+		//					continue;
+		//				}
 
-						const uint8_t meshLeft = right - rightMergedRef;
-						const uint8_t meshFront = forward - forwardMergedRef;
-						const uint8_t meshUp = bitPos;
+		//				const uint8_t meshLeft = right - rightMergedRef;
+		//				const uint8_t meshFront = forward - forwardMergedRef;
+		//				const uint8_t meshUp = bitPos;
 
-						const uint8_t meshWidth = 1 + rightMergedRef;
-						const uint8_t meshLength = 1 + forwardMergedRef;
+		//				const uint8_t meshWidth = 1 + rightMergedRef;
+		//				const uint8_t meshLength = 1 + forwardMergedRef;
 
-						forwardMergedRef = 0;
-						rightMergedRef = 0;
+		//				forwardMergedRef = 0;
+		//				rightMergedRef = 0;
 
-						QuadMeshData quad = _CompressQuadData(meshLeft, meshUp, meshFront, meshWidth, meshLength, face);
-						out.Write(quad, type);
+		//				QuadMeshData quad = _CompressQuadData(meshLeft, meshUp, meshFront, meshWidth, meshLength, face);
+		//				out.Write(quad, type);
 
-					}
-				}
-			}
-		}
+		//			}
+		//		}
+		//	}
+		//}
 		
 	}
 
