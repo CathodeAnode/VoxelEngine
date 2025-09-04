@@ -72,11 +72,15 @@ public:
 
 
 					const VoxelObjectID chunkUID = chunk->GetUid();
-					if (!m_Renderer.IsCached(chunkUID))
+					if (chunkUID != NULL)
 					{
-						m_Renderer.Upload(m_Chunks, chunkCoords, m_Mesher);
+						if (!m_Renderer.IsCached(chunkUID))
+						{
+							m_Renderer.Upload(m_Chunks, chunkCoords, m_Mesher);
+						}
+						m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
 					}
-					m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
+
 				}
 			}
 		}

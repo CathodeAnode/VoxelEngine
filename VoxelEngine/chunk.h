@@ -110,7 +110,7 @@ public:
 		return m_OpaqueData[rowIndex] << z;
 	}
 	
-	bool IsEmpty() const 
+	virtual bool IsEmpty() const 
 	{
 		for (int i = 0; i < ChunkSize * ChunkSize; i++) 
 		{
@@ -131,7 +131,7 @@ public:
 		return GetVoxelData(coords.x, coords.y, coords.z);
 	}
 
-	inline T GetColumnRow(int x, int z) const
+	virtual inline T GetColumnRow(int x, int z) const
 	{
 		return m_OpaqueData[x + (z * ChunkSize)];
 	}
@@ -173,18 +173,45 @@ public:
 		}
 	}
 
-	inline VoxelObjectID GetUid() const { return k_Uid; };
+	virtual inline VoxelObjectID GetUid() const { return k_Uid; };
 
 	char* serialize();
 private:
 	T* m_OpaqueData = nullptr; // 1 for block, 0 for air (z-major order)
-	RGBAColor* m_ColorData;
+	RGBAColor* m_ColorData = nullptr;
 	const VoxelObjectID k_Uid;
 };
 
 typedef Chunk<uint8_t, 8> Chunk8;
 typedef Chunk<uint16_t, 16> Chunk16;
 typedef Chunk<uint32_t, 32> Chunk32;
+
+
+// NullChunk class that behaves as an empty chunk
+// this is temporary, figure out a way to create a null chunk / empty chunk without virtual funcs and overrides
+template<typename T, unsigned int ChunkSize>
+class NullChunk : public Chunk<T, ChunkSize> {
+public:
+	// Override constructor if needed
+	NullChunk()  {}
+
+	T GetColumnRow(int x, int z) const override
+	{
+		return T(0);
+	}
+
+	bool IsEmpty() const override
+	{
+		return true;
+	}
+
+	VoxelObjectID GetUid() const override 
+	{ 
+		return 0; 
+	}
+
+	// TODO override other methods if needed
+};
 
 
 #endif // !CHUNK_H

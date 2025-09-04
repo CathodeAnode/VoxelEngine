@@ -87,18 +87,18 @@ int main() {
 	*/
 	auto start = std::chrono::high_resolution_clock::now();
 	Chunk8 filledChunk(true);
-	filledChunk.ToggleBit(0, 0, 0);
-	filledChunk.ToggleBit(7, 0, 0);
-	filledChunk.ToggleBit(0, 7, 0);
-	filledChunk.ToggleBit(7, 7, 0);
 	World8 world(100, 10);
 
-	for (int x = -20; x <= 20; x++) { 
-		for (int z = -20; z <= 20; z++) {
-			world.AddChunk(glm::ivec3(x, -1, z), GenerateRampChunk<Chunk8>());
-		}
-	}
+	//for (int x = -20; x <= 20; x++) { 
+	//	for (int z = -20; z <= 20; z++) {
+	//		world.AddChunk(glm::ivec3(x, -1, z), filledChunk);
+	//	}
+	//}
 	
+	world.AddChunk(glm::ivec3(0, 0, 0), filledChunk);
+	world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
+	//world.AddChunk(glm::ivec3(0, -2, 0), filledChunk);
+
 	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
 	//world.AddChunk(glm::ivec3(0, -1, 1), filledChunk);
 

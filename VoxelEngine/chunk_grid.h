@@ -17,7 +17,9 @@
 
 #define MAX_GRID_INT 1048575
 
-template<typename ChunkType> class ChunkGrid {
+template<typename ChunkType> 
+class ChunkGrid 
+{
 public:
 
 	ChunkGrid(char* serializedData); // load from serialized data
@@ -85,7 +87,7 @@ public:
 			return &m_Chunks.at(index);
 		}
 
-		return nullptr;
+		return &s_NullChunk;
 	}
 	const ChunkType* getChunk(const glm::ivec3& chunkGridLocation) const
 	{
@@ -99,7 +101,7 @@ public:
 			return &m_Chunks.at(index);
 		}
 
-		return nullptr;
+		return &s_NullChunk;
 	}
 
 	bool isVoxelSolid(int x, int y, int z) const 
@@ -216,6 +218,8 @@ private:
 	std::unordered_map<uint64_t, ChunkType> m_Chunks;
 	float m_VoxelScale;
 	const VoxelObjectID k_Uid;
+
+	inline static NullChunk<typename ChunkType::ValueType, ChunkType::Size> s_NullChunk;
 	
 };
 
