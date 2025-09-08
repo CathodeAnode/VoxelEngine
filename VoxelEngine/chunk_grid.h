@@ -132,7 +132,7 @@ public:
 		return isVoxelSolid(pos.x, pos.y, pos.z);
 	}
 
-	uint16_t getVoxelData(int x, int y, int z) const 
+	uint16_t GetVoxelData(int x, int y, int z) const 
 	{
 		const int ChunkSize = ChunkType::Size;
 
@@ -152,9 +152,9 @@ public:
 		return std::numeric_limits<uint16_t>::max();
 	}
 
-	uint16_t getVoxelData(glm::ivec3 coords) const 
+	uint16_t GetVoxelData(glm::ivec3 coords) const 
 	{
-		return getVoxelData(coords.x, coords.y, coords.z);
+		return GetVoxelData(coords.x, coords.y, coords.z);
 	}
 
 	char* serialize();

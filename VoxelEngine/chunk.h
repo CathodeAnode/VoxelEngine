@@ -123,7 +123,7 @@ public:
 
 	inline RGBAColor GetVoxelData(int x, int y, int z) const
 	{
-		return m_ColorData.at(x + y * ChunkSize + z * ChunkSize * ChunkSize);
+		return m_ColorData[x + z * ChunkSize + y * ChunkSize * ChunkSize];
 	}
 
 	inline RGBAColor GetVoxelData(glm::ivec3 coords) const
@@ -144,11 +144,8 @@ public:
 
 	void SetVoxel(int x, int y, int z, RGBAColor color)
 	{
-		// TODO add assertions
-
-		int index = x + z * ChunkSize;
-		m_OpaqueData[index] |= (T(1) << y);
-		m_ColorData[index + y * ChunkSize * ChunkSize] = color;
+		m_OpaqueData[x + z * ChunkSize] |= (T(1) << y);
+		m_ColorData[x + z * ChunkSize + y * ChunkSize * ChunkSize] = color;
 	}
 
 	void printData() 

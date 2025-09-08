@@ -5,7 +5,7 @@ VoxelRenderer::VoxelRenderer()
     : m_DataCache(true)
     , m_IndirectCommandBuffer(true)
     , m_PositionSSBO(true)
-    , m_DrawLines(false)
+    , m_DrawLines(true)
 {}
 
 VoxelRenderer::~VoxelRenderer() 

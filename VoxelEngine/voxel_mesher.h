@@ -9,7 +9,7 @@
 #include <glm/glm.hpp>
 
 #include <bitset>
-#include <chrono>
+#include <array>
 
 #include "chunk.h"
 #include "chunk_grid.h"
@@ -30,6 +30,7 @@ private:
 	static constexpr int CS_P2 = CS_P * CS_P;
 	static constexpr int CS_P3 = CS_P2 * CS_P;
 
+	std::array<uintC_t, CS_2 * 6> m_FaceMasks;
 
 	static uintC_t _GetPaddedColumnRowBits(const ChunkGrid<ChunkType>& world, int x, int z, const glm::ivec3& chunkLocation) {
 		// Reject completely invalid or corner out-of-bounds accesses
@@ -104,20 +105,98 @@ private:
 		return ret;
 	}
 
+	std::unordered_map<RGBAColor, std::array<uintC_t, CS_2>> _SplitVoxelsByColor(uint8_t axis, ChunkType* chunk)
+	{
+		// MUST HAPPEN AFTER FACE HULLING STEP
+		std::unordered_map<RGBAColor, std::array<uintC_t, CS_2>> data;
+		//for (int x = 0; x < CS; x++)
+		//{
+		//	for (int y = 0; y < CS; y++)
+		//	{
+		//		for (int z = 0; z < CS; z++)
+		//		{
+		//			std::cout << "(" << x << ", " << y << ", " << z << "): " << chunk->GetVoxelData(x, y, z) << std::endl;
+		//		}
+		//	}
+		//}
+
+		for (uint8_t layer = 0; layer < CS; layer++)
+		{
+			const int bitsLocation = layer * CS + axis * CS_2;
+
+			for (uint8_t row = 0; row < CS; row++)
+			{
+				uintC_t& col = m_FaceMasks[row + bitsLocation];
+
+				while (col != 0)
+				{
+					uint8_t y = GetTrailingZeros(col);
+					col &= col - 1;
+
+
+					//if (data.find(type) == data.end())
+					//{
+					//	data[type] = std::array<uintC_t, CS_2>{};
+					//}
+					RGBAColor type;
+					switch (axis)
+					{
+					case 0:
+					case 1:
+					case 2:
+					case 3:
+						type = chunk->GetVoxelData(layer, y, row);
+						data[type][row + layer * CS] |= uintC_t(1) << y;
+						break;
+					case 4:
+					case 5:
+						type = chunk->GetVoxelData(y, row, layer);
+						data[type][layer + y * CS] |= uintC_t(1) << row;
+						break;
+						
+					}
+
+				}
+			}
+		}
+
+
+		if (axis == 3)
+		{
+			for (const auto& [type, fmask] : data)
+			{
+				std::cout << "Type: " << type << std::endl;
+
+				for (int x = 0; x < CS; x++)
+				{
+					std::cout << "layer " << x << std::endl;
+					for (int y = 0; y < CS; y++)
+					{
+						std::cout << std::bitset<8>(fmask[y + x * CS]) << std::endl;
+					}
+				}
+			}
+		}
+
+		return data;
+	}
+
 public:
 
 	// TODO : implement voxel type support for tan tan greedy meshing (faces 0-4)
 	template<VoxelMeshWriter MeshWriter>
-	void MeshChunk(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out) const
+	void MeshChunk(ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out)
 	{
 		// TODO ideally you wouldnt have to check if the chunk is valid, change to assert if possible
-		const ChunkType* chunk = chunkGrid.getChunk(chunkLocation);
+		ChunkType* chunk = chunkGrid.getChunk(chunkLocation);
 		if (chunk == nullptr || chunk->IsEmpty()) {
 			return;
 		}
 
 		// TODO change to class methods to avoid heap allocations per call (call .clear() here to reset to zeros)
-		std::vector<uintC_t> faceMasks(CS_2 * 6, 0);
+		std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
+		std::vector<uint8_t> forwardMerged(CS_2, 0);
+		std::vector<uint8_t> rightMerged(CS, 0);
 
 		const ChunkType* topChunk = chunkGrid.getChunk(chunkLocation + glm::ivec3(0, 1, 0));
 		const ChunkType* bottomChunk = chunkGrid.getChunk(chunkLocation - glm::ivec3(0, 1, 0));
@@ -131,20 +210,20 @@ public:
 
 
 				// +ve, -ve z
-				faceMasks[baIndex + 0 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b, a - 1, chunkLocation));
-				faceMasks[baIndex + 1 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b, a + 1, chunkLocation));
+				m_FaceMasks[baIndex + 0 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b, a - 1, chunkLocation));
+				m_FaceMasks[baIndex + 1 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b, a + 1, chunkLocation));
 
 				// +ve, -ve x
-				faceMasks[abIndex + 2 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b + 1, a, chunkLocation));
-				faceMasks[abIndex + 3 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b - 1, a, chunkLocation));
+				m_FaceMasks[abIndex + 2 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b + 1, a, chunkLocation));
+				m_FaceMasks[abIndex + 3 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b - 1, a, chunkLocation));
 
 				//TODO optimize and cleanup
 				// +ve, -ve y
 				uintC_t postiveYMask = ~(topChunk->GetColumnRow(b-1, a-1) & uintC_t(1) << CS - 1);
 				uintC_t negitveYMask = ~(bottomChunk->GetColumnRow(b - 1, a - 1) & (uintC_t(1) << CS - 1) >> CS - 1);
 
-				faceMasks[baIndex + 4 * CS_2] = columnBits & ~(columnBits >> 1) & postiveYMask;
-				faceMasks[baIndex + 5 * CS_2] = columnBits & ~(columnBits << 1) & negitveYMask;
+				m_FaceMasks[baIndex + 4 * CS_2] = columnBits & ~(columnBits >> 1) & postiveYMask;
+				m_FaceMasks[baIndex + 5 * CS_2] = columnBits & ~(columnBits << 1) & negitveYMask;
 			}
 		}
 
@@ -153,72 +232,75 @@ public:
 		//	for (int x = 0; x < CS; x++) {
 		//		std::cout << "layer " << x << std::endl;
 		//		for (int y = 0; y < CS; y++) {
-		//			std::cout << std::bitset<8>(faceMasks[y + x * CS + faces * CS_2]) << std::endl;
+		//			std::cout << std::bitset<8>(m_FaceMasks[y + x * CS + faces * CS_2]) << std::endl;
 		//		}
 		//	
 		//	}
 		//}
 
-		// Greedy Meshing compression
+
+		// Greedy Meshing
 		for (uint8_t axis = 0; axis < 6; axis++)
 		{
-			for (uint8_t layer = 0; layer < CS; layer++)
+			std::unordered_map<RGBAColor, std::array<uintC_t, CS_2>> data = _SplitVoxelsByColor(axis, chunk);
+
+			for (auto& [type, axisFaceMask] : data)
 			{
-				const int bitsLocation = layer * CS + axis * CS_2;
-				for (uint8_t row = 0; row < CS; row++) 
+				for (uint8_t layer = 0; layer < CS; layer++)
 				{
-					if (faceMasks[row + bitsLocation] == 0) continue;
-					uint8_t y = 0;
-
-					while (y < CS) 
+					const int bitsLocation = layer * CS;
+					for (uint8_t row = 0; row < CS; row++)
 					{
-						y += GetTrailingZeros(faceMasks[row + bitsLocation] >> y);
+						if (axisFaceMask[row + bitsLocation] == 0) continue;
+						uint8_t y = 0;
 
-						if (y >= CS) break;
+						while (y < CS)
+						{
+							y += GetTrailingZeros(axisFaceMask[row + bitsLocation] >> y);
 
-						uint8_t h = GetTrailingOnes(faceMasks[row + bitsLocation] >> y);
+							if (y >= CS) break;
 
-						uintC_t hMask = (h >= CS) ? ~uintC_t(0) : ((uintC_t(1) << h) - 1);
-						uintC_t mask = hMask << y;
+							uint8_t h = GetTrailingOnes(axisFaceMask[row + bitsLocation] >> y);
 
-						uint8_t w = 1;
+							uintC_t hMask = (h >= CS) ? ~uintC_t(0) : ((uintC_t(1) << h) - 1);
+							uintC_t mask = hMask << y;
 
-						while (row + w < CS) {
-							// fetch bits spanning height, in the next row
-							uintC_t nextRowH = (faceMasks[row + w + bitsLocation] >> y) & hMask;
-							if (nextRowH != hMask) {
-								break; // can no longer expand horizontally
+							uint8_t w = 1;
+
+							while (row + w < CS) {
+								// fetch bits spanning height, in the next row
+								uintC_t nextRowH = (axisFaceMask[row + w + bitsLocation] >> y) & hMask;
+								if (nextRowH != hMask) {
+									break; // can no longer expand horizontally
+								}
+
+								axisFaceMask[row + w + bitsLocation] &= ~mask;
+								w++;
 							}
 
-							faceMasks[row + w + bitsLocation] &= ~mask;
-							w++;
+							QuadMeshData quad;
+							switch (axis) {
+							case 0:
+							case 1:
+								quad = _CompressQuadData(row, y, layer, w, h, axis);
+								break;
+							case 2:
+							case 3:
+								quad = _CompressQuadData(layer, y, row, w, h, axis);
+								break;
+							case 4:
+							case 5:
+								quad = _CompressQuadData(y, layer, row, h, w, axis);
+								break;
+							}
+
+							out.Write(quad, type);
+
+
+							y += h;
+
 						}
-
-						QuadMeshData quad;
-						switch (axis) {
-						case 0:
-						case 1:
-							quad = _CompressQuadData(row, y, layer, w, h, axis);
-							break;
-						case 2:
-						case 3:
-							quad = _CompressQuadData(layer, y, row, w, h, axis);
-							break;
-						case 4:
-						case 5:
-							quad = _CompressQuadData(row, y, layer, w, h, axis);
-							break;
-						}
-
-						out.Write(quad, 0);
-
-
-						y += h;
-
 					}
-
-					
-					
 				}
 			}
 		}

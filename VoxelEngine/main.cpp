@@ -7,6 +7,7 @@
 #include <streambuf>
 #include <string>
 #include <memory>
+#include <chrono>
 
 #include <windows.h>
 
@@ -27,7 +28,7 @@
 
 
 
-void processInput(Screen& screen, double dt, World8& world);
+void processInput(Screen& screen, double dt);
 void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos);
 
 template<typename ChunkType> 
@@ -91,12 +92,14 @@ int main() {
 
 	//for (int x = -20; x <= 20; x++) { 
 	//	for (int z = -20; z <= 20; z++) {
-	//		world.AddChunk(glm::ivec3(x, -1, z), filledChunk);
+	//		world.AddChunk(glm::ivec3(x, -1, z), GenerateRampChunk<Chunk8>());
 	//	}
 	//}
 	
-	world.AddChunk(glm::ivec3(0, 0, 0), filledChunk);
-	world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
+	//world.AddChunk(glm::ivec3(0, 0, 0), filledChunk);
+	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
+
+	world.AddChunk(glm::ivec3(0, -1, 0), GenerateRampChunk<Chunk8>());
 	//world.AddChunk(glm::ivec3(0, -2, 0), filledChunk);
 
 	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
@@ -133,7 +136,7 @@ int main() {
 		lastFrame = currTime;
 
 		// process input
-		processInput(screen, deltaTime, world);
+		processInput(screen, deltaTime);
 
 		// render
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
@@ -165,25 +168,9 @@ int main() {
 	return 0;
 }
 
-void processInput(Screen& screen, double dt, World8& world) {
+void processInput(Screen& screen, double dt) {
 	if (Keyboard::key(GLFW_KEY_ESCAPE)) {
 		screen.close();
-	}
-
-	if (Mouse::buttonUp(GLFW_MOUSE_BUTTON_LEFT)) {
-		glm::ivec3 hitVoxel;
-		Ray camRay(camera.pos, camera.front, 999);
-		bool didHit = VoxelRayCast8::cast(camRay, world.getGrid(), hitVoxel);
-
-		if (didHit) {
-			//std::cout << "Voxel (global): " << hitVoxel.x << ", " << hitVoxel.y << ", " << hitVoxel.z << std::endl;
-			//world.removeBlock(hitVoxel);
-		}
-		else {
-			std::cout << "miss" << std::endl;
-		}
-
-		
 	}
 
 	if (Keyboard::key(GLFW_KEY_W)) {
@@ -249,7 +236,7 @@ template<typename ChunkType>
 ChunkType GenerateRampChunk()
 {
 	ChunkType result;
-	RGBAColor color = 0x080808FF;
+	RGBAColor color = 0x808080FF;
 
 
 	for (int y = 0; y < ChunkType::Size; y++)

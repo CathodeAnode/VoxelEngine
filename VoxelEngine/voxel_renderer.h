@@ -43,9 +43,9 @@ public:
 	void Init(size_t cachePages, size_t cachePageSize, size_t renderBufferSize);
 
 	template<typename ChunkType>
-	void Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& coords, const VoxelMesher<ChunkType>& mesher);
+	void Upload(ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& coords, VoxelMesher<ChunkType>& mesher);
 	template<typename ChunkType>
-	void Upload(const ChunkGrid<ChunkType>& chunkGrid, const VoxelMesher<ChunkType>& mesher);
+	void Upload(const ChunkGrid<ChunkType>& chunkGrid, VoxelMesher<ChunkType>& mesher);
 
 	bool UpdatePosition(VoxelObjectID objectID, const glm::vec3& newPosition);
 	void DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position);
@@ -93,7 +93,7 @@ private:
 
 
 template<typename ChunkType>
-void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkCoords, const VoxelMesher<ChunkType>& mesher)
+void VoxelRenderer::Upload(ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkCoords, VoxelMesher<ChunkType>& mesher)
 {
 	const ChunkType* chunk = chunkGrid.getChunk(chunkCoords);
 	VoxelObjectID chunkUID = chunk->GetUid();
@@ -120,7 +120,7 @@ void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ive
 }
 
 template<typename ChunkType>
-void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const VoxelMesher<ChunkType>& mesher)
+void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, VoxelMesher<ChunkType>& mesher)
 {
 	VoxelObjectID gridUID = chunkGrid.GetUid();
 	GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
