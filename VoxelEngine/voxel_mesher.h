@@ -105,7 +105,7 @@ private:
 		return ret;
 	}
 
-	std::unordered_map<RGBAColor, std::array<uintC_t, CS_2>> _SplitVoxelsByColor(uint8_t axis, ChunkType* chunk)
+	std::unordered_map<RGBAColor, std::array<uintC_t, CS_2>> _SplitVoxelsByColor(uint8_t axis, const ChunkType* chunk)
 	{
 		// MUST HAPPEN AFTER FACE HULLING STEP
 		std::unordered_map<RGBAColor, std::array<uintC_t, CS_2>> data;
@@ -150,7 +150,7 @@ private:
 						break;
 					case 4:
 					case 5:
-						type = chunk->GetVoxelData(y, row, layer);
+						type = chunk->GetVoxelData(row, y, layer);
 						data[type][layer + y * CS] |= uintC_t(1) << row;
 						break;
 						
@@ -161,7 +161,7 @@ private:
 		}
 
 
-		if (axis == 3)
+		if (axis == 5)
 		{
 			for (const auto& [type, fmask] : data)
 			{
@@ -185,10 +185,10 @@ public:
 
 	// TODO : implement voxel type support for tan tan greedy meshing (faces 0-4)
 	template<VoxelMeshWriter MeshWriter>
-	void MeshChunk(ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out)
+	void MeshChunk(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out)
 	{
 		// TODO ideally you wouldnt have to check if the chunk is valid, change to assert if possible
-		ChunkType* chunk = chunkGrid.getChunk(chunkLocation);
+		const ChunkType* chunk = chunkGrid.getChunk(chunkLocation);
 		if (chunk == nullptr || chunk->IsEmpty()) {
 			return;
 		}

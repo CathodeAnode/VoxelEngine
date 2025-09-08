@@ -43,7 +43,7 @@ public:
 	void Init(size_t cachePages, size_t cachePageSize, size_t renderBufferSize);
 
 	template<typename ChunkType>
-	void Upload(ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& coords, VoxelMesher<ChunkType>& mesher);
+	void Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& coords, VoxelMesher<ChunkType>& mesher);
 	template<typename ChunkType>
 	void Upload(const ChunkGrid<ChunkType>& chunkGrid, VoxelMesher<ChunkType>& mesher);
 
@@ -93,7 +93,7 @@ private:
 
 
 template<typename ChunkType>
-void VoxelRenderer::Upload(ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkCoords, VoxelMesher<ChunkType>& mesher)
+void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkCoords, VoxelMesher<ChunkType>& mesher)
 {
 	const ChunkType* chunk = chunkGrid.getChunk(chunkCoords);
 	VoxelObjectID chunkUID = chunk->GetUid();

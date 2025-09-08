@@ -22,6 +22,7 @@ void VoxelRenderer::Init(size_t cachePages, size_t cachePageSize, size_t indirec
     m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
     m_DataCache.Create(GL_ARRAY_BUFFER, cachePageSize, cachePages);
     
+    // Offset head from tail on OrphanBuffers
     m_IndirectCommandBuffer.AdvanceHead();
     m_PositionSSBO.AdvanceHead();
 
@@ -50,9 +51,11 @@ void VoxelRenderer::Init(size_t cachePages, size_t cachePageSize, size_t indirec
 
     glEnableVertexAttribArray(2);
     glBindBuffer(GL_ARRAY_BUFFER, m_DataCache.GetName());
-    glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(uint32_t), (void*)0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(QuadMeshData), (void*)0);
     glVertexAttribDivisor(2, 1);
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 }
 
