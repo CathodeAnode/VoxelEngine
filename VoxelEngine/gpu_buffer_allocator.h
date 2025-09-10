@@ -198,10 +198,12 @@ public:
     void AllocatePages(const ObjectID& obj, unsigned int pages);
     void PushBackToObject(const ObjectID& obj, const Atom& data);
     //TODO: make emplace back function for Atom&& (r-value)
+
     void MoveObject(const ObjectID& src, const ObjectID& dst);
     void Swap(const ObjectID& obj1, const ObjectID& obj2);
-    void DeallocateObject(const ObjectID& obj);
 
+    void DeallocateObject(const ObjectID& obj);
+    void ClearObject(const ObjectID& obj);
     std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj);
 
     inline bool Has(ObjectID obj) const { return m_ObjectMapping.contains(obj); }

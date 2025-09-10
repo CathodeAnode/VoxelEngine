@@ -99,8 +99,14 @@ int main() {
 	//world.AddChunk(glm::ivec3(0, 0, 0), filledChunk);
 	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
 
-	world.AddChunk(glm::ivec3(0, -1, 0), GenerateRampChunk<Chunk8>());
-	//world.AddChunk(glm::ivec3(0, -2, 0), filledChunk);
+
+	world.AddChunk(glm::ivec3(0, 0, 0), filledChunk);
+	world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
+	world.AddChunk(glm::ivec3(1, -1, 0), filledChunk);
+	world.AddChunk(glm::ivec3(-1, -1, 0), filledChunk);
+	world.AddChunk(glm::ivec3(0, -1, 1), filledChunk);
+	world.AddChunk(glm::ivec3(0, -1, -1), filledChunk);
+	world.AddChunk(glm::ivec3(0, -2, 0), filledChunk);
 
 	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
 	//world.AddChunk(glm::ivec3(0, -1, 1), filledChunk);

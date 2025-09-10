@@ -495,6 +495,18 @@ void GPUPagedLRUCache<Atom, ObjectID>::DeallocateObject(const ObjectID& obj)
 }
 
 template<typename Atom, typename ObjectID>
+void GPUPagedLRUCache<Atom, ObjectID>::ClearObject(const ObjectID& obj)
+{
+	if (!m_ObjectMapping.contains(obj))
+		return;
+
+	ObjectAllocationData& alloc = m_ObjectMapping[obj];
+
+	alloc.count = 0;
+	// LRU policy is not updated for object
+}
+
+template<typename Atom, typename ObjectID>
 std::vector<GPUBufferRange> GPUPagedLRUCache<Atom, ObjectID>::GetObjectBufferRanges(const ObjectID& obj)
 {
 	assert(m_ObjectMapping.contains(obj));

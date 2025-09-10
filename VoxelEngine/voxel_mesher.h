@@ -72,23 +72,6 @@ private:
 		return 0;
 	}
 
-	static glm::ivec3 _GetAxisIndex(const int axis, const int a, const int b, const int c) {
-		glm::ivec3 voxelCoords;
-		switch (axis) {
-		case 0:
-			voxelCoords = glm::ivec3(b, a,c);
-			break;
-		case 1:
-			voxelCoords = glm::ivec3(b, c, a);
-			break;
-		default:
-			voxelCoords = glm::ivec3(c, a, b);
-			break;
-		}
-
-		return voxelCoords;
-	}
-
 	static QuadMeshData _CompressQuadData(uint8_t x, uint8_t y, uint8_t z, uint8_t w, uint8_t h, uint8_t dir)
 	{
 
@@ -109,16 +92,6 @@ private:
 	{
 		// MUST HAPPEN AFTER FACE HULLING STEP
 		std::unordered_map<RGBAColor, std::array<uintC_t, CS_2>> data;
-		//for (int x = 0; x < CS; x++)
-		//{
-		//	for (int y = 0; y < CS; y++)
-		//	{
-		//		for (int z = 0; z < CS; z++)
-		//		{
-		//			std::cout << "(" << x << ", " << y << ", " << z << "): " << chunk->GetVoxelData(x, y, z) << std::endl;
-		//		}
-		//	}
-		//}
 
 		for (uint8_t layer = 0; layer < CS; layer++)
 		{
@@ -163,30 +136,11 @@ private:
 			}
 		}
 
-
-		if (axis == 0)
-		{
-			for (const auto& [type, fmask] : data)
-			{
-				std::cout << "Type: " << type << std::endl;
-
-				for (int x = 0; x < CS; x++)
-				{
-					std::cout << "layer " << x << std::endl;
-					for (int y = 0; y < CS; y++)
-					{
-						std::cout << std::bitset<8>(fmask[y + x * CS]) << std::endl;
-					}
-				}
-			}
-		}
-
 		return data;
 	}
 
 public:
 
-	// TODO : implement voxel type support for tan tan greedy meshing (faces 0-4)
 	template<VoxelMeshWriter MeshWriter>
 	void MeshChunk(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out)
 	{
@@ -196,10 +150,7 @@ public:
 			return;
 		}
 
-		// TODO change to class methods to avoid heap allocations per call (call .clear() here to reset to zeros)
 		std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
-		std::vector<uint8_t> forwardMerged(CS_2, 0);
-		std::vector<uint8_t> rightMerged(CS, 0);
 
 		const ChunkType* topChunk = chunkGrid.getChunk(chunkLocation + glm::ivec3(0, 1, 0));
 		const ChunkType* bottomChunk = chunkGrid.getChunk(chunkLocation - glm::ivec3(0, 1, 0));

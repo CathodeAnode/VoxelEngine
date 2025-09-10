@@ -65,7 +65,7 @@ void VoxelRenderer::Init(size_t cachePages, size_t cachePageSize, size_t indirec
 
 void VoxelRenderer::DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position)
 {
-    assert(m_DataCache.Has(objectID), "Error: Object not in cache");
+    if (!m_DataCache.Has(objectID)) return;
     
     std::vector<GPUBufferRange> memoryRanges = m_DataCache.GetObjectBufferRanges(objectID);
     DrawArraysIndirectCommand* cmds = m_IndirectCommandBuffer.GetHeadContents() + m_NextIndirectCmdsCount;
