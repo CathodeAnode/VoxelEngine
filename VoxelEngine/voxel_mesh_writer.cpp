@@ -2,9 +2,7 @@
 
 CPUVoxelMeshWriter::CPUVoxelMeshWriter(ChunkQuads& chunkQuads)
 	: m_Container(chunkQuads)
-{
-	m_Container = chunkQuads;
-}
+{}
 
 void CPUVoxelMeshWriter::Write(QuadMeshData quadData, RGBAColor quadColor)
 {
@@ -13,16 +11,14 @@ void CPUVoxelMeshWriter::Write(QuadMeshData quadData, RGBAColor quadColor)
 
 // ------------------------------------------------------------------------------------------------------------------
 
-GPUVoxelMeshCacheWriter::GPUVoxelMeshCacheWriter(GPUPagedLRUCache<QuadMeshData, VoxelObjectID>& cache)
+GPUVoxelMeshCacheWriter::GPUVoxelMeshCacheWriter(GPUPagedLRUCache<VoxelQuad, VoxelObjectID>& cache)
 	: m_Cache(cache)
-{
-	m_Cache = cache;
-}
+	, m_TargetObjectID(0)
+{}
 
 void GPUVoxelMeshCacheWriter::Write(QuadMeshData quadData, RGBAColor quadColor)
 {
-	m_Cache.PushBackToObject(m_TargetObjectID, quadData);
-	// TODO: pushback both quad color & data
+	m_Cache.PushBackToObject(m_TargetObjectID, {quadData, quadColor});
 }
 
 void GPUVoxelMeshCacheWriter::SetTargetObject(VoxelObjectID obj)

@@ -197,6 +197,7 @@ public:
 
     void AllocatePages(const ObjectID& obj, unsigned int pages);
     void PushBackToObject(const ObjectID& obj, const Atom& data);
+    //TODO: make emplace back function for Atom&& (r-value)
     void MoveObject(const ObjectID& src, const ObjectID& dst);
     void Swap(const ObjectID& obj1, const ObjectID& obj2);
     void DeallocateObject(const ObjectID& obj);

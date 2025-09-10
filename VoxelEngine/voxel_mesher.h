@@ -143,6 +143,9 @@ private:
 					{
 					case 0:
 					case 1:
+						type = chunk->GetVoxelData(row, y, layer);
+						data[type][row + layer * CS] |= uintC_t(1) << y;
+						break;
 					case 2:
 					case 3:
 						type = chunk->GetVoxelData(layer, y, row);
@@ -161,7 +164,7 @@ private:
 		}
 
 
-		if (axis == 5)
+		if (axis == 0)
 		{
 			for (const auto& [type, fmask] : data)
 			{

@@ -5,7 +5,7 @@ VoxelRenderer::VoxelRenderer()
     : m_DataCache(true)
     , m_IndirectCommandBuffer(true)
     , m_PositionSSBO(true)
-    , m_DrawLines(true)
+    , m_DrawLines(false)
 {}
 
 VoxelRenderer::~VoxelRenderer() 
@@ -49,11 +49,15 @@ void VoxelRenderer::Init(size_t cachePages, size_t cachePageSize, size_t indirec
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    glEnableVertexAttribArray(2);
     glBindBuffer(GL_ARRAY_BUFFER, m_DataCache.GetName());
 
-    glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(QuadMeshData), (void*)0);
+    glEnableVertexAttribArray(2);
+    glVertexAttribIPointer(2, 1, GL_UNSIGNED_INT, sizeof(VoxelQuad), (void*)offsetof(VoxelQuad, data));
     glVertexAttribDivisor(2, 1);
+
+    glEnableVertexAttribArray(3);
+    glVertexAttribIPointer(3, 1, GL_UNSIGNED_INT, sizeof(VoxelQuad), (void*)offsetof(VoxelQuad, color));
+    glVertexAttribDivisor(3, 1);
 
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
@@ -61,15 +65,15 @@ void VoxelRenderer::Init(size_t cachePages, size_t cachePageSize, size_t indirec
 
 void VoxelRenderer::DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position)
 {
-    assert(m_DataCache.Has(objectID), "Error: Object must be uploaded before drawing");
+    assert(m_DataCache.Has(objectID), "Error: Object not in cache");
     
     std::vector<GPUBufferRange> memoryRanges = m_DataCache.GetObjectBufferRanges(objectID);
     DrawArraysIndirectCommand* cmds = m_IndirectCommandBuffer.GetHeadContents() + m_NextIndirectCmdsCount;
     glm::vec4* paddedPos = m_PositionSSBO.GetHeadContents() + m_NextIndirectCmdsCount;
 
     // optimization can be done here if we can guarantee object buffer ranges wont be defragmented
+    // only having one range for each object is better bcuz we would only need to have one indirect cmd per object
     // but that would require completely changing the archtecture of the GPUcache object lol
-    // having one range for each object is better bcuz we would only have one indirect cmd per object
     for (const auto& range : memoryRanges)
     {
         cmds->count = 4;
@@ -118,7 +122,6 @@ void VoxelRenderer::Render()
     m_PositionSSBO.BindTailBufferRange(m_CurrentIndirectCmdsCount);
     //assert(glGetError() == GL_NO_ERROR);
 
-    //glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, m_PositionSSBO.GetName());
 
     if (m_DrawLines) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -137,4 +140,5 @@ void VoxelRenderer::Render()
 
 void VoxelRenderer::_RefreshFrame()
 {
+    std::cerr << "_RefreshFrame Not Implemented yet.\n";
 }

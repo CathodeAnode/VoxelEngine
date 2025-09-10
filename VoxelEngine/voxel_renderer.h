@@ -28,7 +28,8 @@
 //	2. support rendering of dynamic objects (currently ObjectID uses position of chunk. so how to assign an id for objects that move)
 
 
-struct DrawArraysIndirectCommand {
+struct DrawArraysIndirectCommand 
+{
 	unsigned int count = 4;
 	unsigned int instanceCount;
 	unsigned int first = 0;
@@ -57,7 +58,7 @@ public:
 private:
 	unsigned int m_VAO, m_QuadVBO;
 
-	GPUPagedLRUCache<QuadMeshData, VoxelObjectID> m_DataCache;
+	GPUPagedLRUCache<VoxelQuad, VoxelObjectID> m_DataCache;
 	GPUOrphanBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
 	GPUOrphanBuffer<glm::vec4> m_PositionSSBO;
 
@@ -99,7 +100,7 @@ void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ive
 	VoxelObjectID chunkUID = chunk->GetUid();
 	GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
 
-
+	// use for loop for better performance
 	if (std::find(m_ObjectsRenderedInCurrentFrame.begin(),
 		m_ObjectsRenderedInCurrentFrame.end(),
 		chunkUID) != m_ObjectsRenderedInCurrentFrame.end())

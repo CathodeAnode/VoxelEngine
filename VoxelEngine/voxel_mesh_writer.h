@@ -24,13 +24,13 @@ private:
 class GPUVoxelMeshCacheWriter
 {
 public:
-	GPUVoxelMeshCacheWriter(GPUPagedLRUCache<QuadMeshData, VoxelObjectID>& cache);
+	GPUVoxelMeshCacheWriter(GPUPagedLRUCache<VoxelQuad, VoxelObjectID>& cache);
 
 	void Write(QuadMeshData quadData, RGBAColor quadColor);
 	void SetTargetObject(VoxelObjectID obj);
 
 private:
-	GPUPagedLRUCache<QuadMeshData, VoxelObjectID>& m_Cache;
+	GPUPagedLRUCache<VoxelQuad, VoxelObjectID>& m_Cache;
 	VoxelObjectID m_TargetObjectID;
 };
 

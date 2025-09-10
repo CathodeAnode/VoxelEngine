@@ -11,13 +11,10 @@ using RGBAColor = uint32_t;
 using VoxelObjectID = uint32_t;
 
 
-enum class QuadFaceDir {
-	Up,     // +Y
-	Down,   // -Y
-	Left,   // -X
-	Right,  // +X
-	Front,  // +Z
-	Back    // -Z
+struct VoxelQuad
+{
+	QuadMeshData data;
+	RGBAColor color;
 };
 
 /**

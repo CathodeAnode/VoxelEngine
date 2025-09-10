@@ -1,13 +1,13 @@
 #version 460 core
 
 layout (location=0) in vec3 aPos;
-layout (location=1) in vec2 aTextCoord;
+layout (location=1) in vec3 aTextCoord;
 layout (location=2) in uint aData;
-layout (location=3) in uint aType;
+layout (location=3) in uint aColor;
 
 out vec2 TextCoord;
 flat out uint face;
-//out uint Type;
+flat out uint color;
 
 uniform mat4 model;
 uniform mat4 view;
@@ -101,6 +101,5 @@ void main()
 
 	gl_Position = projection * view * vec4(quadPos, 1.0f);
     face = q.direction;
-	//TextCoord = aTextCoord;
-    //Type = aType;
+    color = aColor;
 }
