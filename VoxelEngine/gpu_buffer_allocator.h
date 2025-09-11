@@ -242,7 +242,7 @@ private:
     size_t m_PageSize;
 
 private:
-    bool _ReserveFirstFreePages(unsigned int n, std::vector<unsigned int>& pagesReserved)
+    [[nodiscard]] inline bool _ReserveFirstFreePages(unsigned int n, std::vector<unsigned int>& pagesReserved)
     {
         assert(m_FreePages != nullptr);
 
@@ -281,7 +281,7 @@ private:
         return false;
     }
 
-    void _ReservePages(const std::vector<unsigned int>& pages)
+    inline void _ReservePages(const std::vector<unsigned int>& pages)
     {
         assert(m_FreePages != nullptr);
 
@@ -293,7 +293,7 @@ private:
         }
     }
 
-    void _FreePages(const std::vector<unsigned int>& pages)
+   inline void _FreePages(const std::vector<unsigned int>& pages)
     {
         assert(m_FreePages != nullptr);
 #ifndef NDEBUG
@@ -318,7 +318,7 @@ private:
 
     }
 
-    bool _EvictLRUAndReserve(unsigned int n, std::vector<unsigned int>& reservedPages)
+    [[nodiscard]] inline bool _EvictLRUAndReserve(unsigned int n, std::vector<unsigned int>& reservedPages)
     {
         assert(!m_ObjectAccessHistory.empty());
 
@@ -349,7 +349,7 @@ private:
         return pagesToFree < 0;
     }
 
-    void _MarkRecentlyUsed(const ObjectID& obj)
+    inline void _MarkRecentlyUsed(const ObjectID& obj)
     {
         assert(m_ObjectMapping.contains(obj));
 
