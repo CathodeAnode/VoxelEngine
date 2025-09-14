@@ -71,7 +71,7 @@ public:
 					glm::ivec3 chunkWorldPos = chunkCoords * chunkSize;
 
 
-					const VoxelObjectID chunkUID = chunk->GetUid();
+					const VoxelObjectID chunkUID = chunk->GetUID();
 					if (chunkUID != NULL)
 					{
 						if (!m_Renderer.IsCached(chunkUID))
@@ -145,6 +145,11 @@ public:
 		m_Chunks.addChunk(chunk, chunkCoords);
 	}
 	void RemoveChunk(const glm::ivec3& chunkCoords);
+
+	VoxelObjectID GetChunkID(const glm::ivec3& chunkCoords)
+	{
+		return m_Chunks.GetChunkID(chunkCoords);
+	}
 
 	void saveModel(const char* filePath);
 

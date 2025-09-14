@@ -98,7 +98,7 @@ void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ive
 {
 
 	const ChunkType* chunk = chunkGrid.getChunk(chunkCoords);
-	VoxelObjectID chunkUID = chunk->GetUid();
+	VoxelObjectID chunkUID = chunk->GetUID();
 	GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
 
 	assert(std::find(m_ObjectsRenderedInCurrentFrame.begin(), m_ObjectsRenderedInCurrentFrame.end(), chunkUID) == m_ObjectsRenderedInCurrentFrame.end(),
@@ -119,7 +119,7 @@ void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ive
 template<typename ChunkType>
 void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, VoxelMesher<ChunkType>& mesher)
 {
-	VoxelObjectID gridUID = chunkGrid.GetUid();
+	VoxelObjectID gridUID = chunkGrid.GetUID();
 	GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
 
 	assert(std::find(m_ObjectsRenderedInCurrentFrame.begin(), m_ObjectsRenderedInCurrentFrame.end(), gridUID) == m_ObjectsRenderedInCurrentFrame.end(),

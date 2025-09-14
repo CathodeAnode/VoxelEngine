@@ -170,7 +170,7 @@ public:
 		}
 	}
 
-	virtual inline VoxelObjectID GetUid() const { return k_Uid; };
+	virtual inline VoxelObjectID GetUID() const { return k_Uid; };
 
 	char* serialize();
 private:
@@ -202,7 +202,7 @@ public:
 		return true;
 	}
 
-	VoxelObjectID GetUid() const override 
+	VoxelObjectID GetUID() const override 
 	{ 
 		return 0; 
 	}

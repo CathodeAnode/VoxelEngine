@@ -32,7 +32,7 @@ public:
 
 	~ChunkGrid() 
 	{
-		m_Chunks.clear(); // deallocate chunks
+		m_ChunkMap.clear(); // deallocate chunks
 	}
 
 	// Copy constructor
@@ -40,10 +40,10 @@ public:
 		: m_VoxelScale(other.m_VoxelScale)
 		, k_Uid(UIDManager::Generate())
 	{
-		m_Chunks.clear();
-		for (const auto& [index, chunk] : other.m_Chunks) 
+		m_ChunkMap.clear();
+		for (const auto& [index, chunk] : other.m_ChunkMap) 
 		{
-			m_Chunks[index] = chunk; // chunk copy constructor generates new UID
+			m_ChunkMap[index] = chunk; // chunk copy constructor generates new UID
 		}
 	}
 
@@ -52,8 +52,8 @@ public:
 		: m_VoxelScale(other.m_VoxelScale)
 		, k_Uid(other.k_Uid)
 	{
-		m_Chunks.clear();
-		m_Chunks = std::move(other.m_Chunks);
+		m_ChunkMap.clear();
+		m_ChunkMap = std::move(other.m_ChunkMap);
 	}
 
 	// Move assignment
@@ -61,8 +61,8 @@ public:
 	{
 		if (this != &other) 
 		{
-			m_Chunks.clear();
-			m_Chunks = std::move(other.m_Chunks);
+			m_ChunkMap.clear();
+			m_ChunkMap = std::move(other.m_ChunkMap);
 			m_VoxelScale = other.m_VoxelScale;
 		}
 		return *this;
@@ -72,7 +72,7 @@ public:
 	void addChunk(const ChunkType& chunk, const glm::ivec3& chunkGridLocation) 
 	{
 		uint64_t chunkIndex = EncodeChunkCoords(chunkGridLocation);
-		m_Chunks[chunkIndex] = chunk;
+		m_ChunkMap[chunkIndex] = chunk;
 	}
 
 	ChunkType* getChunk(const glm::ivec3& chunkGridLocation) 
@@ -83,8 +83,8 @@ public:
 
 	ChunkType* getChunk(uint64_t index)
 	{
-		if (m_Chunks.contains(index)) {
-			return &m_Chunks.at(index);
+		if (m_ChunkMap.contains(index)) {
+			return &m_ChunkMap.at(index);
 		}
 
 		return &s_NullChunk;
@@ -97,11 +97,25 @@ public:
 
 	const ChunkType* getChunk(uint64_t index) const
 	{
-		if (m_Chunks.contains(index)) {
-			return &m_Chunks.at(index);
+		if (m_ChunkMap.contains(index)) {
+			return &m_ChunkMap.at(index);
 		}
 
 		return &s_NullChunk;
+	}
+
+	[[nodiscard]] VoxelObjectID GetChunkID(const glm::ivec3& chunkCoords) const
+	{
+		uint64_t index = EncodeChunkCoords(chunkCoords);
+
+		const auto& it = m_ChunkMap.find(index);
+
+		if (it != m_ChunkMap.end())
+		{
+			return it->second.GetUID();
+		}
+
+		return NULL;
 	}
 
 	bool isVoxelSolid(int x, int y, int z) const 
@@ -116,11 +130,11 @@ public:
 
 		uint64_t chunkIndex = EncodeChunkCoords(chunkX, chunkY, chunkZ);
 
-		if (m_Chunks.contains(chunkIndex)) {
+		if (m_ChunkMap.contains(chunkIndex)) {
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
 			int yC = ((y % ChunkSize) + ChunkSize) % ChunkSize;
 			int zC = ((z % ChunkSize) + ChunkSize) % ChunkSize;
-			result = m_Chunks.at(chunkIndex).IsSolid(xC, yC, zC);
+			result = m_ChunkMap.at(chunkIndex).IsSolid(xC, yC, zC);
 		}
 
 
@@ -142,11 +156,11 @@ public:
 
 		uint64_t chunkIndex = EncodeChunkCoords(chunkX, chunkY, chunkZ);
 
-		if (m_Chunks.contains(chunkIndex)) {
+		if (m_ChunkMap.contains(chunkIndex)) {
 			int xC = ((x % ChunkSize) + ChunkSize) % ChunkSize;
 			int yC = ((y % ChunkSize) + ChunkSize) % ChunkSize;
 			int zC = ((z % ChunkSize) + ChunkSize) % ChunkSize;
-			return m_Chunks.at(chunkIndex).getVoxel(xC, yC, zC);
+			return m_ChunkMap.at(chunkIndex).getVoxel(xC, yC, zC);
 		}
 
 		return std::numeric_limits<uint16_t>::max();
@@ -176,7 +190,7 @@ public:
 		return index;
 	}
 
-	static uint64_t EncodeChunkCoords(const glm::ivec3& chunkGridLocation) { return EncodeChunkCoords(chunkGridLocation.x, chunkGridLocation.y, chunkGridLocation.z); };
+	inline static uint64_t EncodeChunkCoords(const glm::ivec3& chunkGridLocation) { return EncodeChunkCoords(chunkGridLocation.x, chunkGridLocation.y, chunkGridLocation.z); };
 
 
 	static glm::ivec3 DecodeChunkCoords(uint64_t index) 
@@ -197,15 +211,14 @@ public:
 
 	inline float getVoxelScale() const { return m_VoxelScale; };
 
-	inline VoxelObjectID GetUid() const { return k_Uid; };
+	inline VoxelObjectID GetUID() const { return k_Uid; };
 
 
-	std::unordered_map<uint64_t, ChunkType>::iterator begin() const { return m_Chunks.begin(); }
-	std::unordered_map<uint64_t, ChunkType>::iterator end() const { return m_Chunks.end(); }
+	std::unordered_map<uint64_t, ChunkType>::iterator begin() const { return m_ChunkMap.begin(); }
+	std::unordered_map<uint64_t, ChunkType>::iterator end() const { return m_ChunkMap.end(); }
 
-	std::unordered_map<uint64_t, ChunkType>::iterator begin() { return m_Chunks.begin(); }
-	std::unordered_map<uint64_t, ChunkType>::iterator end() { return m_Chunks.end(); }
-
+	std::unordered_map<uint64_t, ChunkType>::iterator begin() { return m_ChunkMap.begin(); }
+	std::unordered_map<uint64_t, ChunkType>::iterator end() { return m_ChunkMap.end(); }
 
 private:
 	/* maps chunk coord to chunk data.
@@ -215,7 +228,7 @@ private:
 	 * bit 63 extra
 	 * max supported world size: 2,097,152 (-1,048,576 to 1,048,576)
 	*/
-	std::unordered_map<uint64_t, ChunkType> m_Chunks;
+	std::unordered_map<uint64_t, ChunkType> m_ChunkMap;
 	float m_VoxelScale;
 	const VoxelObjectID k_Uid;
 
