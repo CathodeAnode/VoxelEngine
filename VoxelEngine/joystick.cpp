@@ -4,11 +4,11 @@
 Joystick::Joystick(int i) {
     m_Id = getId(i);
 
-    update();
+    Update();
 }
 
 // update the joystick's states
-void Joystick::update() {
+void Joystick::Update() {
     m_Present = glfwJoystickPresent(m_Id);
 
     if (m_Present) {

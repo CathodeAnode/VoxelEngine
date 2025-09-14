@@ -24,6 +24,7 @@
 #include "voxel_renderer.h"
 #include "voxel_mesher.h"
 #include "world.h"
+#include "scene.h"
 #include "voxel_ray_cast.h"
 
 
@@ -72,7 +73,7 @@ int main() {
 	screen.enableInputs();
 	screen.toggleCursor();
 
-	mainJ.update();
+	mainJ.Update();
 	if (mainJ.isPresent()) {
 		std::cout << mainJ.getName() << " is connected.\n";
 	}
@@ -80,13 +81,11 @@ int main() {
 		std::cout << "Joystick not connected.\n";
 	}
 
-
 	/*
 	-----------------------
 		Shaders
 	-----------------------
 	*/
-	auto start = std::chrono::high_resolution_clock::now();
 	Chunk8 filledChunk(true);
 	World8 world(100, 10);
 
@@ -111,16 +110,7 @@ int main() {
 	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
 	//world.AddChunk(glm::ivec3(0, -1, 1), filledChunk);
 
-	auto end = std::chrono::high_resolution_clock::now();
-	std::chrono::duration<double> duration = end - start;
-	std::cout << "Chunk insertion took " << duration.count() << " seconds.\n";
 
-	std::cout << "done inserting\n";
-	start = std::chrono::high_resolution_clock::now();
-	world.MeshWorld();
-	end = std::chrono::high_resolution_clock::now();
-	duration = end - start;
-	std::cout << "Chunk meshing took " << duration.count() << " seconds.\n";
 
 	Shader shaderPrgm = Shader("core_vertex_shader.glsl", "core_fragment_shader.glsl");
 
@@ -128,10 +118,6 @@ int main() {
 	//camera.speed = 40.0f;
 
 
-	// create transformation for screen
-	std::weak_ptr<glm::mat4> view = camera.getViewMatrixPtr();
-	std::weak_ptr<glm::mat4> projection = camera.getProjMatrixPtr();
-	//std::weak_ptr<Frustum> camFrustum = camera.getFrustumPtr();
 
 	double lastToggleTime = 0.0;
 	int i = 0;
@@ -148,19 +134,19 @@ int main() {
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		camera.update();
+		camera.Update();
 
 		// draw
 		shaderPrgm.use();
-		shaderPrgm.setMat4("view", *view.lock());
-		shaderPrgm.setMat4("projection", *projection.lock());
+		shaderPrgm.setMat4("view", camera.GetViewMatrix());
+		shaderPrgm.setMat4("projection", camera.GetProjMatrix());
 		world.UpdateVisibleChunksByDistance(camera.pos);
 		world.Render();
 		//std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;
 
 
 		// send back buffer to front buffer
-		screen.update();
+		screen.Update();
 		displayFPSOnWindow(fps, 400, camera.pos);
 	}
 
@@ -180,40 +166,40 @@ void processInput(Screen& screen, double dt) {
 	}
 
 	if (Keyboard::key(GLFW_KEY_W)) {
-		camera.updateCameraPos(CameraDirection::FORWARD, dt);
+		camera.UpdateCameraPos(CameraDirection::FORWARD, dt);
 	}
 
 	if (Keyboard::key(GLFW_KEY_S)) {
-		camera.updateCameraPos(CameraDirection::BACKWARD, dt);
+		camera.UpdateCameraPos(CameraDirection::BACKWARD, dt);
 	}
 
 	if (Keyboard::key(GLFW_KEY_D)) {
-		camera.updateCameraPos(CameraDirection::RIGHT, dt);
+		camera.UpdateCameraPos(CameraDirection::RIGHT, dt);
 	}
 
 	if (Keyboard::key(GLFW_KEY_A)) {
-		camera.updateCameraPos(CameraDirection::LEFT, dt);
+		camera.UpdateCameraPos(CameraDirection::LEFT, dt);
 	}
 
 	if (Keyboard::key(GLFW_KEY_SPACE)) {
-		camera.updateCameraPos(CameraDirection::UP, dt);
+		camera.UpdateCameraPos(CameraDirection::UP, dt);
 	}
 
 	if (Keyboard::key(GLFW_KEY_LEFT_SHIFT)) {
-		camera.updateCameraPos(CameraDirection::DOWN, dt);
+		camera.UpdateCameraPos(CameraDirection::DOWN, dt);
 	}
 
 	double dx = Mouse::getDX(), dy = Mouse::getDY();
 	if (dx != 0 || dy != 0) {
-		camera.updateCameraDirection(dx, dy);
+		camera.UpdateCameraDirection(dx, dy);
 	}
 
 	double scrollDY = Mouse::getScrollDY();
 	if (scrollDY != 0) {
-		camera.updateCameraZoom(scrollDY);
+		camera.UpdateCameraZoom(scrollDY);
 	}
 
-	mainJ.update();
+	mainJ.Update();
 }
 
 void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos) {

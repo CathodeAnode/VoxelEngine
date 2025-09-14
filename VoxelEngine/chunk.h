@@ -28,11 +28,11 @@ public:
 			std::fill(m_OpaqueData, m_OpaqueData + ChunkSize * ChunkSize, ~T(0));  // set all bits to 1
 			std::fill(m_ColorData, m_ColorData + ChunkSize * ChunkSize * ChunkSize, DEFAULT_VOXEL_COLOR);
 		}
-		else
-		{
-			std::fill(m_OpaqueData, m_OpaqueData + ChunkSize * ChunkSize, T(0));
-			std::fill(m_ColorData, m_ColorData + ChunkSize * ChunkSize * ChunkSize, RGBAColor(0));
-		}
+		//else
+		//{
+		//	std::fill(m_OpaqueData, m_OpaqueData + ChunkSize * ChunkSize, T(0));
+		//	std::fill(m_ColorData, m_ColorData + ChunkSize * ChunkSize * ChunkSize, RGBAColor(0));
+		//}
 		
 	};
 

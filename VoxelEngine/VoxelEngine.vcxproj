@@ -162,6 +162,7 @@
     <ClInclude Include="helpers.h" />
     <ClInclude Include="joystick.h" />
     <ClInclude Include="keyboard.h" />
+    <ClInclude Include="scene.h" />
     <ClInclude Include="uid_manager.h" />
     <ClInclude Include="voxel_mesh_writer.h" />
     <ClInclude Include="voxel_ray_cast.h" />

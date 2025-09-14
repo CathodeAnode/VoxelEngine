@@ -24,9 +24,6 @@ struct Frustum {
 	glm::vec4 nearClipPlane;
 	glm::vec4 farClipPlane;
 
-	glm::vec3 minCorner;
-	glm::vec3 maxCorner;
-
 	bool isPointInFrustum(const glm::vec3& coords) {
 		glm::vec4 paddedCoords(coords, 1.0f);
 
@@ -91,27 +88,27 @@ public:
 	Camera(glm::vec3 position, int _screenWidth, int _screenHeight, float _zNear, float _zFar);
 	~Camera() = default;
 	
-	void updateCameraDirection(double dx, double dy);
-	void updateCameraPos(CameraDirection dir, double dt);
-	void updateCameraZoom(double dy);
-	void update();
+	void UpdateCameraDirection(double dx, double dy);
+	void UpdateCameraPos(CameraDirection dir, double dt);
+	void UpdateCameraZoom(double dy);
+	void Update();
 
-	std::weak_ptr<glm::mat4> getViewMatrixPtr();
-	std::weak_ptr<glm::mat4> getProjMatrixPtr();
-	std::weak_ptr<Frustum> getFrustumPtr();
+	glm::mat4 GetViewMatrix();
+	glm::mat4 GetProjMatrix();
+	Frustum GetFrustum();
 
 private:
 	float m_ZNear, m_ZFar;
 	int m_ScreenWidth, m_ScreenHeight;
 
-	std::shared_ptr<Frustum> m_CamFrustum;
-	std::shared_ptr<glm::mat4> m_ViewMatrix;
-	std::shared_ptr<glm::mat4> m_ProjectionMatrix;
+	Frustum m_CamFrustum;
+	glm::mat4 m_ViewMatrix;
+	glm::mat4 m_ProjectionMatrix;
 
 
-	void updateCameraVectors();
+	void _UpdateCameraVectors();
 
-	void calculateFrustum();
+	void _UpdateFrustum();
 
 };
 

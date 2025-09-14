@@ -19,7 +19,7 @@ public:
 	void enableInputs();
 	void toggleCursor();
 
-	void update();
+	void Update();
 
 	void close();
 	bool isOpen();

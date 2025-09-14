@@ -42,7 +42,7 @@ public:
     Joystick(int i);
 
     // update the joystick's states
-    void update();
+    void Update();
 
 
     float axesState(int axis); // get axis value

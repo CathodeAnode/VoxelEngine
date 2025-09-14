@@ -3,6 +3,7 @@
 
 #include <intrin.h>
 
+
 inline constexpr unsigned long BITS_IN_ULL = sizeof(unsigned long long) * 8;
 
 inline unsigned long GetTrailingZeros(unsigned long long val)

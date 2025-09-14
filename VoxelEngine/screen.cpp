@@ -71,7 +71,7 @@ void Screen::toggleCursor() {
 	}
 }
 
-void Screen::update() {
+void Screen::Update() {
 	glfwSwapBuffers(m_Window);
 	glfwPollEvents();
 }

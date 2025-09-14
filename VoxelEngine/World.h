@@ -67,7 +67,7 @@ public:
 					uint64_t encodedChunkCoords = ChunkGrid<ChunkType>::EncodeChunkCoords(chunkCoords);
 					ChunkType* chunk = m_Chunks.getChunk(encodedChunkCoords);
 
-					if (chunk == nullptr) continue;
+					if (chunk == nullptr || chunk->IsEmpty()) continue;
 					glm::ivec3 chunkWorldPos = chunkCoords * chunkSize;
 
 
@@ -145,26 +145,6 @@ public:
 		m_Chunks.addChunk(chunk, chunkCoords);
 	}
 	void RemoveChunk(const glm::ivec3& chunkCoords);
-
-	void MeshWorld() 
-	{
-		//ChunkQuads mesh;
-
-		//for (const auto& [encodedChunkCoords, _] : m_Chunks) {
-		//	glm::ivec3 coords = ChunkGrid<ChunkType>::DecodeChunkCoords(encodedChunkCoords);
-		//	mesh = m_Mesher.meshChunk(m_Chunks, coords);
-		//	const size_t pageId = m_Renderer.UploadMesh(mesh.quadData);
-		//	m_ChunkCoordsPageID[encodedChunkCoords] = pageId;
-		//}
-
-	}
-
-	void UpdateChunkMesh(const glm::ivec3& coords) 
-	{
-		// step 1: calculate mesh of chunk
-		// step 2: upload new mesh GPU
-		// step 3: update indirect draw commands if chunk is being drawn
-	}
 
 	void saveModel(const char* filePath);
 
