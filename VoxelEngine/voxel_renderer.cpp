@@ -92,6 +92,7 @@ void VoxelRenderer::DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& pos
 
     m_NextIndirectCmdsCount += memoryRanges.size();
     m_ObjectsRenderedInNextFrame.push_back(objectID);
+
 }
 
 void VoxelRenderer::NextFrame()
@@ -120,6 +121,7 @@ void VoxelRenderer::Render()
 {
     glBindVertexArray(m_VAO);
     m_PositionSSBO.BindTailBufferRange(m_CurrentIndirectCmdsCount);
+
     //assert(glGetError() == GL_NO_ERROR);
 
 

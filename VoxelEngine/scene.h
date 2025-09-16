@@ -2,6 +2,8 @@
 #define SCENE_H
 
 #include <glm/glm.hpp>
+#include <iostream>
+#include <chrono>
 
 #include "voxel_renderer.h"
 #include "voxel_mesher.h"
@@ -28,7 +30,7 @@ private:
 	World<ChunkType>& m_World;
 	VoxelRenderer& m_VoxelRenderer;
 
-	unsigned int m_RenderDistance = 32;
+	unsigned int m_RenderDistance = 10;
 };
 
 
@@ -43,33 +45,41 @@ Scene<ChunkType>::Scene(Camera& camera, World<ChunkType>& world, VoxelRenderer& 
 template<typename ChunkType>
 void Scene<ChunkType>::Update()
 {
-	m_Camera.Update();
-	// call world update in the future (for chunk data compression and managment)
+    m_Camera.Update();
 
-	// TODO use SIMD to acclerate frustum culling
-	// do frustum culling
-	const Frustum& camFrustum = m_Camera.GetFrustum();
-	for (float forwardIncrement = 0; forwardIncrement < m_RenderDistance; ++forwardIncrement)
-	{
-		for (float rightIncrement = 0; rightIncrement < m_RenderDistance; ++rightIncrement)
-		{
-			for (float upIncrement = 0; upIncrement < m_RenderDistance; ++upIncrement)
-			{
-				glm::ivec3 step = m_Camera.front * forwardIncrement + m_Camera.right * rightIncrement + m_Camera.up * upIncrement;
+    const Frustum& camFrustum = m_Camera.GetFrustum();
+    const int chunkSize = ChunkType::Size;
 
-				//do camera + step & shift stepping by renderdist/2 to left and down
-				//calculate AABB of chunk
-				//check if that chunk's AABB is in frustum
-				// => if not in frustum: continue to next iteration
-				// request object ID of chunk coords from world
-				// => if chunk does not exists (world returns object ID  = 0): continue to next iteration
-				// check if chunk mesh is cached on gpu
-				// => if chunk is not cached: get chunk data from world & mesh chunk
-				// draw chunk on next frame
-			}
-		}
-	}
+    for (float forwardIncrement = 0; forwardIncrement < m_RenderDistance; ++forwardIncrement)
+    {
+        for (float rightIncrement = 0; rightIncrement < m_RenderDistance; ++rightIncrement)
+        {
+            for (float upIncrement = 0; upIncrement < m_RenderDistance; ++upIncrement)
+            {
+                glm::ivec3 chunkPos = m_Camera.pos - ((m_Camera.right + m_Camera.up) * (float)(m_RenderDistance / 2))
+                    + (m_Camera.front * forwardIncrement + m_Camera.right * rightIncrement + m_Camera.up * upIncrement);
+
+                VoxelObjectID chunkID = m_World.GetChunkID(chunkPos);
+
+                if (chunkID == NULL) continue;
+
+                glm::ivec3 chunkMaxPoint = chunkPos + chunkSize;
+
+                if (!camFrustum.isAABBInFrustum(chunkPos, chunkMaxPoint)) continue;
+
+
+                if (!m_VoxelRenderer.IsCached(chunkID))
+                {
+                    m_VoxelRenderer.Upload(m_World.getGrid(), chunkPos, m_Mesher);
+                }
+
+                glm::ivec3 chunkWorldPos = chunkPos * chunkSize;
+                m_VoxelRenderer.DrawOnNextFrame(chunkID, chunkWorldPos);
+            }
+        }
+    }
 }
+
 
 template<typename ChunkType>
 void Scene<ChunkType>::Render()

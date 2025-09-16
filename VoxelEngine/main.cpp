@@ -27,6 +27,14 @@
 #include "scene.h"
 #include "voxel_ray_cast.h"
 
+#define TIME_FUNCTION(func_call) \
+    do { \
+        auto start_time = std::chrono::high_resolution_clock::now(); \
+        func_call; \
+        auto end_time = std::chrono::high_resolution_clock::now(); \
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count(); \
+        std::cout << "Function '" << #func_call << "' executed in " << duration << " microseconds." << std::endl; \
+    } while (0)
 
 
 void processInput(Screen& screen, double dt);
@@ -94,7 +102,7 @@ int main() {
 	//		world.AddChunk(glm::ivec3(x, -1, z), GenerateRampChunk<Chunk8>());
 	//	}
 	//}
-	
+
 	//world.AddChunk(glm::ivec3(0, 0, 0), filledChunk);
 	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
 
@@ -111,13 +119,13 @@ int main() {
 	//world.AddChunk(glm::ivec3(0, -1, 1), filledChunk);
 
 
+	Shader shaderPrgm = Shader({ 
+		{"core_vertex_shader.glsl", GL_VERTEX_SHADER},	
+		{"core_fragment_shader.glsl", GL_FRAGMENT_SHADER}
+		});
 
-	Shader shaderPrgm = Shader("core_vertex_shader.glsl", "core_fragment_shader.glsl");
-
-	shaderPrgm.use();
+	shaderPrgm.Use();
 	//camera.speed = 40.0f;
-
-
 
 	double lastToggleTime = 0.0;
 	int i = 0;
@@ -137,9 +145,9 @@ int main() {
 		camera.Update();
 
 		// draw
-		shaderPrgm.use();
-		shaderPrgm.setMat4("view", camera.GetViewMatrix());
-		shaderPrgm.setMat4("projection", camera.GetProjMatrix());
+		shaderPrgm.Use();
+		shaderPrgm.SetMat4("view", camera.GetViewMatrix());
+		shaderPrgm.SetMat4("projection", camera.GetProjMatrix());
 		world.UpdateVisibleChunksByDistance(camera.pos);
 		world.Render();
 		//std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;

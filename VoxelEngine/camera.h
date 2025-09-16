@@ -16,7 +16,8 @@ enum CameraDirection {
 	DOWN
 };
 
-struct Frustum {
+struct Frustum
+{
 	glm::vec4 leftClipPlane;
 	glm::vec4 rightClipPlane;
 	glm::vec4 bottomClipPlane;
@@ -24,7 +25,8 @@ struct Frustum {
 	glm::vec4 nearClipPlane;
 	glm::vec4 farClipPlane;
 
-	bool isPointInFrustum(const glm::vec3& coords) {
+	bool isPointInFrustum(const glm::vec3& coords)  const
+	{
 		glm::vec4 paddedCoords(coords, 1.0f);
 
 		bool isInside =
@@ -38,7 +40,8 @@ struct Frustum {
 		return isInside;
 	}
 
-	bool isAABBInFrustum(const glm::vec3& minPoint, const glm::vec3& maxPoint) {
+	bool isAABBInFrustum(const glm::vec3& minPoint, const glm::vec3& maxPoint) const
+	{
 		glm::vec3 corners[8] = {
 		{minPoint.x, minPoint.y, minPoint.z},
 		{maxPoint.x, minPoint.y, minPoint.z},
@@ -69,6 +72,7 @@ struct Frustum {
 
 		return true;
 	}
+
 };
 
 class Camera {
@@ -111,5 +115,7 @@ private:
 	void _UpdateFrustum();
 
 };
+
+
 
 #endif

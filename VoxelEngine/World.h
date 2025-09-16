@@ -24,13 +24,11 @@ class World
 {
 public:
 	World(int _worldSize, unsigned int _renderDistance) 
-		: m_WorldSize(_worldSize * _worldSize * _worldSize)
-		, m_RenderDistance(_renderDistance)
+		: m_RenderDistance(_renderDistance)
 		, m_Chunks()
 	{
 		m_LastPlayerGridCoords = glm::ivec3(MAX_GRID_INT, MAX_GRID_INT, MAX_GRID_INT) - 10;
-		m_MaxRenderableChunks = pow(m_RenderDistance, 3);
-		m_Renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, m_MaxRenderableChunks * AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK);
+		m_Renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, pow(m_RenderDistance, 3) * AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK);
 
 	}
 
@@ -146,28 +144,22 @@ public:
 	}
 	void RemoveChunk(const glm::ivec3& chunkCoords);
 
-	VoxelObjectID GetChunkID(const glm::ivec3& chunkCoords)
+	inline VoxelObjectID GetChunkID(const glm::ivec3& chunkCoords)
 	{
 		return m_Chunks.GetChunkID(chunkCoords);
 	}
 
 	void saveModel(const char* filePath);
 
-	inline ChunkGrid<ChunkType>& getGrid() const { return const_cast<ChunkGrid<ChunkType>&>(m_Chunks); };
+	inline ChunkGrid<ChunkType>& getGrid() const { return const_cast<ChunkGrid<ChunkType>&>(m_Chunks); } // TEMPORARY
 
 private:
 	ChunkGrid<ChunkType> m_Chunks;
 	VoxelMesher<ChunkType> m_Mesher;
 	VoxelRenderer m_Renderer;
 
-	unsigned int m_WorldSize; // NxNxN m_Chunks
 	int m_RenderDistance;
-	unsigned int m_MaxRenderableChunks;
-	unsigned int m_ChunksRendered;
 	glm::ivec3 m_LastPlayerGridCoords;
-
-	std::unordered_map<uint64_t, size_t> m_ChunkCoordsPageID;
-
 };
 
 typedef World<Chunk8> World8;
