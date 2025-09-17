@@ -93,51 +93,6 @@ public:
 		m_Renderer.Render();
 	}
 
-	//void setBlock(const glm::ivec3& coords, uint16_t type);
-	//void removeBlock(const glm::ivec3& voxelWorldCoords) {
-	//	
-	//	const int chunkSize = ChunkType::Size;
-
-	//	glm::ivec3 chunkCoords(
-	//		floor(voxelWorldCoords.x / (float)chunkSize),
-	//		floor(voxelWorldCoords.y / (float)chunkSize),
-	//		floor(voxelWorldCoords.z / (float)chunkSize)
-	//	);
-	//	//std::cout << "Chunk Coordinates: " << chunkX << ", " << chunkY << ", " << chunkZ << std::endl;
-
-	//	ChunkType* chunk = m_Chunks.getChunk(chunkCoords);
-
-	//	if (!chunk) {
-	//		return;
-	//	}
-
-	//	size_t xLocal = ((voxelWorldCoords.x % chunkSize) + chunkSize) % chunkSize;
-	//	size_t yLocal = ((voxelWorldCoords.y % chunkSize) + chunkSize) % chunkSize;
-	//	size_t zLocal = ((voxelWorldCoords.z % chunkSize) + chunkSize) % chunkSize;
-	//	//std::cout << "Voxel (local): " << xC << ", " << yC << ", " << zC << std::endl;
-	//	chunk->toggleBit(xLocal, yLocal, zLocal);
-	//	
-	//	// re-mesh chunk
-	//	ChunkQuads mesh = m_Mesher.meshChunk(m_Chunks, chunkCoords);
-	//	uint64_t encodedChunkCoords = ChunkGrid<ChunkType>::EncodeChunkCoords(chunkCoords);
-	//	m_Renderer.UpdateMesh(mesh.quadData, m_ChunkCoordsPageID[encodedChunkCoords]);
-
-	//	// re-mesh neighbooring m_Chunks if voxel remove was on edge of chunk
-	//	//if (xLocal == 0) {
-	//	//	glm::ivec3 neighboorChunk = chunkCoords + glm::ivec3(-1, 0, 0);
-	//	//	ChunkQuads mesh = m_Mesher.meshChunk(m_Chunks, neighboorChunk);
-	//	//	uint64_t encodedNeighboorChunkCoords = ChunkGrid<ChunkType>::EncodeChunkCoords(neighboorChunk);
-	//	//	m_Renderer.UpdateMesh(mesh.quadData, m_ChunkCoordsPageID[encodedNeighboorChunkCoords]);
-	//	//}
-	//	//else if (xLocal == chunkSize - 1) {
-	//	//	glm::ivec3 neighboorChunk = chunkCoords + glm::ivec3(1, 0, 0);
-	//	//	ChunkQuads mesh = m_Mesher.meshChunk(m_Chunks, neighboorChunk);
-	//	//	uint64_t encodedNeighboorChunkCoords = ChunkGrid<ChunkType>::EncodeChunkCoords(neighboorChunk);
-	//	//	m_Renderer.UpdateMesh(mesh.quadData, m_ChunkCoordsPageID[encodedNeighboorChunkCoords]);
-	//	//}
-	//	
-	//}
-
 	void AddChunk(const glm::ivec3& chunkCoords, const ChunkType& chunk, bool doMesh = false) 
 	{
 		m_Chunks.addChunk(chunk, chunkCoords);
@@ -147,6 +102,11 @@ public:
 	inline VoxelObjectID GetChunkID(const glm::ivec3& chunkCoords)
 	{
 		return m_Chunks.GetChunkID(chunkCoords);
+	}
+
+	ChunkType* GetChunk(const glm::ivec3& chunkCoords)
+	{
+		return m_Chunks.getChunk(chunkCoords);
 	}
 
 	void saveModel(const char* filePath);

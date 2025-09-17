@@ -2,6 +2,7 @@
 #define TYPES_H
 
 #include <glad/glad.h>
+#include <glm/glm.hpp>
 #include <iostream>
 
 #include <vector>
@@ -9,6 +10,8 @@
 using QuadMeshData = uint32_t; //TODO: use bitfields struct instead
 using RGBAColor = uint32_t;
 using VoxelObjectID = uint32_t;
+
+using Point = glm::ivec3;
 
 
 struct VoxelQuad

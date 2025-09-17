@@ -120,8 +120,8 @@ int main() {
 
 
 	Shader shaderPrgm = Shader({ 
-		{"core_vertex_shader.glsl", GL_VERTEX_SHADER},	
-		{"core_fragment_shader.glsl", GL_FRAGMENT_SHADER}
+		{"voxel_shader.vert.glsl", GL_VERTEX_SHADER},	
+		{"voxel_shader.frag.glsl", GL_FRAGMENT_SHADER}
 		});
 
 	shaderPrgm.Use();
