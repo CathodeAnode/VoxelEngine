@@ -7,111 +7,42 @@
 #include "voxel_mesher.h"
 #include "voxel_renderer.h"
 
-
-#define QUAD_FACES_PER_CHUNK 200u
-#define NUMBER_OF_CHUNKS 8192
-
-#define AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK 3
-
-// Cache Currently set to 25mb (temp, need testing to find optimal sizing)
-// Calculated overhead from free pages data struct for 25mb cache: 15.6kb
+// TEMPORARY Cache Currently set to 25mb (need testing to find optimal sizing)
+// Memory overhead from renderer obj on CPU side is ~28.8kb for 25mb cache size (heap)
 #define CACHE_PAGE_SIZE 50
 #define CACHE_NUM_OF_PAGES 125000
+#define AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK 3
 
 
+// class only handles chunk generation, chunk unload/loading & chunk pooling
+// NOTE: chunk generation is injected via stratgy pattern through constructor.
+// chunk generation stratgies include: no generation, flat world generation, height map generation, perlin noise generation, and more if needed
 template<typename ChunkType> 
 class World 
 {
 public:
-	World(int _worldSize, unsigned int _renderDistance) 
-		: m_RenderDistance(_renderDistance)
-		, m_Chunks()
-	{
-		m_LastPlayerGridCoords = glm::ivec3(MAX_GRID_INT, MAX_GRID_INT, MAX_GRID_INT) - 10;
-		m_Renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, pow(m_RenderDistance, 3) * AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK);
+	// TODO Dependency Inject world generation stratgy obj
+	World(unsigned int renderDistance);
+	// TODO: Create world from file
+	World(const char* filePath); 
 
-	}
+	// TEMPORARY
+	void UpdateVisibleChunksByDistance(const glm::vec3& playerWorldCoords);
 
-	World(const char* filePath);
+	// TEMPORARY
+	void Render();
 
-	void UpdateVisibleChunksByDistance(const glm::vec3& playerWorldCoords) 
-	{
-		// step 1: convert player world coordinates to grid coordinates
-		const int chunkSize = ChunkType::Size;
-		const glm::ivec3 playerGridCoords(
-			floor(playerWorldCoords.x / (float)chunkSize), 
-			floor(playerWorldCoords.y / (float)chunkSize),
-			floor(playerWorldCoords.z / (float)chunkSize)
-		);
-
-		// step 2: check if player grid coords has changed since last call
-		if (playerGridCoords == m_LastPlayerGridCoords) {
-			return; //exit early
-		}
-
-
-		// step 3: compute m_Chunks to be rendered around player in sphereical volume
-		const int renderDistRadius_2 = m_RenderDistance * m_RenderDistance;
-
-		for (int x = -m_RenderDistance; x <= m_RenderDistance; x++) 
-		{
-			for (int y = -m_RenderDistance; y <= m_RenderDistance; y++) 
-			{
-				for (int z = -m_RenderDistance; z <= m_RenderDistance; z++) 
-				{
-					if (x * x + y * y + z * z > renderDistRadius_2) continue; // outside sphere
-
-					glm::ivec3 chunkCoords = playerGridCoords + glm::ivec3(x, y, z); // relative to player
-					uint64_t encodedChunkCoords = ChunkGrid<ChunkType>::EncodeChunkCoords(chunkCoords);
-					ChunkType* chunk = m_Chunks.getChunk(encodedChunkCoords);
-
-					if (chunk == nullptr || chunk->IsEmpty()) continue;
-					glm::ivec3 chunkWorldPos = chunkCoords * chunkSize;
-
-
-					const VoxelObjectID chunkUID = chunk->GetUID();
-					if (chunkUID != NULL)
-					{
-						if (!m_Renderer.IsCached(chunkUID))
-						{
-							m_Renderer.Upload(m_Chunks, chunkCoords, m_Mesher);
-						}
-						m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
-					}
-
-				}
-			}
-		}
-
-		m_Renderer.NextFrame();
-
-		m_LastPlayerGridCoords = playerGridCoords;
-	}
-
-	void Render() 
-	{
-		m_Renderer.Render();
-	}
-
-	void AddChunk(const glm::ivec3& chunkCoords, const ChunkType& chunk, bool doMesh = false) 
-	{
-		m_Chunks.addChunk(chunk, chunkCoords);
-	}
+	void AddChunk(const glm::ivec3& chunkCoords, const ChunkType& chunk);
 	void RemoveChunk(const glm::ivec3& chunkCoords);
 
-	inline VoxelObjectID GetChunkID(const glm::ivec3& chunkCoords)
-	{
-		return m_Chunks.GetChunkID(chunkCoords);
-	}
+	inline VoxelObjectID GetChunkID(const glm::ivec3& chunkCoords);
+	ChunkType* GetChunk(const glm::ivec3& chunkCoords);
 
-	ChunkType* GetChunk(const glm::ivec3& chunkCoords)
-	{
-		return m_Chunks.getChunk(chunkCoords);
-	}
+	// TODO
+	void SaveWorld(const char* filePath);
 
-	void saveModel(const char* filePath);
-
-	inline ChunkGrid<ChunkType>& getGrid() const { return const_cast<ChunkGrid<ChunkType>&>(m_Chunks); } // TEMPORARY
+	// TEMPORARY
+	inline ChunkGrid<ChunkType>& getGrid() const { return const_cast<ChunkGrid<ChunkType>&>(m_Chunks); }
 
 private:
 	ChunkGrid<ChunkType> m_Chunks;
@@ -125,5 +56,7 @@ private:
 typedef World<Chunk8> World8;
 typedef World<Chunk16> World16;
 typedef World<Chunk32> World32;
+
+#include "world.tpp"
 
 #endif
