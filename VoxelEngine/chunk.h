@@ -174,8 +174,8 @@ public:
 
 	char* serialize();
 private:
-	T* m_OpaqueData = nullptr; // 1 for block, 0 for air (z-major order)
-	RGBAColor* m_ColorData = nullptr;
+	T* __restrict m_OpaqueData = nullptr; // 1 for block, 0 for air (z-major order)
+	RGBAColor* __restrict m_ColorData = nullptr;
 	const VoxelObjectID k_Uid;
 
 	template<typename ChunkType>
