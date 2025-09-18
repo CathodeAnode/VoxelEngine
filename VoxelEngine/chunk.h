@@ -177,6 +177,9 @@ private:
 	T* m_OpaqueData = nullptr; // 1 for block, 0 for air (z-major order)
 	RGBAColor* m_ColorData = nullptr;
 	const VoxelObjectID k_Uid;
+
+	template<typename ChunkType>
+	friend class VoxelWorldEditor;
 };
 
 typedef Chunk<uint8_t, 8> Chunk8;
