@@ -85,6 +85,20 @@ inline VoxelObjectID World<ChunkType>::GetChunkID(const glm::ivec3& chunkCoords)
 template<typename ChunkType>
 ChunkType* World<ChunkType>::GetChunk(const glm::ivec3& chunkCoords)
 {
+	//TEMPORARY
+	ChunkType* ret = m_Chunks.getChunk(chunkCoords);
+	if (ret->GetUID() == NULL)
+	{
+		AddChunk(chunkCoords, ChunkType());
+		ret = m_Chunks.getChunk(chunkCoords);
+	}
+
+	return ret;
+}
+
+template<typename ChunkType>
+const ChunkType* World<ChunkType>::GetChunk(const glm::ivec3& chunkCoords) const
+{
 	return m_Chunks.getChunk(chunkCoords);
 }
 

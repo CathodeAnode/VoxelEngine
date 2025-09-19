@@ -23,6 +23,7 @@
 #include "chunk_grid.h"
 #include "voxel_renderer.h"
 #include "voxel_mesher.h"
+#include "voxel_world_editor.h"
 #include "world.h"
 #include "scene.h"
 #include "voxel_ray_cast.h"
@@ -95,7 +96,11 @@ int main() {
 	-----------------------
 	*/
 	Chunk8 filledChunk(true);
-	World8 world(100, 10);
+	World8 world(10);
+	VoxelWorldEditor<Chunk8> test(world);
+
+	
+	
 
 	//for (int x = -20; x <= 20; x++) { 
 	//	for (int z = -20; z <= 20; z++) {
@@ -107,13 +112,15 @@ int main() {
 	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
 
 
-	world.AddChunk(glm::ivec3(0, 0, 0), filledChunk);
-	world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
-	world.AddChunk(glm::ivec3(1, -1, 0), filledChunk);
-	world.AddChunk(glm::ivec3(-1, -1, 0), filledChunk);
-	world.AddChunk(glm::ivec3(0, -1, 1), filledChunk);
-	world.AddChunk(glm::ivec3(0, -1, -1), filledChunk);
-	world.AddChunk(glm::ivec3(0, -2, 0), filledChunk);
+	world.AddChunk(glm::ivec3(0, 0, 0), GenerateRampChunk<Chunk8>());
+
+	test.SetVoxel(glm::ivec3(0, 0, 0), 0);
+	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
+	//world.AddChunk(glm::ivec3(1, -1, 0), filledChunk);
+	//world.AddChunk(glm::ivec3(-1, -1, 0), filledChunk);
+	//world.AddChunk(glm::ivec3(0, -1, 1), filledChunk);
+	//world.AddChunk(glm::ivec3(0, -1, -1), filledChunk);
+	//world.AddChunk(glm::ivec3(0, -2, 0), filledChunk);
 
 	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
 	//world.AddChunk(glm::ivec3(0, -1, 1), filledChunk);

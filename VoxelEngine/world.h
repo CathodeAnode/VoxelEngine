@@ -36,7 +36,10 @@ public:
 	void RemoveChunk(const glm::ivec3& chunkCoords);
 
 	inline VoxelObjectID GetChunkID(const glm::ivec3& chunkCoords);
+
+	// Using this function will mark chunk as dirty, thus saving chunk to disk
 	ChunkType* GetChunk(const glm::ivec3& chunkCoords);
+	const ChunkType* GetChunk(const glm::ivec3& chunkCoords) const;
 
 	// TODO
 	void SaveWorld(const char* filePath);

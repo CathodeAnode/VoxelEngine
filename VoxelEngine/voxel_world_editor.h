@@ -29,7 +29,7 @@ private:
 	World<ChunkType>& m_World;
 
 	inline static glm::ivec3 _VoxelToChunkPos(const glm::ivec3& voxelWorldPos);
-	inline static glm::ivec3 _WorldToLocalPos(const glm::ivec3& voxelWordlPos);
+	inline static glm::ivec3 _WorldToLocalPos(const glm::ivec3& voxelWorldPos);
 };
 
 #include "voxel_world_editor.tpp"

@@ -153,6 +153,8 @@
     <None Include="voxel_shader.frag.glsl" />
     <None Include="voxel_shader.vert.glsl" />
     <None Include="gpu_buffer_allocator.tpp" />
+    <None Include="voxel_world_editor.tpp" />
+    <None Include="world.tpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
@@ -166,6 +168,7 @@
     <ClInclude Include="uid_manager.h" />
     <ClInclude Include="voxel_mesh_writer.h" />
     <ClInclude Include="voxel_ray_cast.h" />
+    <ClInclude Include="voxel_world_editor.h" />
     <ClInclude Include="world.h" />
     <ClInclude Include="voxel_mesher.h" />
     <ClInclude Include="mouse.h" />

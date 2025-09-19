@@ -10,31 +10,30 @@ void VoxelWorldEditor<ChunkType>::SetVoxel(const glm::ivec3& coords, RGBAColor c
 {
 	ChunkType* chunk = m_World.GetChunk(_VoxelToChunkPos(coords));
 
-	if (chunk->GetUID() == NULL)
-	{
-		// create new chunk and allocate it to world
-	}
+	assert(chunk->GetUID() != NULL);
 
-	chunk->m_OpqueData[...] |= (1 << ...);
-	chunk->m_ColorData[...] = color;
+	glm::ivec3 localChunkCoords = _WorldToLocalPos(coords);
+
+	chunk->m_OpaqueData[ChunkType::_GetOpaqueDataIndex(localChunkCoords.x, localChunkCoords.z)] |= (1 << localChunkCoords.y);
+	chunk->m_ColorData[ChunkType::_GetColorDataIndex(localChunkCoords.x, localChunkCoords.y, localChunkCoords.z)] = color;
 }
 
 template<typename ChunkType>
 inline glm::ivec3 VoxelWorldEditor<ChunkType>::_VoxelToChunkPos(const glm::ivec3& voxelWorldPos)
 {
 	return glm::ivec3(
-		floor(voxelWorldPos.x / (float)chunkSize),
-		floor(voxelWorldPos.y / (float)chunkSize),
-		floor(voxelWorldPos.z / (float)chunkSize)
+		floor(voxelWorldPos.x / (float)ChunkType::Size),
+		floor(voxelWorldPos.y / (float)ChunkType::Size),
+		floor(voxelWorldPos.z / (float)ChunkType::Size)
 	);
 }
 
 template<typename ChunkType>
-inline glm::ivec3 VoxelWorldEditor<ChunkType>::_WorldToLocalPos(const glm::ivec3& voxelWordlPos)
+inline glm::ivec3 VoxelWorldEditor<ChunkType>::_WorldToLocalPos(const glm::ivec3& voxelWorldPos)
 {
 	return glm::ivec3(
-		((voxelWorldPos.x % ChunkSize) + ChunkSize) % ChunkSize;
-		((voxelWorldPos.y % ChunkSize) + ChunkSize) % ChunkSize;
-		((voxelWorldPos.z % ChunkSize) + ChunkSize) % ChunkSize;
+		((voxelWorldPos.x % ChunkType::Size) + ChunkType::Size) % ChunkType::Size,
+		((voxelWorldPos.y % ChunkType::Size) + ChunkType::Size) % ChunkType::Size,
+		((voxelWorldPos.z % ChunkType::Size) + ChunkType::Size) % ChunkType::Size
 	);
 }

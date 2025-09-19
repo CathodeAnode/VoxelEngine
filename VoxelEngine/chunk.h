@@ -28,11 +28,11 @@ public:
 			std::fill(m_OpaqueData, m_OpaqueData + ChunkSize * ChunkSize, ~T(0));  // set all bits to 1
 			std::fill(m_ColorData, m_ColorData + ChunkSize * ChunkSize * ChunkSize, DEFAULT_VOXEL_COLOR);
 		}
-		//else
-		//{
-		//	std::fill(m_OpaqueData, m_OpaqueData + ChunkSize * ChunkSize, T(0));
-		//	std::fill(m_ColorData, m_ColorData + ChunkSize * ChunkSize * ChunkSize, RGBAColor(0));
-		//}
+		else
+		{
+			std::fill(m_OpaqueData, m_OpaqueData + ChunkSize * ChunkSize, T(0));
+			std::fill(m_ColorData, m_ColorData + ChunkSize * ChunkSize * ChunkSize, RGBAColor(0));
+		}
 		
 	};
 
@@ -106,8 +106,7 @@ public:
 	
 	bool IsSolid(int x, int y, int z) const 
 	{
-		int rowIndex = x + y * ChunkSize;
-		return m_OpaqueData[rowIndex] << z;
+		return m_OpaqueData[_GetOpaqueDataIndex(x, z)] << y;
 	}
 	
 	virtual bool IsEmpty() const 
@@ -123,7 +122,7 @@ public:
 
 	inline RGBAColor GetVoxelData(int x, int y, int z) const
 	{
-		return m_ColorData[x + z * ChunkSize + y * ChunkSize * ChunkSize];
+		return m_ColorData[_GetColorDataIndex(x, y, z)];
 	}
 
 	inline RGBAColor GetVoxelData(glm::ivec3 coords) const
@@ -133,41 +132,18 @@ public:
 
 	virtual inline T GetColumnRow(int x, int z) const
 	{
-		return m_OpaqueData[x + (z * ChunkSize)];
+		return m_OpaqueData[_GetOpaqueDataIndex(x, z)];
 	}
 
 	void ToggleBit(int x, int y, int z) 
 	{
-		int index = x + z * ChunkSize;
-		m_OpaqueData[index] ^= (T(1) << y);
+		m_OpaqueData[_GetOpaqueDataIndex(x, z)] ^= (T(1) << y);
 	}
 
 	void SetVoxel(int x, int y, int z, RGBAColor color)
 	{
-		m_OpaqueData[x + z * ChunkSize] |= (T(1) << y);
-		m_ColorData[x + z * ChunkSize + y * ChunkSize * ChunkSize] = color;
-	}
-
-	void printData() 
-	{
-
-		unsigned int bits_per_element = sizeof(T) * 8;
-
-		for (unsigned int y = 0; y < ChunkSize; ++y) 
-		{
-			for (unsigned int x = 0; x < ChunkSize; ++x) 
-			{
-				T val = m_OpaqueData[x + y * ChunkSize];
-				// print bits in val from most significant to least significant
-				for (int bit = bits_per_element - 1; bit >= 0; --bit) 
-				{
-					bool bit_set = (val & (T(1) << bit)) != 0;
-					std::cout << (bit_set ? '1' : '0');
-				}
-				std::cout << ' ';  // space between elements for clarity
-			}
-			std::cout << std::endl;
-		}
+		m_OpaqueData[_GetOpaqueDataIndex(x, z)] |= (T(1) << y);
+		m_ColorData[_GetColorDataIndex(x, y, z)] = color;
 	}
 
 	virtual inline VoxelObjectID GetUID() const { return k_Uid; };
@@ -177,6 +153,10 @@ private:
 	T* __restrict m_OpaqueData = nullptr; // 1 for block, 0 for air (z-major order)
 	RGBAColor* __restrict m_ColorData = nullptr;
 	const VoxelObjectID k_Uid;
+
+private:
+	static inline size_t _GetOpaqueDataIndex(int x, int z) { return x + z * ChunkSize; }
+	static inline size_t _GetColorDataIndex(int x, int y, int z) { return x + z * ChunkSize + y * ChunkSize * ChunkSize; }
 
 	template<typename ChunkType>
 	friend class VoxelWorldEditor;
