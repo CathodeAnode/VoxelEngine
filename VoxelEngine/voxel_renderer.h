@@ -81,6 +81,7 @@ private:
 	const int k_TripleBuffer = 3;
 
 private:
+	// this function will clear the objects queued to be rendered on the next frame
 	void _RefreshFrame();
 };
 
@@ -101,19 +102,21 @@ void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, const glm::ive
 	VoxelObjectID chunkUID = chunk->GetUID();
 	GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
 
-	assert(std::find(m_ObjectsRenderedInCurrentFrame.begin(), m_ObjectsRenderedInCurrentFrame.end(), chunkUID) == m_ObjectsRenderedInCurrentFrame.end(),
-		"Voxel Render Upload failed: Object with chunkUID is already scheduled for rendering in the *current* frame.");
-
-	assert(std::find(m_ObjectsRenderedInNextFrame.begin(), m_ObjectsRenderedInNextFrame.end(), chunkUID) == m_ObjectsRenderedInNextFrame.end(),
-		"Voxel Render Upload failed: Object with chunkUID is already scheduled for rendering in the *next* frame.");
-
 	if (IsCached(chunkUID))
 	{
-		m_DataCache.ClearObject(chunkUID);
-	}
+		VoxelObjectID tempUID = UIDManager::Generate();
+		meshWriter.SetTargetObject(tempUID);
+		mesher.MeshChunk(chunkGrid, chunkCoords, meshWriter);
 
-	meshWriter.SetTargetObject(chunkUID);
-	mesher.MeshChunk(chunkGrid, chunkCoords, meshWriter);
+		m_DataCache.Swap(tempUID, chunkUID);
+		_RefreshFrame();
+		m_DataCache.DeallocateObject(tempUID);
+	}
+	else
+	{
+		meshWriter.SetTargetObject(chunkUID);
+		mesher.MeshChunk(chunkGrid, chunkCoords, meshWriter);
+	}
 }
 
 template<typename ChunkType>
@@ -122,19 +125,22 @@ void VoxelRenderer::Upload(const ChunkGrid<ChunkType>& chunkGrid, VoxelMesher<Ch
 	VoxelObjectID gridUID = chunkGrid.GetUID();
 	GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
 
-	assert(std::find(m_ObjectsRenderedInCurrentFrame.begin(), m_ObjectsRenderedInCurrentFrame.end(), gridUID) == m_ObjectsRenderedInCurrentFrame.end(),
-		"Voxel Render Upload failed: Object with gridUID is already scheduled for rendering in the *current* frame.");
-
-	assert(std::find(m_ObjectsRenderedInNextFrame.begin(), m_ObjectsRenderedInNextFrame.end(), gridUID) == m_ObjectsRenderedInNextFrame.end(),
-		"Voxel Render Upload failed: Object with gridUID is already scheduled for rendering in the *next* frame.");
-
 	if (IsCached(gridUID))
 	{
-		m_DataCache.ClearObject(gridUID);
+		VoxelObjectID tempUID = UIDManager::Generate();
+		meshWriter.SetTargetObject(tempUID);
+		mesher.MeshChunk(chunkGrid, meshWriter);
+
+		m_DataCache.Swap(tempUID, gridUID);
+		_RefreshFrame();
+		m_DataCache.DeallocateObject(tempUID);
+	}
+	else
+	{
+		meshWriter.SetTargetObject(gridUID);
+		mesher.MeshChunkGrid(chunkGrid, meshWriter);
 	}
 
-	meshWriter.SetTargetObject(gridUID);
-	mesher.MeshChunkGrid(chunkGrid, meshWriter);
 }
 
 /*
