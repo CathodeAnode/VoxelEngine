@@ -75,13 +75,13 @@ public:
 		m_ChunkMap[chunkIndex] = chunk;
 	}
 
-	ChunkType* getChunk(const glm::ivec3& chunkGridLocation) 
+	ChunkType* GetChunk(const glm::ivec3& chunkGridLocation) 
 	{
 		uint64_t chunkIndex = EncodeChunkCoords(chunkGridLocation);
 		return getChunk(chunkIndex);
 	}
 
-	ChunkType* getChunk(uint64_t index)
+	ChunkType* GetChunk(uint64_t index)
 	{
 		if (m_ChunkMap.contains(index)) {
 			return &m_ChunkMap.at(index);
@@ -89,13 +89,13 @@ public:
 
 		return &s_NullChunk;
 	}
-	const ChunkType* getChunk(const glm::ivec3& chunkGridLocation) const
+	const ChunkType* GetChunk(const glm::ivec3& chunkGridLocation) const
 	{
 		uint64_t chunkIndex = EncodeChunkCoords(chunkGridLocation);
 		return getChunk(chunkIndex);
 	}
 
-	const ChunkType* getChunk(uint64_t index) const
+	const ChunkType* GetChunk(uint64_t index) const
 	{
 		if (m_ChunkMap.contains(index)) {
 			return &m_ChunkMap.at(index);

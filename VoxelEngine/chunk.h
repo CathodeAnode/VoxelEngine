@@ -18,7 +18,6 @@ public:
 	static constexpr unsigned int Size = ChunkSize;
 
 	// TODO : remove filled bool, always create empty chunk
-	// & Create another consturtor that takes input to generate voxel data in chunk
 	Chunk(bool filled=false) 
 		: k_Uid(UIDManager::Generate())
 	{
@@ -160,6 +159,9 @@ private:
 
 	template<typename ChunkType>
 	friend class VoxelWorldEditor;
+
+	template<typename ChunkType>
+	friend class ChunkGeneratorStrategy;
 };
 
 typedef Chunk<uint8_t, 8> Chunk8;

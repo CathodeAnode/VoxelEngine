@@ -23,6 +23,7 @@
 #include "chunk_grid.h"
 #include "voxel_renderer.h"
 #include "voxel_mesher.h"
+#include "chunk_generator_strategy.h"
 #include "voxel_world_editor.h"
 #include "world.h"
 #include "scene.h"
@@ -96,34 +97,10 @@ int main() {
 	-----------------------
 	*/
 	Chunk8 filledChunk(true);
-	World8 world(10);
+	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
+	World8 world(10u, std::move(flatGenerator));
 	VoxelWorldEditor<Chunk8> test(world);
 
-	
-	
-
-	//for (int x = -20; x <= 20; x++) { 
-	//	for (int z = -20; z <= 20; z++) {
-	//		world.AddChunk(glm::ivec3(x, -1, z), GenerateRampChunk<Chunk8>());
-	//	}
-	//}
-
-	//world.AddChunk(glm::ivec3(0, 0, 0), filledChunk);
-	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
-
-
-	world.AddChunk(glm::ivec3(0, 0, 0), GenerateRampChunk<Chunk8>());
-
-	test.SetVoxel(glm::ivec3(0, 0, 0), 0);
-	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
-	//world.AddChunk(glm::ivec3(1, -1, 0), filledChunk);
-	//world.AddChunk(glm::ivec3(-1, -1, 0), filledChunk);
-	//world.AddChunk(glm::ivec3(0, -1, 1), filledChunk);
-	//world.AddChunk(glm::ivec3(0, -1, -1), filledChunk);
-	//world.AddChunk(glm::ivec3(0, -2, 0), filledChunk);
-
-	//world.AddChunk(glm::ivec3(0, -1, 0), filledChunk);
-	//world.AddChunk(glm::ivec3(0, -1, 1), filledChunk);
 
 
 	Shader shaderPrgm = Shader({ 
@@ -155,7 +132,7 @@ int main() {
 		shaderPrgm.Use();
 		shaderPrgm.SetMat4("view", camera.GetViewMatrix());
 		shaderPrgm.SetMat4("projection", camera.GetProjMatrix());
-		world.UpdateVisibleChunksByDistance(camera.pos);
+		world.UpdateRender(camera.pos);
 		world.Render();
 		//std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;
 

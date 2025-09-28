@@ -1,12 +1,25 @@
 #include "world.h"
 
 template<typename ChunkType>
-World<ChunkType>::World(unsigned int loadedChunksDistance)
+World<ChunkType>::World(unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator)
 	: m_LoadedChunks(loadedChunksDistance)
+	, m_ChunkGenerator(std::move(generator))
 {
 	assert(loadedChunksDistance % 2 != 0, "loaded chunks distance must be odd");
 	m_LastPlayerGridCoords = glm::ivec3(MAX_GRID_INT, MAX_GRID_INT, MAX_GRID_INT) - 10;
 	m_Renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, pow(loadedChunksDistance, 3) * AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK);
+
+	// pre-allocate all chunks in memory
+	for (int z = 0; z < loadedChunksDistance; ++z)
+	{
+		for (int y = 0; y < loadedChunksDistance; ++y)
+		{
+			for (int x = 0; x < loadedChunksDistance; ++x)
+			{
+				m_LoadedChunks.At(x, y, z) = std::make_shared<ChunkType>();
+			}
+		}
+	}
 }
 
 template<typename ChunkType>
@@ -40,13 +53,13 @@ inline void World<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 				switch (axis)
 				{
 				case 0:
-					m_LoadedChunks.At(plane, i, j) = std::move(LoadChunk(glm::ivec3(plane, i, j)));
+					m_LoadedChunks.At(plane, i, j) = std::move(_LoadChunk(glm::ivec3(plane, i, j)));
 					break;
 				case 1:
-					m_LoadedChunks.At(i, plane, j) = std::move(LoadChunk(glm::ivec3(i, plane, j)));
+					m_LoadedChunks.At(i, plane, j) = std::move(_LoadChunk(glm::ivec3(i, plane, j)));
 					break;
 				case 2:
-					m_LoadedChunks.At(j, i, plane) = std::move(LoadChunk(glm::ivec3(j, i, plane)));
+					m_LoadedChunks.At(j, i, plane) = std::move(_LoadChunk(glm::ivec3(j, i, plane)));
 					break;
 				}
 			}
@@ -116,35 +129,49 @@ void World<ChunkType>::Render()
 }
 
 template<typename ChunkType>
-void World<ChunkType>::AddChunk(const glm::ivec3& chunkCoords, const ChunkType& chunk)
-{
-	//m_LoadedChunks.addChunk(chunk, chunkCoords);
-}
-
-template<typename ChunkType>
 inline VoxelObjectID World<ChunkType>::GetChunkID(const glm::ivec3& chunkCoords)
 {
 	return m_LoadedChunks.GetChunkID(chunkCoords);
 }
 
 template<typename ChunkType>
-ChunkType* World<ChunkType>::GetChunk(const glm::ivec3& chunkCoords)
+std::shared_ptr<ChunkType> World<ChunkType>::GetChunk(const glm::ivec3& chunkCoords)
 {
+	// TODO: mark chunk as dirty (save to world map file on disk)
 	int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
 	if (abs(chunkCoords.x - m_LastPlayerGridCoords.x) > halfLoadedDist ||
 		abs(chunkCoords.y - m_LastPlayerGridCoords.y) > halfLoadedDist ||
 		abs(chunkCoords.z - m_LastPlayerGridCoords.z) > halfLoadedDist)
 	{
-		ChunkType chunk = LoadChunk(chunkCoords);
-		return &chunk;
+		return _LoadChunk(chunkCoords);
 	}
 
 	return m_LoadedChunks.At(chunkCoords);
 }
 
 template<typename ChunkType>
-const ChunkType* World<ChunkType>::GetChunk(const glm::ivec3& chunkCoords) const
+std::shared_ptr<const ChunkType> World<ChunkType>::GetChunk(const glm::ivec3& chunkCoords) const
 {
-	return m_LoadedChunks.At(chunkCoords);
+	int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
+	if (abs(chunkCoords.x - m_LastPlayerGridCoords.x) > halfLoadedDist ||
+		abs(chunkCoords.y - m_LastPlayerGridCoords.y) > halfLoadedDist ||
+		abs(chunkCoords.z - m_LastPlayerGridCoords.z) > halfLoadedDist)
+	{
+		return std::static_pointer_cast<const ChunkType>(_LoadChunk(chunkCoords));
+	}
+
+	return std::static_pointer_cast<const ChunkType>(m_LoadedChunks.At(chunkCoords));
+}
+
+
+template<typename ChunkType>
+inline std::shared_ptr<ChunkType> World<ChunkType>::_LoadChunk(const glm::ivec3& chunkCoords) const
+{
+	// TODO: assert chunk is not already loaded in ring buffer
+	// TODO: handle loading from filesystem here
+	// steps:
+	// 1. if chunk exisits in world map file, load and return from file
+	// 2. otherwise, generate and return chunk
+	return m_ChunkGenerator.Generate(chunkCoords);
 }
 

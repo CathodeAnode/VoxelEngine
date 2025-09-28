@@ -5,9 +5,7 @@
 #include <type_traits>
 
 // Forward declare glm::ivec3
-namespace glm {
-    struct ivec3;
-}
+#include <glm/fwd.hpp> 
 
 template <typename T, typename ChunkType>
 concept ChunkProvider = requires(T t, const glm::ivec3 & chunkCoords) {

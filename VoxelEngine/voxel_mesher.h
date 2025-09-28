@@ -64,7 +64,7 @@ private:
 			chunkZ = z - 1;
 		}
 
-		const ChunkType* chunk = world.getChunk(chunkLocation + offset);
+		const ChunkType* chunk = world.GetChunk(chunkLocation + offset);
 		if (chunk) {
 			return chunk->GetColumnRow(chunkX, chunkZ);
 		}
@@ -145,15 +145,15 @@ public:
 	void MeshChunk(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out)
 	{
 		// TODO ideally you wouldnt have to check if the chunk is valid, change to assert if possible
-		const ChunkType* chunk = chunkGrid.getChunk(chunkLocation);
+		const ChunkType* chunk = chunkGrid.GetChunk(chunkLocation);
 		if (chunk == nullptr || chunk->IsEmpty()) {
 			return;
 		}
 
 		std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
 
-		const ChunkType* topChunk = chunkGrid.getChunk(chunkLocation + glm::ivec3(0, 1, 0));
-		const ChunkType* bottomChunk = chunkGrid.getChunk(chunkLocation - glm::ivec3(0, 1, 0));
+		const ChunkType* topChunk = chunkGrid.GetChunk(chunkLocation + glm::ivec3(0, 1, 0));
+		const ChunkType* bottomChunk = chunkGrid.GetChunk(chunkLocation - glm::ivec3(0, 1, 0));
 
 		// face hulling
 		for (int a = 1; a < CS_P - 1; a++) {
@@ -265,7 +265,7 @@ public:
 	{	
 		for (const auto& [index, _] : chunkGrid) 
 		{
-			glm::ivec3 chunkCoords = ChunkGrid<ChunkType>::getChunkCoords(index);
+			glm::ivec3 chunkCoords = ChunkGrid<ChunkType>::GetChunkCoords(index);
 			meshChunk(chunkGrid, chunkCoords, out);
 		}
 	}

@@ -157,11 +157,14 @@
     <None Include="world.tpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="3d_ring_buffer.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="chunk.h" />
+    <ClInclude Include="chunk_generator_strategy.h" />
     <ClInclude Include="gpu_buffer_allocator.h" />
     <ClInclude Include="gpu_buffer_lock.h" />
     <ClInclude Include="helpers.h" />
+    <ClInclude Include="IChunkContainer.h" />
     <ClInclude Include="joystick.h" />
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="scene.h" />

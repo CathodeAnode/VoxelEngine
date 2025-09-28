@@ -1,8 +1,6 @@
 #ifndef THREE_DIMENSIONAL_RING_BUFFER_H
 #define THREE_DIMENSIONAL_RING_BUFFER_H
 
-#include <glm/glm.hpp>
-
 #include <vector>
 
 template<typename Datatype_>

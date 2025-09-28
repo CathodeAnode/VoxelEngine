@@ -2,6 +2,7 @@
 #define WORLD_H
 
 #include <glm/glm.hpp>
+#include <memory>
 
 #include "chunk_grid.h"
 #include "voxel_mesher.h"
@@ -14,6 +15,8 @@
 #define CACHE_NUM_OF_PAGES 125000
 #define AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK 3
 
+template<typename ChunkType>
+class ChunkGeneratorStrategy;
 
 // class only handles chunk generation, chunk unload/loading & chunk pooling
 // NOTE: chunk generation is injected via stratgy pattern through constructor.
@@ -22,8 +25,7 @@ template<typename ChunkType>
 class World 
 {
 public:
-	// TODO Dependency Inject world generation stratgy obj
-	World(unsigned int loadedChunksDistance);
+	World(unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator);
 	// TODO: Create world from file
 	World(const char* filePath); 
 
@@ -34,14 +36,11 @@ public:
 	void UpdateRender(const glm::vec3& playerWorldCoords);
 	void Render();
 
-	void AddChunk(const glm::ivec3& chunkCoords, const ChunkType& chunk);
-	void RemoveChunk(const glm::ivec3& chunkCoords);
-
 	inline VoxelObjectID GetChunkID(const glm::ivec3& chunkCoords);
 
 	// Using this function will mark chunk as dirty, thus saving chunk to disk
-	ChunkType* GetChunk(const glm::ivec3& chunkCoords);
-	const ChunkType* GetChunk(const glm::ivec3& chunkCoords) const;
+	std::shared_ptr<ChunkType> GetChunk(const glm::ivec3& chunkCoords);
+	std::shared_ptr<const ChunkType> GetChunk(const glm::ivec3& chunkCoords) const;
 
 	// TODO
 	void SaveWorld(const char* filePath);
@@ -49,12 +48,13 @@ public:
 private:
 	VoxelMesher<ChunkType> m_Mesher;
 	VoxelRenderer m_Renderer;
-	RingBuffer3D<ChunkType> m_LoadedChunks; // chunks loaded around player in distance of loadedChunksDistance/2 in box volume
+	RingBuffer3D<std::shared_ptr<ChunkType>> m_LoadedChunks; // chunks loaded around player in distance of loadedChunksDistance/2 in box volume
+	std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> m_ChunkGenerator;
 
 	glm::ivec3 m_LastPlayerGridCoords;
 
 private:
-	inline ChunkType LoadChunk(const glm::ivec3& chunkCoords) const;
+	inline std::shared_ptr<ChunkType> _LoadChunk(const glm::ivec3& chunkCoords) const;
 };
 
 typedef World<Chunk8> World8;

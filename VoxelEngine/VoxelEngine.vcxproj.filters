@@ -74,10 +74,10 @@
     <None Include="gpu_buffer_allocator.tpp">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="world.tpp">
+    <None Include="voxel_world_editor.tpp">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="voxel_world_editor.tpp">
+    <None Include="world.tpp">
       <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
@@ -143,6 +143,15 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="voxel_world_editor.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="3d_ring_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="chunk_generator_strategy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IChunkContainer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

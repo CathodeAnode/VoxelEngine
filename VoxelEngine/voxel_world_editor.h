@@ -8,6 +8,8 @@
 template <typename ChunkType>
 class World;
 
+// TODO: change name to something else, "editor" gives the impression that this class is for engine editor UI
+// TODO: allow class to work for any type of chunk container (i.e, World, ChunkGrid, and any other new chunk containers)
 template <typename ChunkType>
 class VoxelWorldEditor
 {
