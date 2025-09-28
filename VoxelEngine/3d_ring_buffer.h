@@ -15,6 +15,8 @@ public:
 
 	inline Datatype_& At(const glm::ivec3& coords);
 	inline Datatype_ At(const glm::ivec3& coords) const;
+	inline Datatype_& At(int x, int y, int z);
+	inline Datatype_ At(int x, int y, int z) const;
 
 	inline size_t GetLength() { return m_Length; }
 
@@ -40,32 +42,32 @@ inline void RingBuffer3D<Datatype_>::Set(const glm::ivec3 & coords, const Dataty
 		coords.z % m_Length
 	);
 
-	buffer[index.x + index.z * m_Length + index.y * m_Length * m_Length] = data;
+	m_RawBuffer[index.x + index.z * m_Length + index.y * m_Length * m_Length] = data;
 }
 
 
 template<typename Datatype_>
 inline Datatype_& RingBuffer3D<Datatype_>::At(const glm::ivec3& coords)
 {
-	glm::ivec3 index(
-		coords.x % m_Length,
-		coords.y % m_Length,
-		coords.z % m_Length
-	);
-
-	return buffer[index.x + index.z * m_Length + index.y * m_Length * m_Length];
+	return At(coords.x, coords.y, coords.z);
 }
 
 template<typename Datatype_>
 inline Datatype_ RingBuffer3D<Datatype_>::At(const glm::ivec3& coords) const
 {
-	glm::ivec3 index(
-		coords.x % m_Length,
-		coords.y % m_Length,
-		coords.z % m_Length
-	);
+	return At(coords.x, coords.y, coords.z);
+}
 
-	return buffer[index.x + index.z * m_Length + index.y * m_Length * m_Length];
+template<typename Datatype_>
+inline Datatype_& RingBuffer3D<Datatype_>::At(int x, int y, int z)
+{
+	return m_RawBuffer[x % m_Length + (z * m_Length) % m_Length + (y * m_Length * m_Length) % m_Length];
+}
+
+template<typename Datatype_>
+inline Datatype_ RingBuffer3D<Datatype_>::At(int x, int y, int z) const
+{
+	return m_RawBuffer[x % m_Length + (z * m_Length) % m_Length + (y * m_Length * m_Length) % m_Length];
 }
 
 #endif

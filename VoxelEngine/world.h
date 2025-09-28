@@ -6,6 +6,7 @@
 #include "chunk_grid.h"
 #include "voxel_mesher.h"
 #include "voxel_renderer.h"
+#include "3d_ring_buffer.h"
 
 // TEMPORARY Cache Currently set to 25mb (need testing to find optimal sizing)
 // Memory overhead from renderer obj on CPU side is ~28.8kb for 25mb cache size (heap)
@@ -22,14 +23,15 @@ class World
 {
 public:
 	// TODO Dependency Inject world generation stratgy obj
-	World(unsigned int renderDistance);
+	World(unsigned int loadedChunksDistance);
 	// TODO: Create world from file
 	World(const char* filePath); 
 
-	// TEMPORARY
-	void UpdateVisibleChunksByDistance(const glm::vec3& playerWorldCoords);
+	// NOTE: assumes player cannont move faster than one chunk per frame (will likely break if player moves faster than 1 chunk per frame)
+	void Update(const glm::vec3& playerWorldCoords);
 
 	// TEMPORARY
+	void UpdateRender(const glm::vec3& playerWorldCoords);
 	void Render();
 
 	void AddChunk(const glm::ivec3& chunkCoords, const ChunkType& chunk);
@@ -44,16 +46,15 @@ public:
 	// TODO
 	void SaveWorld(const char* filePath);
 
-	// TEMPORARY
-	inline ChunkGrid<ChunkType>& getGrid() const { return const_cast<ChunkGrid<ChunkType>&>(m_Chunks); }
-
 private:
-	ChunkGrid<ChunkType> m_Chunks;
 	VoxelMesher<ChunkType> m_Mesher;
 	VoxelRenderer m_Renderer;
+	RingBuffer3D<ChunkType> m_LoadedChunks; // chunks loaded around player in distance of loadedChunksDistance/2 in box volume
 
-	int m_RenderDistance;
 	glm::ivec3 m_LastPlayerGridCoords;
+
+private:
+	inline ChunkType LoadChunk(const glm::ivec3& chunkCoords) const;
 };
 
 typedef World<Chunk8> World8;
