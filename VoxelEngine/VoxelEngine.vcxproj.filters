@@ -48,9 +48,6 @@
     <ClCompile Include="screen.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="voxel_renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="voxel_ray_cast.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -62,6 +59,9 @@
     </ClCompile>
     <ClCompile Include="uid_manager.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="voxel_renderer.tpp">
+      <Filter>Header Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -151,7 +151,7 @@
     <ClInclude Include="chunk_generator_strategy.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="IChunkContainer.h">
+    <ClInclude Include="chunk_provider_concept.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

@@ -11,14 +11,14 @@ class ChunkGeneratorStrategy
 {
 public:
 	virtual ~ChunkGeneratorStrategy() = default;
-	virtual void Generate(const glm::ivec3& chunkCoords, std::shared_ptr<ChunkType> outChunk) = 0;
+	virtual void Generate(const glm::ivec3& chunkCoords, const std::shared_ptr<ChunkType>& outChunk) = 0;
 };
 
 template<typename ChunkType>
 class EmptyChunkGeneration : public ChunkGeneratorStrategy<ChunkType>
 {
 public:
-	void Generate(const glm::ivec3& chunkCoords, std::shared_ptr<ChunkType> outChunk) override
+	void Generate(const glm::ivec3& chunkCoords, const std::shared_ptr<ChunkType>& outChunk) override
 	{
 		constexpr int totalSize = ChunkType::Size * ChunkType::Size;
 
@@ -39,7 +39,7 @@ public:
 		: k_HeightLevel(heightLevel)
 	{}
 
-	void Generate(const glm::ivec3& chunkCoords, std::shared_ptr<ChunkType> outChunk)
+	void Generate(const glm::ivec3& chunkCoords, const std::shared_ptr<ChunkType>& outChunk)
 	{
 		typename ChunkType::ValueType voxelFill;
 		if (chunkCoords.y > k_HeightLevel)

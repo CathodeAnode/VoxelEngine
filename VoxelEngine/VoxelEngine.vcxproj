@@ -143,7 +143,7 @@
     <ClCompile Include="uid_manager.cpp" />
     <ClCompile Include="voxel_mesh_writer.cpp" />
     <ClCompile Include="voxel_ray_cast.cpp" />
-    <ClCompile Include="voxel_renderer.cpp" />
+    <ClCompile Include="voxel_renderer.tpp" />
     <ClCompile Include="screen.cpp" />
     <ClCompile Include="shader.cpp" />
     <ClCompile Include="stb.cpp" />
@@ -164,7 +164,7 @@
     <ClInclude Include="gpu_buffer_allocator.h" />
     <ClInclude Include="gpu_buffer_lock.h" />
     <ClInclude Include="helpers.h" />
-    <ClInclude Include="IChunkContainer.h" />
+    <ClInclude Include="chunk_provider_concept.h" />
     <ClInclude Include="joystick.h" />
     <ClInclude Include="keyboard.h" />
     <ClInclude Include="scene.h" />

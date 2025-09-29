@@ -47,7 +47,7 @@ public:
 
 private:
 	VoxelMesher<ChunkType> m_Mesher;
-	VoxelRenderer m_Renderer;
+	VoxelRenderer<ChunkType> m_Renderer;
 	RingBuffer3D<std::shared_ptr<ChunkType>> m_LoadedChunks; // chunks loaded around player in distance of loadedChunksDistance/2 in box volume
 	std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> m_ChunkGenerator;
 

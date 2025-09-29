@@ -1,3 +1,5 @@
+#ifndef WORLD_TPP
+#define WORLD_TPP
 #include "world.h"
 
 template<typename ChunkType>
@@ -97,13 +99,13 @@ void World<ChunkType>::UpdateRender(const glm::vec3& playerWorldCoords)
 				if (x * x + y * y + z * z > loadedDistRadius_2) continue; // outside sphere
 
 				glm::ivec3 chunkCoords = playerGridCoords + glm::ivec3(x, y, z); // relative to player
-				ChunkType chunk = m_LoadedChunks.At(chunkCoords);
+				std::shared_ptr<ChunkType> chunk = m_LoadedChunks.At(chunkCoords);
 
-				if (chunk.IsEmpty()) continue;
+				if (chunk->IsEmpty()) continue;
 				glm::ivec3 chunkWorldPos = chunkCoords * chunkSize;
 
 
-				const VoxelObjectID chunkUID = chunk.GetUID();
+				const VoxelObjectID chunkUID = chunk->GetUID();
 				if (chunkUID != NULL)
 				{
 					if (!m_Renderer.IsCached(chunkUID))
@@ -175,3 +177,4 @@ inline std::shared_ptr<ChunkType> World<ChunkType>::_LoadChunk(const glm::ivec3&
 	return m_ChunkGenerator.Generate(chunkCoords);
 }
 
+#endif

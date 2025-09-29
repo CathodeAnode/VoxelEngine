@@ -13,6 +13,7 @@
 
 #include "chunk.h"
 #include "chunk_grid.h"
+#include "chunk_provider_concept.h"
 #include "voxel_mesh_writer.h"
 #include "types.h"
 #include "helpers.h"
@@ -141,19 +142,19 @@ private:
 
 public:
 
-	template<VoxelMeshWriter MeshWriter>
-	void MeshChunk(const ChunkGrid<ChunkType>& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out)
+	template<ChunkProvider ChunkContainer, VoxelMeshWriter MeshWriter>
+	void MeshChunk(const ChunkContainer& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out)
 	{
 		// TODO ideally you wouldnt have to check if the chunk is valid, change to assert if possible
-		const ChunkType* chunk = chunkGrid.GetChunk(chunkLocation);
+		std::shared_ptr<const ChunkType> chunk = chunkGrid.GetChunk(chunkLocation);
 		if (chunk == nullptr || chunk->IsEmpty()) {
 			return;
 		}
 
 		std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
 
-		const ChunkType* topChunk = chunkGrid.GetChunk(chunkLocation + glm::ivec3(0, 1, 0));
-		const ChunkType* bottomChunk = chunkGrid.GetChunk(chunkLocation - glm::ivec3(0, 1, 0));
+		std::shared_ptr<const ChunkType> topChunk = chunkGrid.GetChunk(chunkLocation + glm::ivec3(0, 1, 0));
+		std::shared_ptr<const ChunkType> bottomChunk = chunkGrid.GetChunk(chunkLocation - glm::ivec3(0, 1, 0));
 
 		// face hulling
 		for (int a = 1; a < CS_P - 1; a++) {
@@ -260,8 +261,8 @@ public:
 		}
 	}
 
-	template<VoxelMeshWriter MeshWriter>
-	void MeshChunkGrid(const ChunkGrid<ChunkType>& chunkGrid, MeshWriter& out) const
+	template<ChunkProvider ChunkContianer, VoxelMeshWriter MeshWriter>
+	void MeshChunkGrid(const ChunkContianer& chunkGrid, MeshWriter& out) const
 	{	
 		for (const auto& [index, _] : chunkGrid) 
 		{
