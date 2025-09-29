@@ -157,11 +157,19 @@ private:
 	static inline size_t _GetOpaqueDataIndex(int x, int z) { return x + z * ChunkSize; }
 	static inline size_t _GetColorDataIndex(int x, int y, int z) { return x + z * ChunkSize + y * ChunkSize * ChunkSize; }
 
+private:
+	// friend classes to allow for SIMD optimizations
 	template<typename ChunkType>
 	friend class VoxelWorldEditor;
 
 	template<typename ChunkType>
 	friend class ChunkGeneratorStrategy;
+
+	template<typename ChunkType>
+	friend class EmptyChunkGeneration;
+
+	template<typename ChunkType>
+	friend class FlatChunkGeneration;
 };
 
 typedef Chunk<uint8_t, 8> Chunk8;
