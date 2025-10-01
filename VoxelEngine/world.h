@@ -25,7 +25,7 @@ template<typename ChunkType>
 class World 
 {
 public:
-	World(unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator);
+	explicit World(unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator);
 	// TODO: Create world from file
 	World(const char* filePath); 
 

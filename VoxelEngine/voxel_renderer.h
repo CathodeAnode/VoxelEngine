@@ -46,9 +46,9 @@ public:
 
 	void Init(size_t cachePages, size_t cachePageSize, size_t renderBufferSize);
 
-	template<ChunkProvider<ChunkType> ChunkContainer>
+	template<typename ChunkContainer>
 	void Upload(const ChunkContainer& chunkGrid, const glm::ivec3& coords, VoxelMesher<ChunkType>& mesher);
-	template <ChunkProvider<ChunkType> ChunkContainer>
+	template <typename ChunkContainer>
 	void Upload(const ChunkContainer& chunkGrid, VoxelMesher<ChunkType>& mesher);
 
 	bool UpdatePosition(VoxelObjectID objectID, const glm::vec3& newPosition);

@@ -16,7 +16,7 @@ public:
 	inline Datatype_& At(int x, int y, int z);
 	inline Datatype_ At(int x, int y, int z) const;
 
-	inline size_t GetLength() { return m_Length; }
+	inline size_t GetLength() const { return m_Length; }
 
 private:
 	std::vector<Datatype_> m_RawBuffer;

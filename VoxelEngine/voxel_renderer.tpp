@@ -68,11 +68,11 @@ void VoxelRenderer<ChunkType>::Init(size_t cachePages, size_t cachePageSize, siz
 }
 
 template<typename ChunkType>
-template <ChunkProvider<ChunkType> ChunkContainer>
+template <typename ChunkContainer>
 void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkGrid, const glm::ivec3& chunkCoords, VoxelMesher<ChunkType>& mesher)
 {
 
-    const ChunkType* chunk = chunkGrid.getChunk(chunkCoords);
+    std::shared_ptr<const ChunkType> chunk = chunkGrid.GetChunk(chunkCoords);
     VoxelObjectID chunkUID = chunk->GetUID();
     GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
 
@@ -94,7 +94,7 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkGrid, const glm
 }
 
 template<typename ChunkType>
-template <ChunkProvider<ChunkType> ChunkContainer>
+template <typename ChunkContainer>
 void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkGrid, VoxelMesher<ChunkType>& mesher)
 {
     VoxelObjectID gridUID = chunkGrid.GetUID();

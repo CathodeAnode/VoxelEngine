@@ -8,7 +8,7 @@ World<ChunkType>::World(unsigned int loadedChunksDistance, std::unique_ptr<Chunk
 	, m_ChunkGenerator(std::move(generator))
 {
 	assert(loadedChunksDistance % 2 != 0, "loaded chunks distance must be odd");
-	m_LastPlayerGridCoords = glm::ivec3(MAX_GRID_INT, MAX_GRID_INT, MAX_GRID_INT) - 10;
+	m_LastPlayerGridCoords = glm::ivec3(0, 0, 0);
 	m_Renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, pow(loadedChunksDistance, 3) * AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK);
 
 	// pre-allocate all chunks in memory
@@ -68,6 +68,8 @@ inline void World<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 		}
 
 	}
+
+	m_LastPlayerGridCoords = playerGridCoords;
 }
 
 template<typename ChunkType>
@@ -110,7 +112,7 @@ void World<ChunkType>::UpdateRender(const glm::vec3& playerWorldCoords)
 				{
 					if (!m_Renderer.IsCached(chunkUID))
 					{
-						m_Renderer.Upload(m_LoadedChunks, chunkCoords, m_Mesher);
+						m_Renderer.Upload(*this, chunkCoords, m_Mesher);
 					}
 					m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
 				}
@@ -174,7 +176,9 @@ inline std::shared_ptr<ChunkType> World<ChunkType>::_LoadChunk(const glm::ivec3&
 	// steps:
 	// 1. if chunk exisits in world map file, load and return from file
 	// 2. otherwise, generate and return chunk
-	return m_ChunkGenerator.Generate(chunkCoords);
+	std::shared_ptr<ChunkType> ret = std::make_shared<ChunkType>();
+	m_ChunkGenerator->Generate(chunkCoords, ret);
+	return ret;
 }
 
 #endif

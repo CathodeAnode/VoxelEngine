@@ -33,7 +33,8 @@ private:
 
 	std::array<uintC_t, CS_2 * 6> m_FaceMasks;
 
-	static uintC_t _GetPaddedColumnRowBits(const ChunkGrid<ChunkType>& world, int x, int z, const glm::ivec3& chunkLocation) {
+	template<typename ChunkContainer>
+	static uintC_t _GetPaddedColumnRowBits(const ChunkContainer& world, int x, int z, const glm::ivec3& chunkLocation) {
 		// Reject completely invalid or corner out-of-bounds accesses
 		assert((x > 0 && z > 0) || x >= 0 || z >= 0 ||
 			(x < CS_P && z < CS_P) ||
@@ -65,7 +66,7 @@ private:
 			chunkZ = z - 1;
 		}
 
-		const ChunkType* chunk = world.GetChunk(chunkLocation + offset);
+		std::shared_ptr<const ChunkType> chunk = world.GetChunk(chunkLocation + offset);
 		if (chunk) {
 			return chunk->GetColumnRow(chunkX, chunkZ);
 		}
@@ -89,7 +90,7 @@ private:
 		return ret;
 	}
 
-	std::unordered_map<RGBAColor, std::array<uintC_t, CS_2>> _SplitVoxelsByColor(uint8_t axis, const ChunkType* chunk)
+	std::unordered_map<RGBAColor, std::array<uintC_t, CS_2>> _SplitVoxelsByColor(uint8_t axis, std::shared_ptr<const ChunkType> chunk)
 	{
 		// MUST HAPPEN AFTER FACE HULLING STEP
 		std::unordered_map<RGBAColor, std::array<uintC_t, CS_2>> data;
@@ -142,7 +143,7 @@ private:
 
 public:
 
-	template<ChunkProvider ChunkContainer, VoxelMeshWriter MeshWriter>
+	template<typename ChunkContainer, VoxelMeshWriter MeshWriter>
 	void MeshChunk(const ChunkContainer& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out)
 	{
 		// TODO ideally you wouldnt have to check if the chunk is valid, change to assert if possible
@@ -261,7 +262,7 @@ public:
 		}
 	}
 
-	template<ChunkProvider ChunkContianer, VoxelMeshWriter MeshWriter>
+	template<typename ChunkContianer, VoxelMeshWriter MeshWriter>
 	void MeshChunkGrid(const ChunkContianer& chunkGrid, MeshWriter& out) const
 	{	
 		for (const auto& [index, _] : chunkGrid) 

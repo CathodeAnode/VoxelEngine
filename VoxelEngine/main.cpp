@@ -98,7 +98,7 @@ int main() {
 	*/
 	Chunk8 filledChunk(true);
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
-	World8 world(10u, std::move(flatGenerator));
+	World8 world(11u, std::move(flatGenerator));
 	VoxelWorldEditor<Chunk8> test(world);
 
 
@@ -132,6 +132,7 @@ int main() {
 		shaderPrgm.Use();
 		shaderPrgm.SetMat4("view", camera.GetViewMatrix());
 		shaderPrgm.SetMat4("projection", camera.GetProjMatrix());
+		world.Update(camera.pos);
 		world.UpdateRender(camera.pos);
 		world.Render();
 		//std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;
