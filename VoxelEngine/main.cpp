@@ -98,7 +98,7 @@ int main() {
 	*/
 	Chunk8 filledChunk(true);
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
-	World8 world(11u, std::move(flatGenerator));
+	World8 world(camera.pos, 3u, std::move(flatGenerator));
 	VoxelWorldEditor<Chunk8> test(world);
 
 

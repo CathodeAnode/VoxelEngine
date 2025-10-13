@@ -3,22 +3,23 @@
 #include "world.h"
 
 template<typename ChunkType>
-World<ChunkType>::World(unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator)
+World<ChunkType>::World(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator)
 	: m_LoadedChunks(loadedChunksDistance)
 	, m_ChunkGenerator(std::move(generator))
 {
 	assert(loadedChunksDistance % 2 != 0, "loaded chunks distance must be odd");
-	m_LastPlayerGridCoords = glm::ivec3(0, 0, 0);
 	m_Renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, pow(loadedChunksDistance, 3) * AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK);
 
 	// pre-allocate all chunks in memory
+	m_LastPlayerGridCoords = playerWorldCoords;
 	for (int z = 0; z < loadedChunksDistance; ++z)
 	{
 		for (int y = 0; y < loadedChunksDistance; ++y)
 		{
 			for (int x = 0; x < loadedChunksDistance; ++x)
 			{
-				m_LoadedChunks.At(x, y, z) = std::make_shared<ChunkType>();
+				glm::ivec3 coords(x + playerWorldCoords.x, y + playerWorldCoords.y, z + playerWorldCoords.z);
+				m_LoadedChunks.At(coords) = std::move(_LoadChunk(coords));
 			}
 		}
 	}
@@ -42,11 +43,11 @@ inline void World<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 
 	const glm::ivec3 playerGridCoordsDiff = m_LastPlayerGridCoords - playerGridCoords;
 
-	for (int axis = 0; axis < 3; axis)
+	for (int axis = 0; axis < 3; axis++)
 	{
 		if (playerGridCoordsDiff[axis] == 0) continue;
 
-		int plane = playerGridCoords[axis] + static_cast<int>((m_LoadedChunks.GetLength() / 2) * playerGridCoordsDiff[axis]);
+		int plane = playerGridCoords[axis] + (m_LoadedChunks.GetLength() / 2) * playerGridCoordsDiff[axis];
 
 		for (int i = 0; i < m_LoadedChunks.GetLength(); i++)
 		{
