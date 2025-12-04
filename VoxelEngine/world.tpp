@@ -11,15 +11,16 @@ World<ChunkType>::World(const glm::vec3& playerWorldCoords, unsigned int loadedC
 	m_Renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, pow(loadedChunksDistance, 3) * AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK);
 
 	// pre-allocate all chunks in memory
-	m_LastPlayerGridCoords = playerWorldCoords;
-	for (int z = 0; z < loadedChunksDistance; ++z)
+	const glm::ivec3 playerGridCoords = ToChunkGridCords(playerWorldCoords);
+	const int halfLoadedDist = loadedChunksDistance / 2;
+	for (int z = -halfLoadedDist; z <= halfLoadedDist; ++z)
 	{
-		for (int y = 0; y < loadedChunksDistance; ++y)
+		for (int y = -halfLoadedDist; y <= halfLoadedDist; ++y)
 		{
-			for (int x = 0; x < loadedChunksDistance; ++x)
+			for (int x = -halfLoadedDist; x <= halfLoadedDist; ++x)
 			{
-				glm::ivec3 coords(x + playerWorldCoords.x, y + playerWorldCoords.y, z + playerWorldCoords.z);
-				m_LoadedChunks.At(coords) = std::move(_LoadChunk(coords));
+				glm::ivec3 coords = playerGridCoords + glm::ivec3(x, y, z);
+				m_LoadedChunks.At(coords) = _LoadChunk(coords);
 			}
 		}
 	}
@@ -29,12 +30,7 @@ template<typename ChunkType>
 inline void World<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 {
 	// step 1: convert player world coordinates to grid coordinates
-	const int chunkSize = ChunkType::Size;
-	const glm::ivec3 playerGridCoords(
-		floor(playerWorldCoords.x / (float)chunkSize),
-		floor(playerWorldCoords.y / (float)chunkSize),
-		floor(playerWorldCoords.z / (float)chunkSize)
-	);
+	const glm::ivec3 playerGridCoords = ToChunkGridCords(playerWorldCoords);
 
 	// step 2: check if player grid coords has changed since last call
 	if (playerGridCoords == m_LastPlayerGridCoords) {
@@ -70,6 +66,7 @@ inline void World<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 
 	}
 
+	UpdateRender(playerWorldCoords);
 	m_LastPlayerGridCoords = playerGridCoords;
 }
 
@@ -78,16 +75,8 @@ void World<ChunkType>::UpdateRender(const glm::vec3& playerWorldCoords)
 {
 	// step 1: convert player world coordinates to grid coordinates
 	const int chunkSize = ChunkType::Size;
-	const glm::ivec3 playerGridCoords(
-		floor(playerWorldCoords.x / (float)chunkSize),
-		floor(playerWorldCoords.y / (float)chunkSize),
-		floor(playerWorldCoords.z / (float)chunkSize)
-	);
+	const glm::ivec3 playerGridCoords = ToChunkGridCords(playerWorldCoords);
 
-	// step 2: check if player grid coords has changed since last call
-	if (playerGridCoords == m_LastPlayerGridCoords) {
-		return; //exit early
-	}
 
 	//step 3: compute m_LoadedChunks to be rendered around player in sphereical volume
 	const int loadedChunksDistance = m_LoadedChunks.GetLength();
@@ -123,8 +112,6 @@ void World<ChunkType>::UpdateRender(const glm::vec3& playerWorldCoords)
 	}
 
 	m_Renderer.NextFrame();
-
-	m_LastPlayerGridCoords = playerGridCoords;
 }
 
 template<typename ChunkType>

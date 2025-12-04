@@ -61,7 +61,8 @@ float lastFrame = 0.0f;
 Screen screen(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
 
 
-int main() {
+int main() 
+{
 	//ChunkGrid8 world;
 	//VoxelMesher8 mesher;
 	//world.addChunk(Chunk8(true), glm::ivec3(0, 0, 0));
@@ -98,7 +99,7 @@ int main() {
 	*/
 	Chunk8 filledChunk(true);
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
-	World8 world(camera.pos, 3u, std::move(flatGenerator));
+	World8 world(glm::ivec3(1,1,1), 3u, std::move(flatGenerator));
 	VoxelWorldEditor<Chunk8> test(world);
 
 
@@ -106,14 +107,15 @@ int main() {
 	Shader shaderPrgm = Shader({ 
 		{"voxel_shader.vert.glsl", GL_VERTEX_SHADER},	
 		{"voxel_shader.frag.glsl", GL_FRAGMENT_SHADER}
-		});
+	});
 
 	shaderPrgm.Use();
 	//camera.speed = 40.0f;
 
 	double lastToggleTime = 0.0;
 	int i = 0;
-	while (screen.isOpen()) {
+	while (screen.isOpen()) 
+	{
 		double currTime = glfwGetTime();
 		deltaTime = currTime - lastFrame;
 		fps = 1 / deltaTime;
@@ -133,7 +135,6 @@ int main() {
 		shaderPrgm.SetMat4("view", camera.GetViewMatrix());
 		shaderPrgm.SetMat4("projection", camera.GetProjMatrix());
 		world.Update(camera.pos);
-		world.UpdateRender(camera.pos);
 		world.Render();
 		//std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;
 
@@ -144,7 +145,8 @@ int main() {
 	}
 
 	GLenum err;
-	while ((err = glGetError()) != GL_NO_ERROR) {
+	while ((err = glGetError()) != GL_NO_ERROR) 
+	{
 		std::cerr << "GL ERROR: " << std::hex << err << std::endl;
 	}
 
@@ -154,49 +156,60 @@ int main() {
 }
 
 void processInput(Screen& screen, double dt) {
-	if (Keyboard::key(GLFW_KEY_ESCAPE)) {
+	if (Keyboard::key(GLFW_KEY_ESCAPE)) 
+	{
 		screen.close();
 	}
 
-	if (Keyboard::key(GLFW_KEY_W)) {
+	if (Keyboard::key(GLFW_KEY_W)) 
+	{
 		camera.UpdateCameraPos(CameraDirection::FORWARD, dt);
 	}
 
-	if (Keyboard::key(GLFW_KEY_S)) {
+	if (Keyboard::key(GLFW_KEY_S)) 
+	{
 		camera.UpdateCameraPos(CameraDirection::BACKWARD, dt);
 	}
 
-	if (Keyboard::key(GLFW_KEY_D)) {
+	if (Keyboard::key(GLFW_KEY_D)) 
+	{
 		camera.UpdateCameraPos(CameraDirection::RIGHT, dt);
 	}
 
-	if (Keyboard::key(GLFW_KEY_A)) {
+	if (Keyboard::key(GLFW_KEY_A)) 
+	{
 		camera.UpdateCameraPos(CameraDirection::LEFT, dt);
 	}
 
-	if (Keyboard::key(GLFW_KEY_SPACE)) {
+	if (Keyboard::key(GLFW_KEY_SPACE)) 
+	{
 		camera.UpdateCameraPos(CameraDirection::UP, dt);
 	}
 
-	if (Keyboard::key(GLFW_KEY_LEFT_SHIFT)) {
+	if (Keyboard::key(GLFW_KEY_LEFT_SHIFT)) 
+	{
 		camera.UpdateCameraPos(CameraDirection::DOWN, dt);
 	}
 
 	double dx = Mouse::getDX(), dy = Mouse::getDY();
-	if (dx != 0 || dy != 0) {
+	if (dx != 0 || dy != 0) 
+	{
 		camera.UpdateCameraDirection(dx, dy);
 	}
 
 	double scrollDY = Mouse::getScrollDY();
-	if (scrollDY != 0) {
+	if (scrollDY != 0) 
+	{
 		camera.UpdateCameraZoom(scrollDY);
 	}
 
 	mainJ.Update();
 }
 
-void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos) {
-	if (countFPS > numOfFrames) {
+void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos) 
+{
+	if (countFPS > numOfFrames) 
+	{
 		// this is taking alot of cpu cycles
 		std::string title = "VoxelEngine - FPS: " + std::to_string(sumFPS / countFPS) +
 			" | Pos(" +
