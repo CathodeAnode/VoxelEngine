@@ -23,18 +23,13 @@ public:
 private:
     std::vector<Datatype_> m_RawBuffer;
     size_t m_Length;
-    glm::ivec3 m_Offset;
 
     inline size_t Index(int x, int y, int z) const
     {
-        auto wrap = [&](int v) {
-            v %= int(m_Length);
-            return (v < 0) ? v + m_Length : v;
-            };
-
-        int wx = wrap(x + m_Offset.x);
-        int wy = wrap(y + m_Offset.y);
-        int wz = wrap(z + m_Offset.z);
+        const size_t offset = m_Length / 2;
+        int wx = (((x + offset) % m_Length) + m_Length) % m_Length;
+        int wy = (((y + offset) % m_Length) + m_Length) % m_Length;
+        int wz = (((z + offset) % m_Length) + m_Length) % m_Length;
 
         return wx + wz * m_Length + wy * m_Length * m_Length;
     }
@@ -44,7 +39,6 @@ template<typename Datatype_>
 inline RingBuffer3D<Datatype_>::RingBuffer3D(size_t size)
     : m_RawBuffer(size* size* size)
     , m_Length(size)
-    , m_Offset(int(size / 2), int(size / 2), int(size / 2))
 {}
 
 template<typename Datatype_>

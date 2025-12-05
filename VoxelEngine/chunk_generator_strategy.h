@@ -6,6 +6,11 @@
 // Forward declare glm::ivec3
 #include <glm/fwd.hpp> 
 
+
+//TEMP
+#include <random>
+#include <chrono>
+
 template<typename ChunkType>
 class ChunkGeneratorStrategy
 {
@@ -37,12 +42,15 @@ public:
 	// TODO: pass some sort of struct/class to specifiy the color generation of the voxels
 	FlatChunkGeneration(int heightLevel)
 		: k_HeightLevel(heightLevel)
+		, seed(std::chrono::system_clock::now().time_since_epoch().count())
+		, engine(seed)
+		, dist(0, 0xffffffff)
 	{}
 
 	void Generate(const glm::ivec3& chunkCoords, const std::shared_ptr<ChunkType>& outChunk)
 	{
 		typename ChunkType::ValueType voxelFill;
-		if (chunkCoords.y > k_HeightLevel)
+		if (chunkCoords.y >= k_HeightLevel)
 		{
 			voxelFill = 0;
 		}
@@ -51,9 +59,13 @@ public:
 			voxelFill = ~ChunkType::ValueType(0);
 			// TODO: set voxel color data using passed object in constructor
 			constexpr int colorBufferSize = ChunkType::Size * ChunkType::Size * ChunkType::Size;
+
+			//TEMP
+			const int randColor = dist(engine);
+
 			for (int i = 0; i < colorBufferSize; i++)
 			{
-				outChunk->m_ColorData[i] = 0xefefefff; // white color
+				outChunk->m_ColorData[i] = randColor;
 			}
 		}
 
@@ -67,6 +79,11 @@ public:
 
 private:
 	const int k_HeightLevel;
+
+	//TEMP
+	unsigned seed;
+	std::mt19937 engine;
+	std::uniform_int_distribution<unsigned long int> dist;
 };
 
 

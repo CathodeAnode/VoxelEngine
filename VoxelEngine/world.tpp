@@ -24,6 +24,7 @@ World<ChunkType>::World(const glm::vec3& playerWorldCoords, unsigned int loadedC
 			}
 		}
 	}
+	UpdateRender(playerWorldCoords);
 }
 
 template<typename ChunkType>
@@ -37,30 +38,36 @@ inline void World<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 		return; //exit early
 	}
 
-	const glm::ivec3 playerGridCoordsDiff = m_LastPlayerGridCoords - playerGridCoords;
+	const glm::ivec3 playerGridCoordsDiff = playerGridCoords - m_LastPlayerGridCoords;
 
 	for (int axis = 0; axis < 3; axis++)
 	{
 		if (playerGridCoordsDiff[axis] == 0) continue;
 
-		int plane = playerGridCoords[axis] + (m_LoadedChunks.GetLength() / 2) * playerGridCoordsDiff[axis];
+		int plane = (m_LoadedChunks.GetLength() / 2) * playerGridCoordsDiff[axis];
 
-		for (int i = 0; i < m_LoadedChunks.GetLength(); i++)
+		const int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
+		for (int i = -halfLoadedDist; i <= halfLoadedDist; i++)
 		{
-			for (int j = 0; j < m_LoadedChunks.GetLength(); j++)
+			for (int j = -halfLoadedDist; j <= halfLoadedDist; j++)
 			{
+				glm::ivec3 local(0);
+				glm::ivec3 global(0);
 				switch (axis)
 				{
 				case 0:
-					m_LoadedChunks.At(plane, i, j) = std::move(_LoadChunk(glm::ivec3(plane, i, j)));
+					local = glm::ivec3(plane, i, j);
 					break;
 				case 1:
-					m_LoadedChunks.At(i, plane, j) = std::move(_LoadChunk(glm::ivec3(i, plane, j)));
+					local = glm::ivec3(i, plane, j);
 					break;
 				case 2:
-					m_LoadedChunks.At(j, i, plane) = std::move(_LoadChunk(glm::ivec3(j, i, plane)));
+					local = glm::ivec3(j, i, plane);
 					break;
 				}
+
+				global = local + playerGridCoords;
+				m_LoadedChunks.At(local.x, local.y, local.z) = std::move(_LoadChunk(global));
 			}
 		}
 
@@ -73,28 +80,19 @@ inline void World<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 template<typename ChunkType>
 void World<ChunkType>::UpdateRender(const glm::vec3& playerWorldCoords)
 {
-	// step 1: convert player world coordinates to grid coordinates
-	const int chunkSize = ChunkType::Size;
-	const glm::ivec3 playerGridCoords = ToChunkGridCords(playerWorldCoords);
-
-
-	//step 3: compute m_LoadedChunks to be rendered around player in sphereical volume
-	const int loadedChunksDistance = m_LoadedChunks.GetLength();
-	const int loadedDistRadius_2 = loadedChunksDistance * loadedChunksDistance;
-
-	for (int x = -loadedChunksDistance; x <= loadedChunksDistance; x++)
+	const int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
+	for (int x = -halfLoadedDist; x <= halfLoadedDist; x++)
 	{
-		for (int y = -loadedChunksDistance; y <= loadedChunksDistance; y++)
+		for (int y = -halfLoadedDist; y <= halfLoadedDist; y++)
 		{
-			for (int z = -loadedChunksDistance; z <= loadedChunksDistance; z++)
+			for (int z = -halfLoadedDist; z <= halfLoadedDist; z++)
 			{
-				if (x * x + y * y + z * z > loadedDistRadius_2) continue; // outside sphere
 
-				glm::ivec3 chunkCoords = playerGridCoords + glm::ivec3(x, y, z); // relative to player
+				glm::ivec3 chunkCoords = ToChunkGridCords(playerWorldCoords) + glm::ivec3(x, y, z);
 				std::shared_ptr<ChunkType> chunk = m_LoadedChunks.At(chunkCoords);
 
 				if (chunk->IsEmpty()) continue;
-				glm::ivec3 chunkWorldPos = chunkCoords * chunkSize;
+				glm::ivec3 chunkWorldPos = chunkCoords * static_cast<int>(ChunkType::Size);
 
 
 				const VoxelObjectID chunkUID = chunk->GetUID();
