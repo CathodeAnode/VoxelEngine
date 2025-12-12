@@ -86,5 +86,54 @@ private:
 	std::uniform_int_distribution<unsigned long int> dist;
 };
 
+template<typename ChunkType>
+class SinusoidalChunkGeneration : public ChunkGeneratorStrategy<ChunkType>
+{
+public:
+	SinusoidalChunkGeneration(int height)
+		: m_Amplitude(height)
+		, seed(std::chrono::system_clock::now().time_since_epoch().count())
+		, engine(seed)
+		, dist(0, 0xffffffff)
+	{}
+
+
+	void Generate(const glm::ivec3& chunkCoords, const std::shared_ptr<ChunkType>& outChunk)
+	{
+		const float freq = 0.10f;
+
+		//TEMP
+		const int randColor = dist(engine);
+
+		for (int x = 0; x < ChunkType::Size; x++)
+		{
+			for (int y = 0; y < ChunkType::Size; y++)
+			{
+				for (int z = 0; z < ChunkType::Size; z++)
+				{
+					int worldX = chunkCoords.x * ChunkType::Size + x;
+					int worldY = chunkCoords.y * ChunkType::Size + y;
+					int worldZ = chunkCoords.z * ChunkType::Size + z;
+
+					float height = m_Amplitude * sin(worldX * freq) * sin(worldZ * freq);
+
+					if (worldY < height)
+					{
+						outChunk->SetVoxel(x, y, z, randColor);
+					}
+				}
+			}
+		}
+	}
+
+private:
+	const int m_Amplitude;
+
+	//TEMP
+	unsigned seed;
+	std::mt19937 engine;
+	std::uniform_int_distribution<unsigned long int> dist;
+};
+
 
 #endif
