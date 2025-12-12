@@ -52,7 +52,7 @@ Joystick mainJ(0);
 
 unsigned int SCREEN_WIDTH = 800, SCREEN_HEIGHT = 600;
 
-Camera camera(glm::vec3(0.0f, 0.0f, 0.0f), SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 100.0f);
+Camera camera(glm::vec3(0.0f, 1.0f, 0.0f), SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 100.0f);
 
 float deltaTime = 0.0f;
 float fps = 0.0f;
@@ -99,7 +99,7 @@ int main()
 	*/
 	Chunk8 filledChunk(true);
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
-	World8 world(camera.pos, 9u, std::move(flatGenerator));
+	World8 world(camera.pos, 5u, std::move(flatGenerator));
 	VoxelWorldEditor<Chunk8> test(world);
 
 

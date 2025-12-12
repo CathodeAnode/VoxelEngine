@@ -44,9 +44,9 @@ inline void World<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 	{
 		if (playerGridCoordsDiff[axis] == 0) continue;
 
-		int plane = (m_LoadedChunks.GetLength() / 2) * playerGridCoordsDiff[axis];
-
 		const int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
+		int plane = halfLoadedDist * playerGridCoordsDiff[axis];
+
 		for (int i = -halfLoadedDist; i <= halfLoadedDist; i++)
 		{
 			for (int j = -halfLoadedDist; j <= halfLoadedDist; j++)
@@ -55,19 +55,19 @@ inline void World<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 				glm::ivec3 global(0);
 				switch (axis)
 				{
-				case 0:
+				case 0: // x axis
 					local = glm::ivec3(plane, i, j);
 					break;
-				case 1:
+				case 1: // y axis
 					local = glm::ivec3(i, plane, j);
 					break;
-				case 2:
+				case 2: // z axis
 					local = glm::ivec3(j, i, plane);
 					break;
 				}
 
 				global = local + playerGridCoords;
-				m_LoadedChunks.At(local.x, local.y, local.z) = std::move(_LoadChunk(global));
+				m_LoadedChunks.At(global) = std::move(_LoadChunk(global));
 			}
 		}
 
