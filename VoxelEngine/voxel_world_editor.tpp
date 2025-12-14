@@ -1,7 +1,7 @@
 #include "voxel_world_editor.h"
 
 template<typename ChunkType>
-VoxelWorldEditor<ChunkType>::VoxelWorldEditor(World<ChunkType>& world)
+VoxelWorldEditor<ChunkType>::VoxelWorldEditor(Terrian<ChunkType>& world)
 	: m_World(world)
 {}
 

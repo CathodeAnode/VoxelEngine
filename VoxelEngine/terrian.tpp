@@ -1,9 +1,9 @@
-#ifndef WORLD_TPP
-#define WORLD_TPP
-#include "world.h"
+#ifndef TERRIAN_TPP
+#define TERRIAN_TPP
+#include "terrian.h"
 
 template<typename ChunkType>
-World<ChunkType>::World(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator)
+Terrian<ChunkType>::Terrian(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator)
 	: m_LoadedChunks(loadedChunksDistance)
 	, m_ChunkGenerator(std::move(generator))
 	, m_Renderer(std::make_unique<VoxelMesher<ChunkType>>())
@@ -29,7 +29,7 @@ World<ChunkType>::World(const glm::vec3& playerWorldCoords, unsigned int loadedC
 }
 
 template<typename ChunkType>
-inline void World<ChunkType>::Update(const glm::vec3& playerWorldCoords)
+inline void Terrian<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 {
 	// step 1: convert player world coordinates to grid coordinates
 	const glm::ivec3 playerGridCoords = ToChunkGridCords(playerWorldCoords);
@@ -79,7 +79,7 @@ inline void World<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 }
 
 template<typename ChunkType>
-void World<ChunkType>::UpdateRender(const glm::vec3& playerWorldCoords)
+void Terrian<ChunkType>::UpdateRender(const glm::vec3& playerWorldCoords)
 {
 	const int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
 	for (int x = -halfLoadedDist; x <= halfLoadedDist; x++)
@@ -114,19 +114,19 @@ void World<ChunkType>::UpdateRender(const glm::vec3& playerWorldCoords)
 }
 
 template<typename ChunkType>
-void World<ChunkType>::Render()
+void Terrian<ChunkType>::Render()
 {
 	m_Renderer.Render();
 }
 
 template<typename ChunkType>
-inline VoxelObjectID World<ChunkType>::GetChunkID(const glm::ivec3& chunkCoords)
+inline VoxelObjectID Terrian<ChunkType>::GetChunkID(const glm::ivec3& chunkCoords)
 {
 	return m_LoadedChunks.GetChunkID(chunkCoords);
 }
 
 template<typename ChunkType>
-std::shared_ptr<ChunkType> World<ChunkType>::GetChunk(const glm::ivec3& chunkCoords)
+std::shared_ptr<ChunkType> Terrian<ChunkType>::GetChunk(const glm::ivec3& chunkCoords)
 {
 	// TODO: mark chunk as dirty (save to world map file on disk)
 	int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
@@ -141,7 +141,7 @@ std::shared_ptr<ChunkType> World<ChunkType>::GetChunk(const glm::ivec3& chunkCoo
 }
 
 template<typename ChunkType>
-std::shared_ptr<const ChunkType> World<ChunkType>::GetChunk(const glm::ivec3& chunkCoords) const
+std::shared_ptr<const ChunkType> Terrian<ChunkType>::GetChunk(const glm::ivec3& chunkCoords) const
 {
 	int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
 	if (abs(chunkCoords.x - m_LastPlayerGridCoords.x) > halfLoadedDist ||
@@ -156,7 +156,7 @@ std::shared_ptr<const ChunkType> World<ChunkType>::GetChunk(const glm::ivec3& ch
 
 
 template<typename ChunkType>
-inline std::shared_ptr<ChunkType> World<ChunkType>::_LoadChunk(const glm::ivec3& chunkCoords) const
+inline std::shared_ptr<ChunkType> Terrian<ChunkType>::_LoadChunk(const glm::ivec3& chunkCoords) const
 {
 	// TODO: assert chunk is not already loaded in ring buffer
 	// TODO: handle loading from filesystem here

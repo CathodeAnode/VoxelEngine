@@ -10,13 +10,15 @@
 
 
 class Camera;
-template<typename ChunkType> class World;
+
+template<typename ChunkType>
+class Terrian;
 
 template<typename ChunkType>
 class Scene
 {
 public:
-	Scene(Camera& camera, World<ChunkType>& world, VoxelRenderer<ChunkType>& voxelRenderer); // add DI for models/character container in the future
+	Scene(Camera& camera, Terrian<ChunkType>& world, VoxelRenderer<ChunkType>& voxelRenderer); // add DI for models/character container in the future
 
 	void Update();
 	void Render();
@@ -27,7 +29,7 @@ public:
 private:
 	VoxelMesher<ChunkType> m_Mesher;
 	Camera& m_Camera;
-	World<ChunkType>& m_World;
+	Terrian<ChunkType>& m_World;
 	VoxelRenderer<ChunkType>& m_VoxelRenderer;
 
 	unsigned int m_RenderDistance = 10;
@@ -36,7 +38,7 @@ private:
 
 
 template<typename ChunkType>
-Scene<ChunkType>::Scene(Camera& camera, World<ChunkType>& world, VoxelRenderer<ChunkType>& voxelRenderer)
+Scene<ChunkType>::Scene(Camera& camera, Terrian<ChunkType>& world, VoxelRenderer<ChunkType>& voxelRenderer)
 	: m_Camera(camera)
 	, m_World(world)
 	, m_VoxelRenderer(voxelRenderer)

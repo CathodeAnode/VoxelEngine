@@ -25,7 +25,7 @@
 #include "voxel_mesher.h"
 #include "chunk_generator_strategy.h"
 #include "voxel_world_editor.h"
-#include "world.h"
+#include "terrian.h"
 #include "scene.h"
 #include "voxel_ray_cast.h"
 
@@ -121,7 +121,7 @@ int main()
 	*/
 	Chunk8 filledChunk(true);
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
-	World8 world(camera.pos, 9u, std::move(flatGenerator));
+	Terrian8 world(camera.pos, 9u, std::move(flatGenerator));
 	VoxelWorldEditor<Chunk8> test(world);
 
 	Shader shaderPrgm = Shader({ 
