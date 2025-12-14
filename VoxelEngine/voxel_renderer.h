@@ -5,15 +5,18 @@
 #include <glm/glm.hpp>
 #include <glfw/glfw3.h>
 
+#include <memory>
 #include <vector>
 #include <algorithm>
 
 #include "chunk.h"
-#include "chunk_grid.h"
-#include "voxel_mesher.h"
 #include "types.h"
+#include "voxel_mesh_writer.h"
 #include "gpu_buffer_allocator.h"
 #include "chunk_provider_concept.h"
+
+
+template<typename ChunkType> class VoxelMesher;
 
 // What happens if:
 //	1. an upload causes an eviction on an object we are currently rendering or will render on next frame (bcuz of small cache size)
@@ -41,15 +44,15 @@ template<typename ChunkType>
 class VoxelRenderer 
 {
 public:
-	VoxelRenderer();
+	VoxelRenderer(std::unique_ptr<VoxelMesher<ChunkType>> mesher);
 	~VoxelRenderer();
 
 	void Init(size_t cachePages, size_t cachePageSize, size_t renderBufferSize);
 
-	template<typename ChunkContainer>
-	void Upload(const ChunkContainer& chunkGrid, const glm::ivec3& coords, VoxelMesher<ChunkType>& mesher);
-	template <typename ChunkContainer>
-	void Upload(const ChunkContainer& chunkGrid, VoxelMesher<ChunkType>& mesher);
+	template <ChunkProvider<ChunkType> ChunkContainer>
+	void Upload(const ChunkContainer& chunkContainer, const glm::ivec3& chunkCoords);
+	template <ChunkProvider<ChunkType> ChunkContainer>
+	void Upload(const ChunkContainer& chunkContainer);
 
 	bool UpdatePosition(VoxelObjectID objectID, const glm::vec3& newPosition);
 	void DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position);
@@ -59,7 +62,7 @@ public:
 	inline bool IsCached(VoxelObjectID objectID) { return m_DataCache.Has(objectID); }
 	void ToggleDrawLines();
 private:
-	unsigned int m_VAO, m_QuadVBO;
+	std::unique_ptr<VoxelMesher<ChunkType>> m_Mesher;
 
 	GPUPagedLRUCache<VoxelQuad, VoxelObjectID> m_DataCache;
 	GPUOrphanBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
@@ -71,6 +74,7 @@ private:
 	size_t m_CurrentIndirectCmdsCount = 0;
 	size_t m_NextIndirectCmdsCount = 0;
 
+	unsigned int m_VAO, m_QuadVBO;
 	float m_QuadVertices[20] = {
 		// position             texture
 		0.0f,  0.0f, 0.0f,    0.0f, 1.0f,    // Bottom left

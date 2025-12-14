@@ -6,6 +6,7 @@ template<typename ChunkType>
 World<ChunkType>::World(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator)
 	: m_LoadedChunks(loadedChunksDistance)
 	, m_ChunkGenerator(std::move(generator))
+	, m_Renderer(std::make_unique<VoxelMesher<ChunkType>>())
 {
 	assert(loadedChunksDistance % 2 != 0, "loaded chunks distance must be odd");
 	m_Renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, pow(loadedChunksDistance, 3) * AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK);
@@ -100,7 +101,7 @@ void World<ChunkType>::UpdateRender(const glm::vec3& playerWorldCoords)
 				{
 					if (!m_Renderer.IsCached(chunkUID))
 					{
-						m_Renderer.Upload(*this, chunkCoords, m_Mesher);
+						m_Renderer.Upload(*this, chunkCoords);
 					}
 					m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
 				}
