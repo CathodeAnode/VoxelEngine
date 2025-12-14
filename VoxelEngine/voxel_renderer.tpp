@@ -154,7 +154,7 @@ void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm
 template <typename ChunkType>
 void VoxelRenderer<ChunkType>::NextFrame()
 {
-    if (m_NextIndirectCmdsCount == 0) return;
+    //if (m_NextIndirectCmdsCount == 0) return;
 
     m_ObjectsRenderedInNextFrame.swap(m_ObjectsRenderedInCurrentFrame);
 

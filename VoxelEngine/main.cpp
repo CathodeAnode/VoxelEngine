@@ -29,6 +29,28 @@
 #include "scene.h"
 #include "voxel_ray_cast.h"
 
+// LIST OF TODOS:
+// Phase 1: 
+// 1.1. re-implment block removal using ray voxel (done)
+// 1.2. move render stuff from world class to scene class
+// 1.3. refactor codebase lol (world, renderer, chunk, and any ugaabooga code)
+// 1.4. use chunk provider concept in render, mesher, any other classes that use a chunk container
+// 1.5. implement chunk concept
+
+// Phase 2: 
+// 2.1. implement main/engine class for main loop and tie all classes together
+// 2.2. spread chunk generation over mutliple game loop iterations rather than all the generation happening in a single frame (queue system)
+// 2.3. implement a debugging gui using dear imgui (display chunk coords, chunk grid coords, looking at coords, useful debugging tools, etc...)
+// 2.4. implement performance profiler
+// 2.5. implement terrian perlin noise generator
+// 2.6. implement terrian height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
+
+// Phase 3:
+// 3.1. design gpu frustum occlustion culling archititure
+// 3.2. implement multi-threading class to handle chunk generation & chunk meshing
+// 3.3. implement compute shader to calculate frustum occlustion culling
+
+
 #define TIME_FUNCTION(func_call) \
     do { \
         auto start_time = std::chrono::high_resolution_clock::now(); \
@@ -99,11 +121,8 @@ int main()
 	*/
 	Chunk8 filledChunk(true);
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
-	std::unique_ptr<SinusoidalChunkGeneration<Chunk8>> sineGenerator = std::make_unique<SinusoidalChunkGeneration<Chunk8>>(3);
-	World8 world(camera.pos, 31u, std::move(sineGenerator));
+	World8 world(camera.pos, 9u, std::move(flatGenerator));
 	VoxelWorldEditor<Chunk8> test(world);
-
-
 
 	Shader shaderPrgm = Shader({ 
 		{"voxel_shader.vert.glsl", GL_VERTEX_SHADER},	
@@ -124,6 +143,15 @@ int main()
 
 		// process input
 		processInput(screen, deltaTime);
+		if (Mouse::buttonUp(0))
+		{
+			glm::ivec3 voxelCoords;
+			bool voxelHit = VoxelRayCast8::cast(Ray(camera.pos, camera.front, 10), world, voxelCoords);
+			if (voxelHit)
+			{
+				std::cout << "Voxel hit at: " << voxelCoords.x << ", " << voxelCoords.y << ", " << voxelCoords.z << std::endl;
+			}
+		}
 
 		// render
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);

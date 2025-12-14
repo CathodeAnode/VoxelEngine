@@ -8,9 +8,13 @@
 #include <glm/fwd.hpp> 
 
 template <typename T, typename ChunkType>
-concept ChunkProvider = requires(T t, const glm::ivec3 & chunkCoords) {
-    { t.GetChunk(chunkCoords) } -> std::same_as<std::shared_ptr<ChunkType>>;
-    { t.GetChunk(chunkCoords) } -> std::same_as<std::shared_ptr<const ChunkType>>;
+concept ChunkProvider =
+    requires(T t, const glm::ivec3 & coords) {
+        { t.GetChunk(coords) } -> std::same_as<std::shared_ptr<ChunkType>>;
+}
+&&
+    requires(const T t, const glm::ivec3& coords) {
+        { t.GetChunk(coords) } -> std::same_as<std::shared_ptr<const ChunkType>>;
 };
 
 #endif
