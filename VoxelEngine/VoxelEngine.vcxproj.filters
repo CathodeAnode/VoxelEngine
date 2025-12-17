@@ -80,6 +80,9 @@
     <None Include="terrian.tpp">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="scene.tpp">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">

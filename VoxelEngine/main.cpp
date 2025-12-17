@@ -32,10 +32,11 @@
 // LIST OF TODOS:
 // Phase 1: 
 // 1.1. re-implment block removal using ray voxel (done)
-// 1.2. move render stuff from world class to scene class
+// 1.2. move render stuff from world class to scene class (done)
 // 1.3. refactor codebase lol (world, renderer, chunk, and any ugaabooga code)
 // 1.4. use chunk provider concept in render, mesher, any other classes that use a chunk container
 // 1.5. implement chunk concept
+// 1.6. rework chunk id system to use chunk coord encoded in 64 bit int as id
 
 // Phase 2: 
 // 2.1. implement main/engine class for main loop and tie all classes together
@@ -60,6 +61,12 @@
         std::cout << "Function '" << #func_call << "' executed in " << duration << " microseconds." << std::endl; \
     } while (0)
 
+
+// TEMPORARY Cache Currently set to 25mb (need testing to find optimal sizing)
+// Memory overhead from renderer obj on CPU side is ~28.8kb for 25mb cache size (heap)
+#define CACHE_PAGE_SIZE 50
+#define CACHE_NUM_OF_PAGES 125000
+#define AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK 3
 
 void processInput(Screen& screen, double dt);
 void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos);
@@ -119,10 +126,15 @@ int main()
 		Shaders
 	-----------------------
 	*/
-	Chunk8 filledChunk(true);
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
 	Terrian8 world(camera.pos, 9u, std::move(flatGenerator));
+	std::unique_ptr<VoxelMesher8> greedyMesher = std::make_unique<VoxelMesher8>();
+	VoxelRenderer8 renderer(std::move(greedyMesher));
+	renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(9, 3));
+	Scene8 scene(camera, world, renderer);
+
 	VoxelWorldEditor<Chunk8> test(world);
+
 
 	Shader shaderPrgm = Shader({ 
 		{"voxel_shader.vert.glsl", GL_VERTEX_SHADER},	
@@ -157,14 +169,14 @@ int main()
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		camera.Update();
+		//camera.Update();
 
 		// draw
 		shaderPrgm.Use();
 		shaderPrgm.SetMat4("view", camera.GetViewMatrix());
 		shaderPrgm.SetMat4("projection", camera.GetProjMatrix());
-		world.Update(camera.pos);
-		world.Render();
+		scene.Update();
+		scene.Render();
 		//std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;
 
 

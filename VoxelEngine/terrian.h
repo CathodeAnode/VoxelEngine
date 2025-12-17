@@ -7,11 +7,6 @@
 #include "voxel_renderer.h"
 #include "3d_ring_buffer.h"
 
-// TEMPORARY Cache Currently set to 25mb (need testing to find optimal sizing)
-// Memory overhead from renderer obj on CPU side is ~28.8kb for 25mb cache size (heap)
-#define CACHE_PAGE_SIZE 50
-#define CACHE_NUM_OF_PAGES 125000
-#define AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK 3
 
 template<typename ChunkType>
 class ChunkGeneratorStrategy;
@@ -28,11 +23,7 @@ public:
 	Terrian(const char* filePath); 
 
 	// NOTE: assumes player cannont move faster than one chunk per frame (will likely break if player moves faster than 1 chunk per frame)
-	void Update(const glm::vec3& playerWorldCoords);
-
-	// TEMPORARY
-	void UpdateRender(const glm::vec3& playerWorldCoords);
-	void Render();
+	bool Update(const glm::vec3& playerWorldCoords);
 
 	inline VoxelObjectID GetChunkID(const glm::ivec3& chunkCoords);
 
@@ -40,11 +31,12 @@ public:
 	std::shared_ptr<ChunkType> GetChunk(const glm::ivec3& chunkCoords);
 	std::shared_ptr<const ChunkType> GetChunk(const glm::ivec3& chunkCoords) const;
 
+	inline int GetLoadedChunksDistance() const { return m_LoadedChunks.GetLength(); }
+
 	// TODO
 	void SaveWorld(const char* filePath);
 
 private:
-	VoxelRenderer<ChunkType> m_Renderer;
 	RingBuffer3D<std::shared_ptr<ChunkType>> m_LoadedChunks; // chunks loaded around player in distance of loadedChunksDistance/2 in box volume
 	std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> m_ChunkGenerator;
 

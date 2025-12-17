@@ -150,6 +150,7 @@
     <ClCompile Include="texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="scene.tpp" />
     <None Include="voxel_shader.frag.glsl" />
     <None Include="voxel_shader.vert.glsl" />
     <None Include="gpu_buffer_allocator.tpp" />

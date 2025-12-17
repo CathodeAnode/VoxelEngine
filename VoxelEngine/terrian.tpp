@@ -6,10 +6,9 @@ template<typename ChunkType>
 Terrian<ChunkType>::Terrian(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator)
 	: m_LoadedChunks(loadedChunksDistance)
 	, m_ChunkGenerator(std::move(generator))
-	, m_Renderer(std::make_unique<VoxelMesher<ChunkType>>())
+	, m_LastPlayerGridCoords(INT_MAX, INT_MAX, INT_MAX)
 {
 	assert(loadedChunksDistance % 2 != 0, "loaded chunks distance must be odd");
-	m_Renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, pow(loadedChunksDistance, 3) * AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK);
 
 	// pre-allocate all chunks in memory
 	const glm::ivec3 playerGridCoords = ToChunkGridCords(playerWorldCoords);
@@ -25,18 +24,17 @@ Terrian<ChunkType>::Terrian(const glm::vec3& playerWorldCoords, unsigned int loa
 			}
 		}
 	}
-	UpdateRender(playerWorldCoords);
 }
 
 template<typename ChunkType>
-inline void Terrian<ChunkType>::Update(const glm::vec3& playerWorldCoords)
+bool Terrian<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 {
 	// step 1: convert player world coordinates to grid coordinates
 	const glm::ivec3 playerGridCoords = ToChunkGridCords(playerWorldCoords);
 
 	// step 2: check if player grid coords has changed since last call
 	if (playerGridCoords == m_LastPlayerGridCoords) {
-		return; //exit early
+		return false; //exit early
 	}
 
 	const glm::ivec3 playerGridCoordsDiff = playerGridCoords - m_LastPlayerGridCoords;
@@ -74,53 +72,12 @@ inline void Terrian<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 
 	}
 
-	UpdateRender(playerWorldCoords);
 	m_LastPlayerGridCoords = playerGridCoords;
+	return true;
 }
 
 template<typename ChunkType>
-void Terrian<ChunkType>::UpdateRender(const glm::vec3& playerWorldCoords)
-{
-	const int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
-	for (int x = -halfLoadedDist; x <= halfLoadedDist; x++)
-	{
-		for (int y = -halfLoadedDist; y <= halfLoadedDist; y++)
-		{
-			for (int z = -halfLoadedDist; z <= halfLoadedDist; z++)
-			{
-
-				glm::ivec3 chunkCoords = ToChunkGridCords(playerWorldCoords) + glm::ivec3(x, y, z);
-				std::shared_ptr<ChunkType> chunk = m_LoadedChunks.At(chunkCoords);
-
-				if (chunk->IsEmpty()) continue;
-				glm::ivec3 chunkWorldPos = chunkCoords * static_cast<int>(ChunkType::Size);
-
-
-				const VoxelObjectID chunkUID = chunk->GetUID();
-				if (chunkUID != NULL)
-				{
-					if (!m_Renderer.IsCached(chunkUID))
-					{
-						m_Renderer.Upload(*this, chunkCoords);
-					}
-					m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
-				}
-
-			}
-		}
-	}
-
-	m_Renderer.NextFrame();
-}
-
-template<typename ChunkType>
-void Terrian<ChunkType>::Render()
-{
-	m_Renderer.Render();
-}
-
-template<typename ChunkType>
-inline VoxelObjectID Terrian<ChunkType>::GetChunkID(const glm::ivec3& chunkCoords)
+VoxelObjectID Terrian<ChunkType>::GetChunkID(const glm::ivec3& chunkCoords)
 {
 	return m_LoadedChunks.GetChunkID(chunkCoords);
 }
@@ -156,7 +113,7 @@ std::shared_ptr<const ChunkType> Terrian<ChunkType>::GetChunk(const glm::ivec3& 
 
 
 template<typename ChunkType>
-inline std::shared_ptr<ChunkType> Terrian<ChunkType>::_LoadChunk(const glm::ivec3& chunkCoords) const
+std::shared_ptr<ChunkType> Terrian<ChunkType>::_LoadChunk(const glm::ivec3& chunkCoords) const
 {
 	// TODO: assert chunk is not already loaded in ring buffer
 	// TODO: handle loading from filesystem here

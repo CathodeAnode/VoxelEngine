@@ -116,6 +116,10 @@ private:
 	}
 */
 
+typedef VoxelRenderer<Chunk8> VoxelRenderer8;
+typedef VoxelRenderer<Chunk16> VoxelRenderer16;
+typedef VoxelRenderer<Chunk32> VoxelRenderer32;
+
 #include "voxel_renderer.tpp"
 
 #endif
