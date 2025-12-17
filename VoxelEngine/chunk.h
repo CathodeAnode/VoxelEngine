@@ -9,30 +9,20 @@
 #include "types.h"
 #include "uid_manager.h"
 
-#define DEFAULT_VOXEL_COLOR 0x808080FF
-
 template<typename T, unsigned int ChunkSize>
 class Chunk {
 public:
 	using ValueType = T;
 	static constexpr unsigned int Size = ChunkSize;
 
-	// TODO : remove filled bool, always create empty chunk
-	Chunk(bool filled=false) 
+	Chunk() 
 		: k_Uid(UIDManager::Generate())
 	{
 		m_OpaqueData = new T[ChunkSize * ChunkSize];
 		m_ColorData = new RGBAColor[ChunkSize * ChunkSize * ChunkSize];
-		if (filled) {
-			std::fill(m_OpaqueData, m_OpaqueData + ChunkSize * ChunkSize, ~T(0));  // set all bits to 1
-			std::fill(m_ColorData, m_ColorData + ChunkSize * ChunkSize * ChunkSize, DEFAULT_VOXEL_COLOR);
-		}
-		else
-		{
-			std::fill(m_OpaqueData, m_OpaqueData + ChunkSize * ChunkSize, T(0));
-			std::fill(m_ColorData, m_ColorData + ChunkSize * ChunkSize * ChunkSize, RGBAColor(0));
-		}
-		
+
+		std::fill(m_OpaqueData, m_OpaqueData + ChunkSize * ChunkSize, T(0));
+		std::fill(m_ColorData, m_ColorData + ChunkSize * ChunkSize * ChunkSize, RGBAColor(0));
 	};
 
 	// Copy constructor

@@ -1,9 +1,9 @@
-#ifndef TERRAIN_TPP
-#define TERRAIN_TPP
-#include "terrain.h"
+#ifndef CHUNKMANAGER_TPP
+#define CHUNKMANAGER_TPP
+#include "chunk_manager.h"
 
 template<typename ChunkType>
-Terrain<ChunkType>::Terrain(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator)
+ChunkManager<ChunkType>::ChunkManager(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator)
 	: m_LoadedChunks(loadedChunksDistance)
 	, m_ChunkGenerator(std::move(generator))
 	, m_LastPlayerGridCoords(INT_MAX, INT_MAX, INT_MAX)
@@ -27,7 +27,7 @@ Terrain<ChunkType>::Terrain(const glm::vec3& playerWorldCoords, unsigned int loa
 }
 
 template<typename ChunkType>
-bool Terrain<ChunkType>::Update(const glm::vec3& playerWorldCoords)
+bool ChunkManager<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 {
 	// step 1: convert player world coordinates to grid coordinates
 	const glm::ivec3 playerGridCoords = ToChunkGridCords(playerWorldCoords);
@@ -77,13 +77,13 @@ bool Terrain<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 }
 
 template<typename ChunkType>
-VoxelObjectID Terrain<ChunkType>::GetChunkID(const glm::ivec3& chunkCoords)
+VoxelObjectID ChunkManager<ChunkType>::GetChunkID(const glm::ivec3& chunkCoords)
 {
 	return m_LoadedChunks.GetChunkID(chunkCoords);
 }
 
 template<typename ChunkType>
-std::shared_ptr<ChunkType> Terrain<ChunkType>::GetChunk(const glm::ivec3& chunkCoords)
+std::shared_ptr<ChunkType> ChunkManager<ChunkType>::GetChunk(const glm::ivec3& chunkCoords)
 {
 	// TODO: mark chunk as dirty (save to world map file on disk)
 	int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
@@ -98,7 +98,7 @@ std::shared_ptr<ChunkType> Terrain<ChunkType>::GetChunk(const glm::ivec3& chunkC
 }
 
 template<typename ChunkType>
-std::shared_ptr<const ChunkType> Terrain<ChunkType>::GetChunk(const glm::ivec3& chunkCoords) const
+std::shared_ptr<const ChunkType> ChunkManager<ChunkType>::GetChunk(const glm::ivec3& chunkCoords) const
 {
 	int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
 	if (abs(chunkCoords.x - m_LastPlayerGridCoords.x) > halfLoadedDist ||
@@ -113,7 +113,7 @@ std::shared_ptr<const ChunkType> Terrain<ChunkType>::GetChunk(const glm::ivec3& 
 
 
 template<typename ChunkType>
-std::shared_ptr<ChunkType> Terrain<ChunkType>::_LoadChunk(const glm::ivec3& chunkCoords) const
+std::shared_ptr<ChunkType> ChunkManager<ChunkType>::_LoadChunk(const glm::ivec3& chunkCoords) const
 {
 	// TODO: assert chunk is not already loaded in ring buffer
 	// TODO: handle loading from filesystem here

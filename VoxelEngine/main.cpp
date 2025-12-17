@@ -25,7 +25,7 @@
 #include "voxel_mesher.h"
 #include "chunk_generator_strategy.h"
 #include "voxel_world_editor.h"
-#include "terrain.h"
+#include "chunk_manager.h"
 #include "scene.h"
 #include "voxel_ray_cast.h"
 
@@ -33,10 +33,11 @@
 // Phase 1: 
 // 1.1. re-implment block removal using ray voxel (done)
 // 1.2. move render stuff from world class to scene class (done)
-// 1.3. refactor codebase lol (world, renderer, chunk, and any ugaabooga code)
-// 1.4. use chunk provider concept in render, mesher, any other classes that use a chunk container
-// 1.5. implement chunk concept
-// 1.6. rework chunk id system to use chunk coord encoded in 64 bit int as id
+// 1.3. refactor codebase lol [world, renderer, chunk, and any ugaabooga code] (done, kinda?)
+// 1.4. use chunk provider concept in render, mesher, any other classes that use a chunk container (done)
+// 1.5. implement chunk concept (redacted)
+// 1.6. fix weird bugs with 3d circular buffer [weird chunk loading when moving downwads, weird chunk loading when loaded chunk size > 15]
+// 1.7. rework chunk id system to use chunk coord encoded in 64-bit int as id
 
 // Phase 2: 
 // 2.1. implement main/engine class for main loop and tie all classes together
@@ -45,12 +46,13 @@
 // 2.4. implement performance profiler
 // 2.5. implement terrain perlin noise generator
 // 2.6. implement terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
+// 2.7. implmenet logging system?
 
 // Phase 3:
 // 3.1. design gpu frustum occlustion culling archititure
 // 3.2. implement multi-threading class to handle chunk generation & chunk meshing
 // 3.3. implement compute shader to calculate frustum occlustion culling
-
+// 3.4. implement queue system for chunk loading to distrubite loading chunks over multiple frames
 
 #define TIME_FUNCTION(func_call) \
     do { \
@@ -107,12 +109,13 @@ int main()
 		std::cout << "Joystick not connected.\n";
 	}
 
+	constexpr unsigned int loadedChunkDistance = 15;
 
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
-	Terrain8 world(camera.pos, 9u, std::move(flatGenerator));
+	ChunkManager8 world(camera.pos, loadedChunkDistance, std::move(flatGenerator));
 	std::unique_ptr<VoxelMesher8> greedyMesher = std::make_unique<VoxelMesher8>();
 	VoxelRenderer8 renderer(std::move(greedyMesher));
-	renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(9, 3));
+	renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(loadedChunkDistance, 3));
 	Scene8 scene(camera, world, renderer);
 	//VoxelWorldEditor<Chunk8> test(world);
 
@@ -143,8 +146,6 @@ int main()
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 		scene.Update();
 		scene.Render();
-		//std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;
-
 
 		// send back buffer to front buffer
 		screen.Update();

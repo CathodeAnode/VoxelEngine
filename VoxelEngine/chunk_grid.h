@@ -18,7 +18,7 @@
 #define MAX_GRID_INT 1048575
 
 template<typename ChunkType> 
-class ChunkGrid 
+class ChunkGrid
 {
 public:
 

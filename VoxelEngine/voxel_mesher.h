@@ -33,7 +33,7 @@ private:
 
 	std::array<uintC_t, CS_2 * 6> m_FaceMasks;
 
-	template<typename ChunkContainer>
+	template<ChunkProvider<ChunkType> ChunkContainer>
 	static uintC_t _GetPaddedColumnRowBits(const ChunkContainer& world, int x, int z, const glm::ivec3& chunkLocation) {
 		// Reject completely invalid or corner out-of-bounds accesses
 		assert((x > 0 && z > 0) || x >= 0 || z >= 0 ||
@@ -143,7 +143,7 @@ private:
 
 public:
 
-	template<typename ChunkContainer, VoxelMeshWriter MeshWriter>
+	template<ChunkProvider<ChunkType> ChunkContainer, VoxelMeshWriter MeshWriter>
 	void MeshChunk(const ChunkContainer& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out)
 	{
 		// TODO ideally you wouldnt have to check if the chunk is valid, change to assert if possible
@@ -262,7 +262,7 @@ public:
 		}
 	}
 
-	template<typename ChunkContianer, VoxelMeshWriter MeshWriter>
+	template<ChunkProvider<ChunkType> ChunkContianer, VoxelMeshWriter MeshWriter>
 	void MeshChunkGrid(const ChunkContianer& chunkGrid, MeshWriter& out) const
 	{	
 		for (const auto& [index, _] : chunkGrid) 

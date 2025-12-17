@@ -77,7 +77,7 @@
     <None Include="voxel_world_editor.tpp">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="terrain.tpp">
+    <None Include="chunk_manager.tpp">
       <Filter>Header Files</Filter>
     </None>
     <None Include="scene.tpp">
@@ -121,7 +121,7 @@
     <ClInclude Include="voxel_mesher.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="terrain.h">
+    <ClInclude Include="chunk_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="gpu_buffer_allocator.h">

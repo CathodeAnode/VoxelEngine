@@ -1,5 +1,5 @@
-#ifndef TERRAIN_H
-#define TERRAIN_H
+#ifndef CHUNKMANAGER_H
+#define CHUNKMANAGER_H
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -11,16 +11,14 @@
 template<typename ChunkType>
 class ChunkGeneratorStrategy;
 
-// class only handles chunk generation, chunk unload/loading & chunk pooling
-// NOTE: chunk generation is injected via stratgy pattern through constructor.
-// chunk generation stratgies include: no generation, flat Terrain generation, height map generation, perlin noise generation, and more if needed
+// class only handles chunk unload/loading
 template<typename ChunkType> 
-class Terrain 
+class ChunkManager 
 {
 public:
-	explicit Terrain(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator);
+	explicit ChunkManager(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator);
 	// TODO: Create world from file
-	Terrain(const char* filePath); 
+	ChunkManager(const char* filePath); 
 
 	// NOTE: assumes player cannont move faster than one chunk per frame (will likely break if player moves faster than 1 chunk per frame)
 	bool Update(const glm::vec3& playerWorldCoords);
@@ -58,10 +56,10 @@ private:
 	}
 };
 
-typedef Terrain<Chunk8> Terrain8;
-typedef Terrain<Chunk16> Terrain16;
-typedef Terrain<Chunk32> Terrain32;
+typedef ChunkManager<Chunk8> ChunkManager8;
+typedef ChunkManager<Chunk16> ChunkManager16;
+typedef ChunkManager<Chunk32> ChunkManager32;
 
-#include "terrain.tpp"
+#include "chunk_manager.tpp"
 
 #endif

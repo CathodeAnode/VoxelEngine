@@ -10,7 +10,7 @@
 class Camera;
 
 template<typename ChunkType>
-class Terrain;
+class ChunkManager;
 
 template<typename ChunkType>
 class VoxelRenderer;
@@ -19,7 +19,7 @@ template<typename ChunkType>
 class Scene
 {
 public:
-	Scene(Camera& camera, Terrain<ChunkType>& world, VoxelRenderer<ChunkType>& renderer); // add DI for models/character container in the future
+	Scene(Camera& camera, ChunkManager<ChunkType>& world, VoxelRenderer<ChunkType>& renderer); // add DI for models/character container in the future
 
 	Scene(const Scene&) = delete;
 	Scene& operator=(const Scene&) = delete;
@@ -34,7 +34,7 @@ private:
 
 private:
 	Camera& m_Camera;
-	Terrain<ChunkType>& m_World;
+	ChunkManager<ChunkType>& m_World;
 	VoxelRenderer<ChunkType>& m_Renderer;
 
 	bool m_DirtyFrame;

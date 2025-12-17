@@ -4,7 +4,7 @@
 #include "scene.h"
 
 template<typename ChunkType>
-Scene<ChunkType>::Scene(Camera& camera, Terrain<ChunkType>& world, VoxelRenderer<ChunkType>& renderer)
+Scene<ChunkType>::Scene(Camera& camera, ChunkManager<ChunkType>& world, VoxelRenderer<ChunkType>& renderer)
     : m_Camera(camera)
     , m_World(world)
     , m_Renderer(renderer)
