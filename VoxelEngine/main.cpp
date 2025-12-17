@@ -25,7 +25,7 @@
 #include "voxel_mesher.h"
 #include "chunk_generator_strategy.h"
 #include "voxel_world_editor.h"
-#include "terrian.h"
+#include "terrain.h"
 #include "scene.h"
 #include "voxel_ray_cast.h"
 
@@ -43,8 +43,8 @@
 // 2.2. spread chunk generation over mutliple game loop iterations rather than all the generation happening in a single frame (queue system)
 // 2.3. implement a debugging gui using dear imgui (display chunk coords, chunk grid coords, looking at coords, useful debugging tools, etc...)
 // 2.4. implement performance profiler
-// 2.5. implement terrian perlin noise generator
-// 2.6. implement terrian height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
+// 2.5. implement terrain perlin noise generator
+// 2.6. implement terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
 
 // Phase 3:
 // 3.1. design gpu frustum occlustion culling archititure
@@ -127,13 +127,13 @@ int main()
 	-----------------------
 	*/
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
-	Terrian8 world(camera.pos, 9u, std::move(flatGenerator));
+	Terrain8 world(camera.pos, 9u, std::move(flatGenerator));
 	std::unique_ptr<VoxelMesher8> greedyMesher = std::make_unique<VoxelMesher8>();
 	VoxelRenderer8 renderer(std::move(greedyMesher));
 	renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(9, 3));
 	Scene8 scene(camera, world, renderer);
 
-	VoxelWorldEditor<Chunk8> test(world);
+	//VoxelWorldEditor<Chunk8> test(world);
 
 
 	Shader shaderPrgm = Shader({ 

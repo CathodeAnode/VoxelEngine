@@ -4,7 +4,7 @@
 #include "scene.h"
 
 template<typename ChunkType>
-Scene<ChunkType>::Scene(Camera& camera, Terrian<ChunkType>& world, VoxelRenderer<ChunkType>& renderer)
+Scene<ChunkType>::Scene(Camera& camera, Terrain<ChunkType>& world, VoxelRenderer<ChunkType>& renderer)
     : m_Camera(camera)
     , m_World(world)
     , m_Renderer(renderer)
@@ -23,14 +23,14 @@ void Scene<ChunkType>::Render()
 {
 	if (m_DirtyFrame)
 	{
-		_UploadTerrian();
+		_UploadTerrain();
 	    m_Renderer.NextFrame();
 	}
 	m_Renderer.Render();
 }
 
 template<typename ChunkType>
-inline void Scene<ChunkType>::_UploadTerrian()
+inline void Scene<ChunkType>::_UploadTerrain()
 {
 	const int halfLoadedDist = m_World.GetLoadedChunksDistance() / 2;
 	const int chunkSize = ChunkType::Size;

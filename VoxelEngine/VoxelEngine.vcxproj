@@ -155,7 +155,7 @@
     <None Include="voxel_shader.vert.glsl" />
     <None Include="gpu_buffer_allocator.tpp" />
     <None Include="voxel_world_editor.tpp" />
-    <None Include="terrian.tpp" />
+    <None Include="terrain.tpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="3d_ring_buffer.h" />
@@ -173,7 +173,7 @@
     <ClInclude Include="voxel_mesh_writer.h" />
     <ClInclude Include="voxel_ray_cast.h" />
     <ClInclude Include="voxel_world_editor.h" />
-    <ClInclude Include="terrian.h" />
+    <ClInclude Include="terrain.h" />
     <ClInclude Include="voxel_mesher.h" />
     <ClInclude Include="mouse.h" />
     <ClInclude Include="voxel_renderer.h" />

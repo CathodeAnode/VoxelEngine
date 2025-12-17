@@ -1,5 +1,5 @@
-#ifndef TERRIAN_H
-#define TERRIAN_H
+#ifndef TERRAIN_H
+#define TERRAIN_H
 
 #include <glm/glm.hpp>
 #include <memory>
@@ -13,14 +13,14 @@ class ChunkGeneratorStrategy;
 
 // class only handles chunk generation, chunk unload/loading & chunk pooling
 // NOTE: chunk generation is injected via stratgy pattern through constructor.
-// chunk generation stratgies include: no generation, flat Terrian generation, height map generation, perlin noise generation, and more if needed
+// chunk generation stratgies include: no generation, flat Terrain generation, height map generation, perlin noise generation, and more if needed
 template<typename ChunkType> 
-class Terrian 
+class Terrain 
 {
 public:
-	explicit Terrian(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator);
+	explicit Terrain(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator);
 	// TODO: Create world from file
-	Terrian(const char* filePath); 
+	Terrain(const char* filePath); 
 
 	// NOTE: assumes player cannont move faster than one chunk per frame (will likely break if player moves faster than 1 chunk per frame)
 	bool Update(const glm::vec3& playerWorldCoords);
@@ -58,10 +58,10 @@ private:
 	}
 };
 
-typedef Terrian<Chunk8> Terrian8;
-typedef Terrian<Chunk16> Terrian16;
-typedef Terrian<Chunk32> Terrian32;
+typedef Terrain<Chunk8> Terrain8;
+typedef Terrain<Chunk16> Terrain16;
+typedef Terrain<Chunk32> Terrain32;
 
-#include "terrian.tpp"
+#include "terrain.tpp"
 
 #endif

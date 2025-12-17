@@ -5,10 +5,12 @@
 #include <iostream>
 #include <chrono>
 
+#include "chunk.h"
+
 class Camera;
 
 template<typename ChunkType>
-class Terrian;
+class Terrain;
 
 template<typename ChunkType>
 class VoxelRenderer;
@@ -17,7 +19,7 @@ template<typename ChunkType>
 class Scene
 {
 public:
-	Scene(Camera& camera, Terrian<ChunkType>& world, VoxelRenderer<ChunkType>& renderer); // add DI for models/character container in the future
+	Scene(Camera& camera, Terrain<ChunkType>& world, VoxelRenderer<ChunkType>& renderer); // add DI for models/character container in the future
 
 	Scene(const Scene&) = delete;
 	Scene& operator=(const Scene&) = delete;
@@ -28,11 +30,11 @@ public:
 	inline void SwitchCamera(Camera& camera) { m_Camera = camera; }
 
 private:
-    inline void _UploadTerrian();
+    inline void _UploadTerrain();
 
 private:
 	Camera& m_Camera;
-	Terrian<ChunkType>& m_World;
+	Terrain<ChunkType>& m_World;
 	VoxelRenderer<ChunkType>& m_Renderer;
 
 	bool m_DirtyFrame;
