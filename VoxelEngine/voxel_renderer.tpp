@@ -9,7 +9,9 @@ VoxelRenderer<ChunkType>::VoxelRenderer(std::unique_ptr<VoxelMesher<ChunkType>> 
     , m_PositionSSBO(true)
     , m_DrawLines(false)
     , m_Mesher(std::move(mesher))
-{}
+    , m_VoxelShaders({{"voxel_shader.vert.glsl", GL_VERTEX_SHADER}, {"voxel_shader.frag.glsl", GL_FRAGMENT_SHADER}})
+{
+}
 
 template <typename ChunkType>
 VoxelRenderer<ChunkType>::~VoxelRenderer() 
@@ -22,6 +24,8 @@ template <typename ChunkType>
 void VoxelRenderer<ChunkType>::Init(size_t cachePages, size_t cachePageSize, size_t indirectBufferSize)
 {
     assert(cachePages * cachePageSize * 5 > indirectBufferSize, "Cache Size too small");
+
+    glEnable(GL_DEPTH_TEST);
 
     m_IndirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, indirectBufferSize, k_TripleBuffer);
     m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
@@ -175,8 +179,12 @@ void VoxelRenderer<ChunkType>::ToggleDrawLines()
 }
 
 template <typename ChunkType>
-void VoxelRenderer<ChunkType>::Render() 
+void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 {
+    m_VoxelShaders.Use();
+    m_VoxelShaders.SetMat4("view", camera.GetViewMatrix());
+    m_VoxelShaders.SetMat4("projection", camera.GetProjMatrix());
+
     glBindVertexArray(m_VAO);
     m_PositionSSBO.BindTailBufferRange(m_CurrentIndirectCmdsCount);
 

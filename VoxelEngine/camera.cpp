@@ -84,12 +84,12 @@ void Camera::Update()
 	//_UpdateFrustum();
 }
 
-glm::mat4 Camera::GetViewMatrix()
+glm::mat4 Camera::GetViewMatrix() const
 {
 	return m_ViewMatrix;
 }
 
-glm::mat4 Camera::GetProjMatrix()
+glm::mat4 Camera::GetProjMatrix() const
 {
 	return m_ProjectionMatrix;
 }

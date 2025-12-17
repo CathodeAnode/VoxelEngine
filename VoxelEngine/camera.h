@@ -97,8 +97,8 @@ public:
 	void UpdateCameraZoom(double dy);
 	void Update();
 
-	glm::mat4 GetViewMatrix();
-	glm::mat4 GetProjMatrix();
+	glm::mat4 GetViewMatrix() const;
+	glm::mat4 GetProjMatrix() const;
 	Frustum GetFrustum();
 
 private:

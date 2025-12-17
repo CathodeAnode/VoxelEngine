@@ -92,23 +92,9 @@ Screen screen(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
 
 int main() 
 {
-	//ChunkGrid8 world;
-	//VoxelMesher8 mesher;
-	//world.addChunk(Chunk8(true), glm::ivec3(0, 0, 0));
-	//ChunkQuads quads  = mesher.meshChunk(world, glm::ivec3(0, 0, 0));
-	//world.addChunk(Chunk8(true), glm::ivec3(0, 1, 0));
-
-	//std::cout << quads.quadData.size() << std::endl;
-	//std::cout << "rrrrdddhhhhhwwwwwzzzzzyyyyyxxxxx\n";
-	//for (const auto& quad : quads.quadData) {
-	//	std::cout << std::bitset<32>(quad) << std::endl;
-	//}
-
-
 	if (!screen.init()) {
 		return -1;
 	}
-	glEnable(GL_DEPTH_TEST);
 
 	screen.enableInputs();
 	screen.toggleCursor();
@@ -121,31 +107,18 @@ int main()
 		std::cout << "Joystick not connected.\n";
 	}
 
-	/*
-	-----------------------
-		Shaders
-	-----------------------
-	*/
+
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
 	Terrain8 world(camera.pos, 9u, std::move(flatGenerator));
 	std::unique_ptr<VoxelMesher8> greedyMesher = std::make_unique<VoxelMesher8>();
 	VoxelRenderer8 renderer(std::move(greedyMesher));
 	renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(9, 3));
 	Scene8 scene(camera, world, renderer);
-
 	//VoxelWorldEditor<Chunk8> test(world);
 
-
-	Shader shaderPrgm = Shader({ 
-		{"voxel_shader.vert.glsl", GL_VERTEX_SHADER},	
-		{"voxel_shader.frag.glsl", GL_FRAGMENT_SHADER}
-	});
-
-	shaderPrgm.Use();
 	//camera.speed = 40.0f;
 
 	double lastToggleTime = 0.0;
-	int i = 0;
 	while (screen.isOpen()) 
 	{
 		double currTime = glfwGetTime();
@@ -168,13 +141,6 @@ int main()
 		// render
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-		//camera.Update();
-
-		// draw
-		shaderPrgm.Use();
-		shaderPrgm.SetMat4("view", camera.GetViewMatrix());
-		shaderPrgm.SetMat4("projection", camera.GetProjMatrix());
 		scene.Update();
 		scene.Render();
 		//std::cout << camera.pos.x << ", " << camera.pos.y << ", " << camera.pos.z << std::endl;

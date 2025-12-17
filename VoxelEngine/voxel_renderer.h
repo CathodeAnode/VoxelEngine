@@ -14,9 +14,12 @@
 #include "voxel_mesh_writer.h"
 #include "gpu_buffer_allocator.h"
 #include "chunk_provider_concept.h"
+#include "shader.h"
+#include "camera.h"
 
 
-template<typename ChunkType> class VoxelMesher;
+template<typename ChunkType> 
+class VoxelMesher;
 
 // What happens if:
 //	1. an upload causes an eviction on an object we are currently rendering or will render on next frame (bcuz of small cache size)
@@ -57,7 +60,7 @@ public:
 	bool UpdatePosition(VoxelObjectID objectID, const glm::vec3& newPosition);
 	void DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position);
 	void NextFrame();
-	void Render();
+	void Render(const Camera& camera);
 
 	inline bool IsCached(VoxelObjectID objectID) { return m_DataCache.Has(objectID); }
 	void ToggleDrawLines();
@@ -82,6 +85,7 @@ private:
 		1.0f,  0.0f, 0.0f,    0.0f, 0.0f, // Bottom Right
 		1.0f,  1.0f, 0.0f,    1.0f, 0.0f  // Top Right
 	};
+	Shader m_VoxelShaders;
 
 	bool m_DrawLines;
 

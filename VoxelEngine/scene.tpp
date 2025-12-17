@@ -26,7 +26,7 @@ void Scene<ChunkType>::Render()
 		_UploadTerrain();
 	    m_Renderer.NextFrame();
 	}
-	m_Renderer.Render();
+	m_Renderer.Render(m_Camera);
 }
 
 template<typename ChunkType>
