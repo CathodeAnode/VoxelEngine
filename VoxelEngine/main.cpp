@@ -128,7 +128,7 @@ int main()
 
 		// process input
 		processInput(screen, deltaTime);
-		if (Mouse::buttonUp(0))
+		if (Mouse::buttonUp(MOUSE_BUTTON_LEFT))
 		{
 			glm::ivec3 voxelCoords;
 			bool voxelHit = VoxelRayCast8::cast(Ray(camera.pos, camera.front, 10), world, voxelCoords);
