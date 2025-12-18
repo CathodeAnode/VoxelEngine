@@ -41,12 +41,11 @@
 
 // Phase 2: 
 // 2.1. implement main/engine class for main loop and tie all classes together
-// 2.2. spread chunk generation over mutliple game loop iterations rather than all the generation happening in a single frame (queue system)
-// 2.3. implement a debugging gui using dear imgui (display chunk coords, chunk grid coords, looking at coords, useful debugging tools, etc...)
-// 2.4. implement performance profiler
-// 2.5. implement terrain perlin noise generator
-// 2.6. implement terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
-// 2.7. implmenet logging system?
+// 2.2. implement a debugging gui using dear imgui (display chunk coords, chunk grid coords, looking at coords, useful debugging tools, etc...)
+// 2.3. implement performance profiler
+// 2.4. implement terrain perlin noise generator
+// 2.5. implement terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
+// 2.6. implmenet logging system?
 
 // Phase 3:
 // 3.1. design gpu frustum occlustion culling archititure

@@ -1,20 +1,20 @@
-#ifndef VOXEL_WORLD_EDITOR_H
-#define VOXEL_WORLD_EDITOR_H
+#ifndef VOXEL_EDIT_API_H
+#define VOXEL_EDIT_API_H
 
 #include <glm/glm.hpp>
 
 #include "types.h"
+#include "chunk_provider_concept.h"
 
-template <typename ChunkType>
-class Terrian;
 
-// TODO: change name to something else, "editor" gives the impression that this class is for engine editor UI
-// TODO: allow class to work for any type of chunk container (i.e, World, ChunkGrid, and any other new chunk containers)
-template <typename ChunkType>
-class VoxelWorldEditor
+template<typename ChunkType>
+class VoxelRenderer;
+
+template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
+class VoxelEditAPI
 {
 public:
-	VoxelWorldEditor(Terrian<ChunkType>& context);
+	VoxelEditAPI(ChunkContainer& chunkContainer, VoxelRenderer<ChunkType>& renderer);
 
 	void SetVoxel(const glm::ivec3& coords, RGBAColor color);
 	void RemoveVoxel(const glm::ivec3& coords);
@@ -28,13 +28,15 @@ public:
 	void SwitchContext(Terrian<ChunkType>& context);
 
 private:
-	Terrian<ChunkType>& m_World;
+	ChunkContainer& m_ChunkContainer;
+	VoxelRenderer<ChunkType>& m_Renderer;
+
 
 	inline static glm::ivec3 _VoxelToChunkPos(const glm::ivec3& voxelWorldPos);
 	inline static glm::ivec3 _WorldToLocalPos(const glm::ivec3& voxelWorldPos);
 };
 
-#include "voxel_world_editor.tpp"
+#include "voxel_edit.tpp"
 
 #endif
 
