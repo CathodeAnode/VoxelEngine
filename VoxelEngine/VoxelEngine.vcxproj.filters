@@ -74,7 +74,7 @@
     <None Include="gpu_buffer_allocator.tpp">
       <Filter>Header Files</Filter>
     </None>
-    <None Include="voxel_world_editor.tpp">
+    <None Include="voxel_edit.tpp">
       <Filter>Header Files</Filter>
     </None>
     <None Include="chunk_manager.tpp">
@@ -145,7 +145,7 @@
     <ClInclude Include="scene.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="voxel_world_editor.h">
+    <ClInclude Include="voxel_edit.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="3d_ring_buffer.h">

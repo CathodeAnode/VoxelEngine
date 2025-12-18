@@ -24,7 +24,7 @@
 #include "voxel_renderer.h"
 #include "voxel_mesher.h"
 #include "chunk_generator_strategy.h"
-#include "voxel_world_editor.h"
+#include "voxel_edit.h"
 #include "chunk_manager.h"
 #include "scene.h"
 #include "voxel_ray_cast.h"
@@ -108,7 +108,7 @@ int main()
 		std::cout << "Joystick not connected.\n";
 	}
 
-	constexpr unsigned int loadedChunkDistance = 15;
+	constexpr unsigned int loadedChunkDistance = 9;
 
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
 	ChunkManager8 world(camera.pos, loadedChunkDistance, std::move(flatGenerator));
@@ -116,7 +116,7 @@ int main()
 	VoxelRenderer8 renderer(std::move(greedyMesher));
 	renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(loadedChunkDistance, 3));
 	Scene8 scene(camera, world, renderer);
-	//VoxelWorldEditor<Chunk8> test(world);
+	VoxelEdit<Chunk8, decltype(world)> worldEdit(world, renderer);
 
 	//camera.speed = 40.0f;
 
@@ -137,6 +137,7 @@ int main()
 			if (voxelHit)
 			{
 				std::cout << "Voxel hit at: " << voxelCoords.x << ", " << voxelCoords.y << ", " << voxelCoords.z << std::endl;
+				worldEdit.RemoveVoxel(voxelCoords);
 			}
 		}
 

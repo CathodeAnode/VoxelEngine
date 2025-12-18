@@ -8,6 +8,7 @@
 
 #include "types.h"
 #include "uid_manager.h"
+#include "chunk_provider_concept.h"
 
 template<typename T, unsigned int ChunkSize>
 class Chunk {
@@ -149,8 +150,8 @@ private:
 
 private:
 	// friend classes to allow for SIMD optimizations
-	template<typename ChunkType>
-	friend class VoxelWorldEditor;
+	template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
+	friend class VoxelEdit;
 
 	template<typename ChunkType>
 	friend class ChunkGeneratorStrategy;

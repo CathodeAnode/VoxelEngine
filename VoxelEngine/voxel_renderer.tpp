@@ -87,7 +87,7 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer, cons
         m_Mesher->MeshChunk(chunkContainer, chunkCoords, meshWriter);
 
         m_DataCache.Swap(tempUID, chunkUID);
-        _RefreshFrame();
+        //_RefreshFrame();
         m_DataCache.DeallocateObject(tempUID);
     }
     else
@@ -111,7 +111,7 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer)
         m_Mesher->MeshChunk(chunkContainer, meshWriter);
 
         m_DataCache.Swap(tempUID, gridUID);
-        _RefreshFrame();
+        //_RefreshFrame();
         m_DataCache.DeallocateObject(tempUID);
     }
     else
