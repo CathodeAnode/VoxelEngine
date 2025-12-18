@@ -490,8 +490,8 @@ void GPUPagedLRUCache<Atom, ObjectID>::DeallocateObject(const ObjectID& obj)
 	ObjectAllocationData& alloc = m_ObjectMapping[obj];
 
 	_FreePages(alloc.pages);
-	m_ObjectMapping.erase(obj);
 	m_ObjectAccessHistory.erase(alloc.lruIterator);
+	m_ObjectMapping.erase(obj);
 }
 
 template<typename Atom, typename ObjectID>
