@@ -111,16 +111,18 @@ int main()
 	constexpr unsigned int loadedChunkDistance = 9;
 
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
+	std::unique_ptr<SinusoidalChunkGeneration<Chunk8>> sineGenerator = std::make_unique<SinusoidalChunkGeneration<Chunk8>>(5);
 	ChunkManager8 world(camera.pos, loadedChunkDistance, std::move(flatGenerator));
+
 	std::unique_ptr<VoxelMesher8> greedyMesher = std::make_unique<VoxelMesher8>();
 	VoxelRenderer8 renderer(std::move(greedyMesher));
 	renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(loadedChunkDistance, 3));
+
 	Scene8 scene(camera, world, renderer);
 	VoxelEdit<Chunk8, decltype(world)> worldEdit(world, renderer);
 
 	//camera.speed = 40.0f;
 
-	double lastToggleTime = 0.0;
 	while (screen.isOpen()) 
 	{
 		double currTime = glfwGetTime();
@@ -141,10 +143,10 @@ int main()
 			}
 		}
 
+		scene.Update();
 		// render
 		glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-		scene.Update();
 		scene.Render();
 
 		// send back buffer to front buffer

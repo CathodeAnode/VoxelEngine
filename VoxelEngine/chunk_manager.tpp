@@ -6,12 +6,11 @@ template<typename ChunkType>
 ChunkManager<ChunkType>::ChunkManager(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator)
 	: m_LoadedChunks(loadedChunksDistance)
 	, m_ChunkGenerator(std::move(generator))
-	, m_LastPlayerGridCoords(INT_MAX, INT_MAX, INT_MAX)
+	, m_LastPlayerGridCoords(WorldToChunk(playerWorldCoords, ChunkType::Size))
 {
-	assert(loadedChunksDistance % 2 != 0, "loaded chunks distance must be odd");
+	//assert(loadedChunksDistance % 2 != 0, "loaded chunks distance must be odd");
 
 	// pre-allocate all chunks in memory
-	const glm::ivec3 playerGridCoords = ToChunkGridCords(playerWorldCoords);
 	const int halfLoadedDist = loadedChunksDistance / 2;
 	for (int z = -halfLoadedDist; z <= halfLoadedDist; ++z)
 	{
@@ -19,7 +18,7 @@ ChunkManager<ChunkType>::ChunkManager(const glm::vec3& playerWorldCoords, unsign
 		{
 			for (int x = -halfLoadedDist; x <= halfLoadedDist; ++x)
 			{
-				glm::ivec3 coords = playerGridCoords + glm::ivec3(x, y, z);
+				glm::ivec3 coords = m_LastPlayerGridCoords + glm::ivec3(x, y, z);
 				m_LoadedChunks.At(coords) = _LoadChunk(coords);
 			}
 		}
@@ -30,7 +29,7 @@ template<typename ChunkType>
 bool ChunkManager<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 {
 	// step 1: convert player world coordinates to grid coordinates
-	const glm::ivec3 playerGridCoords = ToChunkGridCords(playerWorldCoords);
+	const glm::ivec3 playerGridCoords = WorldToChunk(playerWorldCoords, ChunkType::Size);
 
 	// step 2: check if player grid coords has changed since last call
 	if (playerGridCoords == m_LastPlayerGridCoords) {
@@ -42,6 +41,7 @@ bool ChunkManager<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 	for (int axis = 0; axis < 3; axis++)
 	{
 		if (playerGridCoordsDiff[axis] == 0) continue;
+		//std::cout << "Chunk generated at axis: " << axis << std::endl;
 
 		const int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
 		int plane = halfLoadedDist * playerGridCoordsDiff[axis];

@@ -12,12 +12,12 @@ VoxelEdit<ChunkType, ChunkContainer>::VoxelEdit(ChunkContainer& chunkContainer, 
 template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
 void VoxelEdit<ChunkType, ChunkContainer>::SetVoxel(const glm::ivec3& coords, RGBAColor color)
 {
-	const glm::ivec3 chunkCoords = _VoxelToChunkPos(coords);
+	const glm::ivec3 chunkCoords = WorldToChunk(coords, ChunkType::Size);
 	std::shared_ptr<const ChunkType> chunk = m_ChunkContainer.GetChunk(chunkCoords);
 
-	assert(chunk->GetUID() != NULL);
+	assert(chunk->GetUID() != 0);
 
-	const glm::ivec3 localVoxelCoords = _WorldToLocalPos(coords);
+	const glm::ivec3 localVoxelCoords = VoxelToLocal(coords, ChunkType::Size);
 
 	chunk->m_OpaqueData[ChunkType::_GetOpaqueDataIndex(localVoxelCoords.x, localVoxelCoords.z)] |= (1 << localVoxelCoords.y);
 	chunk->m_ColorData[ChunkType::_GetColorDataIndex(localVoxelCoords.x, localVoxelCoords.y, localVoxelCoords.z)] = color;
@@ -43,14 +43,14 @@ void VoxelEdit<ChunkType, ChunkContainer>::SetVoxel(const glm::ivec3& coords, RG
 template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
 void VoxelEdit<ChunkType, ChunkContainer>::RemoveVoxel(const glm::ivec3& coords)
 {
-	const glm::ivec3 chunkCoords = _VoxelToChunkPos(coords);
+	const glm::ivec3 chunkCoords = WorldToChunk(coords, ChunkType::Size);
 	std::shared_ptr<const ChunkType> chunk = m_ChunkContainer.GetChunk(chunkCoords);
 
-	assert(chunk->GetUID() != NULL);
+	assert(chunk->GetUID() != 0);
 
-	const glm::ivec3 localVoxelCoords = _WorldToLocalPos(coords);
+	const glm::ivec3 localVoxelCoords = VoxelToLocal(coords, ChunkType::Size);
 
-	chunk->m_OpaqueData[ChunkType::_GetOpaqueDataIndex(localVoxelCoords.x, localVoxelCoords.z)] &= (0 << localVoxelCoords.y);
+	chunk->m_OpaqueData[ChunkType::_GetOpaqueDataIndex(localVoxelCoords.x, localVoxelCoords.z)] &= ~(1 << localVoxelCoords.y);
 
 	m_Renderer.Upload(m_ChunkContainer, chunkCoords);
 
@@ -69,26 +69,6 @@ void VoxelEdit<ChunkType, ChunkContainer>::RemoveVoxel(const glm::ivec3& coords)
 		}
 	}
 
-}
-
-template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
-inline glm::ivec3 VoxelEdit<ChunkType, ChunkContainer>::_VoxelToChunkPos(const glm::ivec3& voxelWorldPos)
-{
-	return glm::ivec3(
-		floor(voxelWorldPos.x / (float)ChunkType::Size),
-		floor(voxelWorldPos.y / (float)ChunkType::Size),
-		floor(voxelWorldPos.z / (float)ChunkType::Size)
-	);
-}
-
-template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
-inline glm::ivec3 VoxelEdit<ChunkType, ChunkContainer>::_WorldToLocalPos(const glm::ivec3& voxelWorldPos)
-{
-	return glm::ivec3(
-		((voxelWorldPos.x % ChunkType::Size) + ChunkType::Size) % ChunkType::Size,
-		((voxelWorldPos.y % ChunkType::Size) + ChunkType::Size) % ChunkType::Size,
-		((voxelWorldPos.z % ChunkType::Size) + ChunkType::Size) % ChunkType::Size
-	);
 }
 
 #endif

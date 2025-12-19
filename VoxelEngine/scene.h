@@ -6,6 +6,7 @@
 #include <chrono>
 
 #include "chunk.h"
+#include "voxel_math.h"
 
 class Camera;
 

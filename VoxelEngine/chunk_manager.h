@@ -6,6 +6,7 @@
 
 #include "voxel_renderer.h"
 #include "3d_ring_buffer.h"
+#include "voxel_math.h"
 
 
 template<typename ChunkType>
@@ -42,18 +43,6 @@ private:
 
 private:
 	inline std::shared_ptr<ChunkType> _LoadChunk(const glm::ivec3& chunkCoords) const;
-
-private:
-	glm::ivec3 ToChunkGridCords(glm::vec3 worldSpaceCords) const
-	{
-		const int chunkSize = ChunkType::Size;
-		const glm::ivec3 gridCoords(
-			floor(worldSpaceCords.x / (float)chunkSize),
-			floor(worldSpaceCords.y / (float)chunkSize),
-			floor(worldSpaceCords.z / (float)chunkSize)
-		);
-		return gridCoords;
-	}
 };
 
 typedef ChunkManager<Chunk8> ChunkManager8;

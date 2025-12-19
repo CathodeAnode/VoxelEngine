@@ -157,5 +157,8 @@
     <ClInclude Include="chunk_provider_concept.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="voxel_math.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

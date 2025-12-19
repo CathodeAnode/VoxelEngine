@@ -8,7 +8,11 @@ Scene<ChunkType>::Scene(Camera& camera, ChunkManager<ChunkType>& world, VoxelRen
     : m_Camera(camera)
     , m_World(world)
     , m_Renderer(renderer)
-{}
+{
+	_UploadTerrain();
+	m_Renderer.NextFrame();
+	m_Renderer.Render(m_Camera);
+}
 
 template<typename ChunkType>
 void Scene<ChunkType>::Update()
@@ -34,6 +38,10 @@ inline void Scene<ChunkType>::_UploadTerrain()
 {
 	const int halfLoadedDist = m_World.GetLoadedChunksDistance() / 2;
 	const int chunkSize = ChunkType::Size;
+	const glm::ivec3 cameraChunkCoords = WorldToChunk(m_Camera.pos, chunkSize);
+	std::cout << cameraChunkCoords.x << ", " << cameraChunkCoords.y << ", " << cameraChunkCoords.z << std::endl;
+
+
 	for (int x = -halfLoadedDist; x <= halfLoadedDist; x++)
 	{
 		for (int y = -halfLoadedDist; y <= halfLoadedDist; y++)
@@ -41,7 +49,7 @@ inline void Scene<ChunkType>::_UploadTerrain()
 			for (int z = -halfLoadedDist; z <= halfLoadedDist; z++)
 			{
 
-				glm::ivec3 chunkCoords = glm::ivec3(m_Camera.pos / (float)chunkSize) + glm::ivec3(x, y, z);
+				glm::ivec3 chunkCoords = cameraChunkCoords + glm::ivec3(x, y, z);
 				std::shared_ptr<ChunkType const> chunk = m_World.GetChunk(chunkCoords);
 
 				if (chunk->IsEmpty()) continue;

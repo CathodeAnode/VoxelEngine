@@ -5,6 +5,7 @@
 
 #include "types.h"
 #include "chunk_provider_concept.h"
+#include "voxel_math.h"
 
 
 template<typename ChunkType>
@@ -30,10 +31,6 @@ public:
 private:
 	ChunkContainer& m_ChunkContainer;
 	VoxelRenderer<ChunkType>& m_Renderer;
-
-private:
-	inline static glm::ivec3 _VoxelToChunkPos(const glm::ivec3& voxelWorldPos);
-	inline static glm::ivec3 _WorldToLocalPos(const glm::ivec3& voxelWorldPos);
 };
 
 #include "voxel_edit.tpp"
