@@ -36,7 +36,7 @@
 // 1.3. refactor codebase lol [world, renderer, chunk, and any ugaabooga code] (done, kinda?)
 // 1.4. use chunk provider concept in render, mesher, any other classes that use a chunk container (done)
 // 1.5. implement chunk concept (redacted)
-// 1.6. fix weird bugs with 3d circular buffer [weird chunk loading when moving downwads, weird chunk loading when loaded chunk size > 15]
+// 1.6. fix weird bugs with 3d circular buffer [weird chunk loading when moving downwads, weird chunk loading when loaded chunk size > 15] (done)
 // 1.7. rework chunk id system to use chunk coord encoded in 64-bit int as id
 
 // Phase 2: 

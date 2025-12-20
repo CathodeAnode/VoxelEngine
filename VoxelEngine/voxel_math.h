@@ -23,9 +23,9 @@ inline int PositiveMod(int val, int div)
 inline glm::ivec3 WorldToChunk(const glm::ivec3& worldPos, int chunkSize)
 {
     return glm::ivec3(
-        static_cast<int>(std::floor(worldPos.x / chunkSize)),
-        static_cast<int>(std::floor(worldPos.y / chunkSize)),
-        static_cast<int>(std::floor(worldPos.z / chunkSize))
+        worldPos.x < 0 ? static_cast<int>(std::floor(worldPos.x / chunkSize)) - 1 : static_cast<int>(std::floor(worldPos.x / chunkSize)),
+        worldPos.y < 0 ? static_cast<int>(std::floor(worldPos.y / chunkSize)) - 1 : static_cast<int>(std::floor(worldPos.y / chunkSize)),
+        worldPos.z < 0 ? static_cast<int>(std::floor(worldPos.z / chunkSize)) - 1 : static_cast<int>(std::floor(worldPos.z / chunkSize))
     );
 }
 

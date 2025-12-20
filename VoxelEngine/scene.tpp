@@ -39,8 +39,6 @@ inline void Scene<ChunkType>::_UploadTerrain()
 	const int halfLoadedDist = m_World.GetLoadedChunksDistance() / 2;
 	const int chunkSize = ChunkType::Size;
 	const glm::ivec3 cameraChunkCoords = WorldToChunk(m_Camera.pos, chunkSize);
-	std::cout << cameraChunkCoords.x << ", " << cameraChunkCoords.y << ", " << cameraChunkCoords.z << std::endl;
-
 
 	for (int x = -halfLoadedDist; x <= halfLoadedDist; x++)
 	{
