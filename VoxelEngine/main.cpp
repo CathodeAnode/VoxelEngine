@@ -10,8 +10,8 @@
 #include <chrono>
 
 #include <windows.h>
-#include "logger.h"
 
+#include "logger.h"
 #include "shader.h"
 #include "mouse.h"
 #include "keyboard.h"
@@ -30,29 +30,28 @@
 #include "scene.h"
 #include "voxel_ray_cast.h"
 
-// LIST OF TODOS:
-// Phase 1: 
-// 1.1. re-implment block removal using ray voxel (done)
-// 1.2. move render stuff from world class to scene class (done)
-// 1.3. refactor codebase lol [world, renderer, chunk, and any ugaabooga code] (done, kinda?)
-// 1.4. use chunk provider concept in render, mesher, any other classes that use a chunk container (done)
-// 1.5. implement chunk concept (redacted)
-// 1.6. fix weird bugs with 3d circular buffer [weird chunk loading when moving downwads, weird chunk loading when loaded chunk size > 15] (done)
-// 1.7. rework chunk id system to use chunk coord encoded in 64-bit int as id
+// Agenda for 12/21/2025
+// - sperate chunk implementation from header file (chunk.tpp)
+// - remove friend classes from chunk & replace with func that returns raw buffer pointers
+// - fix voxel ray traversal algorithm (https://mxcop.github.io/mxcop-dev/)
 
-// Phase 2: 
-// 2.1. implement main/engine class for main loop and tie all classes together
-// 2.2. implement a debugging gui using dear imgui (display chunk coords, chunk grid coords, looking at coords, useful debugging tools, etc...)
-// 2.3. implement performance profiler
-// 2.4. implement terrain perlin noise generator
-// 2.5. implement terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
-// 2.6. implmenet logging system?
-
-// Phase 3:
-// 3.1. design gpu frustum occlustion culling archititure
-// 3.2. implement multi-threading class to handle chunk generation & chunk meshing
-// 3.3. implement compute shader to calculate frustum occlustion culling
-// 3.4. implement queue system for chunk loading to distrubite loading chunks over multiple frames
+// future TODOs:
+// - implement old chunk id system (chunk pos encoded into 64-bit int, msb specifies temp objects & voxel enities objects)
+// - main/engine class for main loop and tie all classes together
+// - editor-like camera controller (similar to unity)
+// - debugging gui using dear imgui
+// - sampler performance profiler
+// - terrain perlin noise generator
+// - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
+// - use logging system
+// - implement multi-threading class (thread pool) to handle chunk generation & chunk meshing
+// - implement queue system for chunk loading to distrubite loading chunks over multiple frames (consumer-producer)
+// - different build types for each chunk size
+// - project file structure
+// - namespacing
+// - design & implement gpu frustum occlustion culling archititure
+// - lighting
+// - SSAO
 
 #define TIME_FUNCTION(func_call) \
     do { \

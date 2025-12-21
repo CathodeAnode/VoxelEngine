@@ -86,6 +86,9 @@
     <None Include="scene.tpp">
       <Filter>Header Files</Filter>
     </None>
+    <None Include="chunk.tpp">
+      <Filter>Header Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="shader.h">

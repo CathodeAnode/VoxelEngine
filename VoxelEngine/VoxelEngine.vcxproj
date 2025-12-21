@@ -152,6 +152,7 @@
     <ClCompile Include="texture.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="chunk.tpp" />
     <None Include="scene.tpp" />
     <None Include="voxel_shader.frag.glsl" />
     <None Include="voxel_shader.vert.glsl" />
