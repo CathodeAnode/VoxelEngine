@@ -3,9 +3,12 @@
 
 #include <glm/glm.hpp> 
 #include <memory>
+#include <iostream>
+
 
 #include "chunk_provider_concept.h"
 #include "chunk.h"
+#include "voxel_math.h"
 
 
 //https://www.cse.yorku.ca/~amana/research/grid.pdf
@@ -53,6 +56,7 @@ public:
 
 		int steps = 0;
 		while (steps < ray.range) {
+			std::cout << currentVoxel.x << ", " << currentVoxel.y << ", " << currentVoxel.z << std::endl;
 			if (_IsVoxelSolid(chunkContainer, currentVoxel)) {
 				hitPos = currentVoxel;
 				return true;
@@ -84,19 +88,15 @@ private:
 	template <ChunkProvider<ChunkType> ChunkContainer>
 	inline static bool _IsVoxelSolid(const ChunkContainer& chunkContainer, const glm::ivec3& voxelCoords)
 	{
-		const int ChunkSize = ChunkType::Size;
+		const int chunkSize = ChunkType::Size;
 
-		const int chunkX = floor(voxelCoords.x / (float)ChunkSize);
-		const int chunkY = floor(voxelCoords.y / (float)ChunkSize);
-		const int chunkZ = floor(voxelCoords.z / (float)ChunkSize);
+		const glm::ivec3 chunkCoords = WorldToChunk(voxelCoords, chunkSize);
 
-		std::shared_ptr<const ChunkType> chunk = chunkContainer.GetChunk(glm::ivec3(chunkX, chunkY, chunkZ));
+		std::shared_ptr<const ChunkType> chunk = chunkContainer.GetChunk(chunkCoords);
 
-		const int xC = ((voxelCoords.x % ChunkSize) + ChunkSize) % ChunkSize;
-		const int yC = ((voxelCoords.y % ChunkSize) + ChunkSize) % ChunkSize;
-		const int zC = ((voxelCoords.z % ChunkSize) + ChunkSize) % ChunkSize;
+		const glm::ivec3 localVoxelCoords = VoxelToLocal(voxelCoords, chunkSize);
 
-		return chunk->IsSolid(xC, yC, zC);
+		return chunk->IsSolid(localVoxelCoords.x, localVoxelCoords.y, localVoxelCoords.z);
 	}
 };
 
