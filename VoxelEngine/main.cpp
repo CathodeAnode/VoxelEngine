@@ -10,6 +10,7 @@
 #include <chrono>
 
 #include <windows.h>
+#include "logger.h"
 
 #include "shader.h"
 #include "mouse.h"
@@ -93,6 +94,12 @@ Screen screen(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
 
 int main() 
 {
+	LOG_TRACE(EngineSystem::CHUNK_MANAGER, "TEST!");
+	LOG_DEBUG(EngineSystem::CHUNK_MANAGER, "TEST!");
+	LOG_INFO(EngineSystem::CHUNK_MANAGER, "TEST!");
+	LOG_WARN(EngineSystem::CHUNK_MANAGER, "TEST!");
+	LOG_ERROR(EngineSystem::CHUNK_MANAGER, "TEST!");
+	LOG_CRITICAL(EngineSystem::CHUNK_MANAGER, "TEST!");
 	if (!screen.init()) {
 		return -1;
 	}

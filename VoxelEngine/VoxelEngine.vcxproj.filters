@@ -63,6 +63,9 @@
     <ClCompile Include="voxel_renderer.tpp">
       <Filter>Header Files</Filter>
     </ClCompile>
+    <ClCompile Include="logger.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="voxel_shader.vert.glsl">
@@ -158,6 +161,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="voxel_math.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="logger.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

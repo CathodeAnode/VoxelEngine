@@ -2,6 +2,7 @@
 #define LOG_MANAGER_H
 
 #include <spdlog/spdlog.h>
+#include <spdlog/sinks/ansicolor_sink.h>
 #include <unordered_map>
 #include <memory>
 
@@ -32,6 +33,8 @@ public:
 private:
 	std::unordered_map<EngineSystem, std::shared_ptr<spdlog::logger>> m_LoggerMap;
 	inline static LogManager* m_Instance = nullptr;
+
+	std::shared_ptr<spdlog::sinks::ansicolor_stdout_sink_mt> m_ConsoleSink = std::make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
 
 private:
 	LogManager();

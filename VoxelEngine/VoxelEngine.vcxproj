@@ -139,6 +139,7 @@
     <ClCompile Include="gpu_buffer_lock.cpp" />
     <ClCompile Include="joystick.cpp" />
     <ClCompile Include="keyboard.cpp" />
+    <ClCompile Include="logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mouse.cpp" />
     <ClCompile Include="uid_manager.cpp" />
@@ -169,6 +170,7 @@
     <ClInclude Include="chunk_provider_concept.h" />
     <ClInclude Include="joystick.h" />
     <ClInclude Include="keyboard.h" />
+    <ClInclude Include="logger.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="uid_manager.h" />
     <ClInclude Include="voxel_math.h" />
