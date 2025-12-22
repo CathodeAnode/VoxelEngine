@@ -118,17 +118,17 @@ private:
 					{
 					case 0:
 					case 1:
-						type = chunk->GetVoxelData(row, y, layer);
+						type = chunk->GetVoxelColorAt(row, y, layer);
 						data[type][row + layer * CS] |= uintC_t(1) << y;
 						break;
 					case 2:
 					case 3:
-						type = chunk->GetVoxelData(layer, y, row);
+						type = chunk->GetVoxelColorAt(layer, y, row);
 						data[type][row + layer * CS] |= uintC_t(1) << y;
 						break;
 					case 4:
 					case 5:
-						type = chunk->GetVoxelData(row, y, layer);
+						type = chunk->GetVoxelColorAt(row, y, layer);
 						data[type][layer + y * CS] |= uintC_t(1) << row;
 						break;
 						

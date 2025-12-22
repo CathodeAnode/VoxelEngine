@@ -5,16 +5,19 @@
 #include <iostream>
 #include <unordered_map>
 #include <limits>
+#include <span>
 
 #include "types.h"
 #include "uid_manager.h"
 #include "chunk_provider_concept.h"
 
+
+// TODO algin data for SIMD instructions
 template<typename T, unsigned int ChunkSize>
 class Chunk {
 public:
 	using ValueType = T;
-	static constexpr unsigned int Size = ChunkSize;
+	static constexpr size_t Size = ChunkSize;
 
 	Chunk();
 	~Chunk();
@@ -29,34 +32,24 @@ public:
 	void ToggleBit(int x, int y, int z);
 	void SetVoxel(int x, int y, int z, RGBAColor color);
 
+	inline RGBAColor GetVoxelColorAt(int x, int y, int z) const { return m_ColorData[ColorDataIndexAt(x, y, z)]; }
+	inline RGBAColor GetVoxelColorAt(glm::ivec3 coords) const { return GetVoxelColorAt(coords.x, coords.y, coords.z); }
+	virtual inline T GetColumnRow(int x, int z) const { return m_OpaqueData[OpaqueDataIndexAt(x, z)]; }
+
 	virtual inline VoxelObjectID GetUID() const { return k_Uid; };
-	inline RGBAColor GetVoxelData(int x, int y, int z) const { return m_ColorData[_GetColorDataIndex(x, y, z)]; }
-	inline RGBAColor GetVoxelData(glm::ivec3 coords) const { return GetVoxelData(coords.x, coords.y, coords.z); }
-	virtual inline T GetColumnRow(int x, int z) const { return m_OpaqueData[_GetOpaqueDataIndex(x, z)]; }
+	inline T* GetOpaqueData() noexcept { return m_OpaqueData; }
+	inline RGBAColor* GetColorData() noexcept { return m_ColorData; }
+	inline std::span<T> GetOpaqueSpan() noexcept { return std::span<T>(m_OpaqueData, Size * Size); }
+	inline std::span<RGBAColor> GetColorSpan() noexcept { return std::span<RGBAColor>(m_ColorData, Size * Size * Size); }
+
+	static inline size_t OpaqueDataIndexAt(int x, int z) { return x + z * ChunkSize; }
+	static inline size_t ColorDataIndexAt(int x, int y, int z) { return x + z * ChunkSize + y * ChunkSize * ChunkSize; }
 
 	char* serialize();
 private:
 	T* __restrict m_OpaqueData = nullptr; // 1 for block, 0 for air (z-major order)
 	RGBAColor* __restrict m_ColorData = nullptr;
 	const VoxelObjectID k_Uid;
-
-private:
-	static inline size_t _GetOpaqueDataIndex(int x, int z) { return x + z * ChunkSize; }
-	static inline size_t _GetColorDataIndex(int x, int y, int z) { return x + z * ChunkSize + y * ChunkSize * ChunkSize; }
-
-private:
-	// friend classes to allow for SIMD optimizations
-	template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
-	friend class VoxelEdit;
-
-	template<typename ChunkType>
-	friend class ChunkGeneratorStrategy;
-
-	template<typename ChunkType>
-	friend class EmptyChunkGeneration;
-
-	template<typename ChunkType>
-	friend class FlatChunkGeneration;
 };
 
 typedef Chunk<uint8_t, 8> Chunk8;

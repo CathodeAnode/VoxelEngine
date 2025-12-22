@@ -90,7 +90,7 @@ Chunk<T, ChunkSize>& Chunk<T, ChunkSize>::operator=(Chunk<T, ChunkSize>&& other)
 template<typename T, unsigned int ChunkSize>
 bool Chunk<T, ChunkSize>::IsSolid(int x, int y, int z) const
 {
-	return m_OpaqueData[_GetOpaqueDataIndex(x, z)] << y;
+	return m_OpaqueData[OpaqueDataIndexAt(x, z)] << y;
 }
 
 template<typename T, unsigned int ChunkSize>
@@ -108,14 +108,14 @@ bool Chunk<T, ChunkSize>::IsEmpty() const
 template<typename T, unsigned int ChunkSize>
 void Chunk<T, ChunkSize>::ToggleBit(int x, int y, int z)
 {
-	m_OpaqueData[_GetOpaqueDataIndex(x, z)] ^= (T(1) << y);
+	m_OpaqueData[OpaqueDataIndexAt(x, z)] ^= (T(1) << y);
 }
 
 template<typename T, unsigned int ChunkSize>
 void Chunk<T, ChunkSize>::SetVoxel(int x, int y, int z, RGBAColor color)
 {
-	m_OpaqueData[_GetOpaqueDataIndex(x, z)] |= (T(1) << y);
-	m_ColorData[_GetColorDataIndex(x, y, z)] = color;
+	m_OpaqueData[OpaqueDataIndexAt(x, z)] |= (T(1) << y);
+	m_ColorData[ColorDataIndexAt(x, y, z)] = color;
 }
 
 

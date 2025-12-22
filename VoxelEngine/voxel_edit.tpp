@@ -13,14 +13,17 @@ template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
 void VoxelEdit<ChunkType, ChunkContainer>::SetVoxel(const glm::ivec3& coords, RGBAColor color)
 {
 	const glm::ivec3 chunkCoords = WorldToChunk(coords, ChunkType::Size);
-	std::shared_ptr<const ChunkType> chunk = m_ChunkContainer.GetChunk(chunkCoords);
+	std::shared_ptr<ChunkType> chunk = m_ChunkContainer.GetChunk(chunkCoords);
 
 	assert(chunk->GetUID() != 0);
 
 	const glm::ivec3 localVoxelCoords = VoxelToLocal(coords, ChunkType::Size);
 
-	chunk->m_OpaqueData[ChunkType::_GetOpaqueDataIndex(localVoxelCoords.x, localVoxelCoords.z)] |= (1 << localVoxelCoords.y);
-	chunk->m_ColorData[ChunkType::_GetColorDataIndex(localVoxelCoords.x, localVoxelCoords.y, localVoxelCoords.z)] = color;
+	auto chunkOpaqueData = chunk->GetOpaqueSpan();
+	auto chunkColorData = chunk->GetColorSpan();
+
+	chunkOpaqueData[ChunkType::OpaqueDataIndexAt(localVoxelCoords.x, localVoxelCoords.z)] |= (1 << localVoxelCoords.y);
+	chunkColorData[ChunkType::ColorDataIndexAt(localVoxelCoords.x, localVoxelCoords.y, localVoxelCoords.z)] = color;
 
 	m_Renderer.Upload(m_ChunkContainer, chunkCoords);
 
@@ -44,13 +47,14 @@ template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
 void VoxelEdit<ChunkType, ChunkContainer>::RemoveVoxel(const glm::ivec3& coords)
 {
 	const glm::ivec3 chunkCoords = WorldToChunk(coords, ChunkType::Size);
-	std::shared_ptr<const ChunkType> chunk = m_ChunkContainer.GetChunk(chunkCoords);
+	std::shared_ptr<ChunkType> chunk = m_ChunkContainer.GetChunk(chunkCoords);
 
 	assert(chunk->GetUID() != 0);
 
 	const glm::ivec3 localVoxelCoords = VoxelToLocal(coords, ChunkType::Size);
 
-	chunk->m_OpaqueData[ChunkType::_GetOpaqueDataIndex(localVoxelCoords.x, localVoxelCoords.z)] &= ~(1 << localVoxelCoords.y);
+	auto chunkOpaqueData = chunk->GetOpaqueSpan();
+	chunkOpaqueData[ChunkType::OpaqueDataIndexAt(localVoxelCoords.x, localVoxelCoords.z)] &= ~(1 << localVoxelCoords.y);
 
 	m_Renderer.Upload(m_ChunkContainer, chunkCoords);
 

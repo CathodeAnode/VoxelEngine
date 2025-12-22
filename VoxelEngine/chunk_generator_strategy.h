@@ -58,22 +58,22 @@ public:
 		{
 			voxelFill = ~ChunkType::ValueType(0);
 			// TODO: set voxel color data using passed object in constructor
-			constexpr int colorBufferSize = ChunkType::Size * ChunkType::Size * ChunkType::Size;
 
 			//TEMP
 			const int randColor = dist(engine);
 
-			for (int i = 0; i < colorBufferSize; i++)
+			auto chunkColorData = outChunk->GetColorSpan();
+			for (int i = 0; i < chunkColorData.size(); i++)
 			{
-				outChunk->m_ColorData[i] = randColor;
+				chunkColorData[i] = randColor;
 			}
 		}
 
 		// TODO: SIMD me
-		constexpr int totalSize = ChunkType::Size * ChunkType::Size;
-		for (int i = 0; i < totalSize; i++)
+		auto chunkOpaqueData = outChunk->GetOpaqueSpan();
+		for (int i = 0; i < chunkOpaqueData.size(); i++)
 		{
-			outChunk->m_OpaqueData[i] = voxelFill;
+			chunkOpaqueData[i] = voxelFill;
 		}
 	}
 

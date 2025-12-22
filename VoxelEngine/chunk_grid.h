@@ -18,7 +18,7 @@
 #define MAX_GRID_INT 1048575
 
 template<typename ChunkType> 
-class ChunkGrid
+class [[deprecated("Not Updated")]] ChunkGrid
 {
 public:
 
@@ -146,7 +146,7 @@ public:
 		return isVoxelSolid(pos.x, pos.y, pos.z);
 	}
 
-	uint16_t GetVoxelData(int x, int y, int z) const 
+	uint16_t GetVoxelColorAt(int x, int y, int z) const 
 	{
 		const int ChunkSize = ChunkType::Size;
 
@@ -166,9 +166,9 @@ public:
 		return std::numeric_limits<uint16_t>::max();
 	}
 
-	uint16_t GetVoxelData(glm::ivec3 coords) const 
+	uint16_t GetVoxelColorAt(glm::ivec3 coords) const 
 	{
-		return GetVoxelData(coords.x, coords.y, coords.z);
+		return GetVoxelColorAt(coords.x, coords.y, coords.z);
 	}
 
 	char* serialize();
@@ -236,8 +236,8 @@ private:
 	
 };
 
-typedef ChunkGrid<Chunk8> ChunkGrid8;
-typedef ChunkGrid<Chunk16> ChunkGrid16;
-typedef ChunkGrid<Chunk32> ChunkGrid32;
+//typedef ChunkGrid<Chunk8> ChunkGrid8;
+//typedef ChunkGrid<Chunk16> ChunkGrid16;
+//typedef ChunkGrid<Chunk32> ChunkGrid32;
 
 #endif
