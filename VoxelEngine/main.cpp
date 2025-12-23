@@ -30,21 +30,19 @@
 #include "scene.h"
 #include "voxel_ray_cast.h"
 
-// Agenda for 12/21/2025
-// - sperate chunk implementation from header file (chunk.tpp)
-// - remove friend classes from chunk & replace with func that returns raw buffer pointers
-// - fix voxel ray traversal algorithm (https://mxcop.github.io/mxcop-dev/)
+// Agenda for 12/22/2025 - Week
+// - implement old chunk id system (chunk pos encoded into 64-bit int, msb specifies temp objects & voxel enities objects)
+// - use logging system
+// - implement multi-threading class (thread pool) to handle chunk generation, chunk meshing & chunk uploading to gpu
 
 // future TODOs:
-// - implement old chunk id system (chunk pos encoded into 64-bit int, msb specifies temp objects & voxel enities objects)
 // - main/engine class for main loop and tie all classes together
 // - editor-like camera controller (similar to unity)
 // - debugging gui using dear imgui
-// - sampler performance profiler
+// - engine configuration UI using imgui
+// - performance sampler profiler
 // - terrain perlin noise generator
 // - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
-// - use logging system
-// - implement multi-threading class (thread pool) to handle chunk generation & chunk meshing
 // - implement queue system for chunk loading to distrubite loading chunks over multiple frames (consumer-producer)
 // - different build types for each chunk size
 // - project file structure
@@ -52,6 +50,8 @@
 // - design & implement gpu frustum occlustion culling archititure
 // - lighting
 // - SSAO
+// - SIMD level detection at compile time
+// - SIMD for chunk generation & voxel edit
 
 #define TIME_FUNCTION(func_call) \
     do { \
@@ -118,8 +118,10 @@ int main()
 	VoxelRenderer8 renderer(std::move(greedyMesher));
 	renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(loadedChunkDistance, 3));
 
-	Scene8 scene(camera, world, renderer);
 	VoxelEdit<Chunk8, decltype(world)> worldEdit(world, renderer);
+	worldEdit.RemoveVoxel(glm::ivec3(0, -1, 0));
+
+	Scene8 scene(camera, world, renderer);
 
 	//camera.speed = 40.0f;
 

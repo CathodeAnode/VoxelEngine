@@ -90,7 +90,7 @@ Chunk<T, ChunkSize>& Chunk<T, ChunkSize>::operator=(Chunk<T, ChunkSize>&& other)
 template<typename T, unsigned int ChunkSize>
 bool Chunk<T, ChunkSize>::IsSolid(int x, int y, int z) const
 {
-	return m_OpaqueData[OpaqueDataIndexAt(x, z)] << y;
+	return (m_OpaqueData[OpaqueDataIndexAt(x, z)] & (T(1) << y)) != 0;
 }
 
 template<typename T, unsigned int ChunkSize>

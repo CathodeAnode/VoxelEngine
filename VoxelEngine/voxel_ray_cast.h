@@ -30,17 +30,11 @@ template <typename ChunkType>
 class VoxelRayCast
 {
 public:
-	// Optimization: step over empty chunks or null chunks in one step
-	// step 1: check if current chunk is empty or null
-	// step 2: check how many voxels till next chunk
-	// step 3: traverse by number of voxels (tDelta * numOfVoxelsTillNextChunk) & step += numOfVoxelsTillNextChunk
-	// step 4: if not out of range check if voxel is solid & repeat loop
 	template <ChunkProvider<ChunkType> ChunkContainer>
 	static bool cast(const Ray& ray, const ChunkContainer& chunkContainer, glm::ivec3& hitPos)
 	{
 		const int voxelUnit = 1;
-
-		glm::ivec3 currentVoxel(ray.origin);
+		glm::ivec3 currentVoxel(glm::floor(ray.origin));
 		glm::vec3 step(
 			ray.direction.x > 0 ? voxelUnit : (ray.direction.x < 0 ? -voxelUnit : 0),
 			ray.direction.y > 0 ? voxelUnit : (ray.direction.y < 0 ? -voxelUnit : 0),
@@ -56,18 +50,17 @@ public:
 
 		int steps = 0;
 		while (steps < ray.range) {
-			std::cout << currentVoxel.x << ", " << currentVoxel.y << ", " << currentVoxel.z << std::endl;
 			if (_IsVoxelSolid(chunkContainer, currentVoxel)) {
 				hitPos = currentVoxel;
 				return true;
 			}
 
-			if (tMax.x < tMax.y && tMax.x < tMax.z) {
+			if (tMax.x <= tMax.y && tMax.x <= tMax.z) {
 				// move in x direction
 				currentVoxel.x += step.x;
 				tMax.x += tDelta.x;
 			}
-			else if (tMax.y < tMax.x && tMax.y < tMax.z) {
+			else if (tMax.y <= tMax.x && tMax.y <= tMax.z) {
 				// move in y direction
 				currentVoxel.y += step.y;
 				tMax.y += tDelta.y;
