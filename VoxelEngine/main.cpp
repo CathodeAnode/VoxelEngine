@@ -31,15 +31,11 @@
 #include "voxel_ray_cast.h"
 
 // Agenda for 12/22/2025 - Week
-// - implement old chunk id system (chunk pos encoded into 64-bit int, msb specifies temp objects & voxel enities objects)
 // - use logging system
 // - implement multi-threading class (thread pool) to handle chunk generation, chunk meshing & chunk uploading to gpu
 
 // future TODOs:
 // - main/engine class for main loop and tie all classes together
-// - editor-like camera controller (similar to unity)
-// - debugging gui using dear imgui
-// - engine configuration UI using imgui
 // - performance sampler profiler
 // - terrain perlin noise generator
 // - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
@@ -47,11 +43,27 @@
 // - different build types for each chunk size
 // - project file structure
 // - namespacing
-// - design & implement gpu frustum occlustion culling archititure
-// - lighting
-// - SSAO
-// - SIMD level detection at compile time
-// - SIMD for chunk generation & voxel edit
+// - make gpu buffers thread-safe & implment multi-thread architecture
+
+// Futures:
+// - desgining & implementing gpu frustum culling to take advantage of indirect commands & caching system
+// - region-based file saving system to save voxels/chunks of world
+// - lighting & SSAO
+// - more voxel edit functionality
+// - visuals for voxel editting functions (highlighting voxel camera is aiming at, highlighting selected volume, etc...)
+// - camera editor controller
+// - python script engine
+// - ECS system
+// - entity rendering
+// - dear imgui wrapper & engine gui
+
+// Future Future:
+// - physics system
+// - audio system
+// - animation system
+// - pathfinding system
+// - networking system
+
 
 #define TIME_FUNCTION(func_call) \
     do { \
@@ -71,9 +83,6 @@
 
 void processInput(Screen& screen, double dt);
 void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos);
-
-template<typename ChunkType> 
-ChunkType GenerateRampChunk();
 
 int countFPS = 0;
 float sumFPS = 0;
@@ -240,28 +249,4 @@ void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos)
 		countFPS++;
 	}
 
-}
-
-template<typename ChunkType>
-ChunkType GenerateRampChunk()
-{
-	ChunkType result;
-	RGBAColor color = 0x808080FF;
-
-
-	for (int y = 0; y < ChunkType::Size; y++)
-	{
-		for (int x = 0; x < ChunkType::Size; x++)
-		{
-			for (int z = 0; z < ChunkType::Size; z++)
-			{
-				if (y < x + (ChunkType::Size / 4))
-				{
-					result.SetVoxel(x, y, z, color);
-				}
-			}
-		}
-	}
-
-	return result;
 }

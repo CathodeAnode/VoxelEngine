@@ -16,6 +16,9 @@
     <Filter Include="Shaders">
       <UniqueIdentifier>{0f951494-df4e-4bd5-8b8c-778078aa5696}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Template Files">
+      <UniqueIdentifier>{1fb631b7-2017-4f3b-826b-aba66be03d4e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -60,11 +63,11 @@
     <ClCompile Include="uid_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="voxel_renderer.tpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="logger.cpp">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="voxel_renderer.tpp">
+      <Filter>Template Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -74,20 +77,26 @@
     <None Include="voxel_shader.frag.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="gpu_buffer_allocator.tpp">
-      <Filter>Header Files</Filter>
+    <None Include="voxel_ray_cast.tpp">
+      <Filter>Template Files</Filter>
     </None>
     <None Include="voxel_edit.tpp">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="chunk_manager.tpp">
-      <Filter>Header Files</Filter>
-    </None>
-    <None Include="scene.tpp">
-      <Filter>Header Files</Filter>
+      <Filter>Template Files</Filter>
     </None>
     <None Include="chunk.tpp">
-      <Filter>Header Files</Filter>
+      <Filter>Template Files</Filter>
+    </None>
+    <None Include="chunk_manager.tpp">
+      <Filter>Template Files</Filter>
+    </None>
+    <None Include="gpu_buffer_allocator.tpp">
+      <Filter>Template Files</Filter>
+    </None>
+    <None Include="voxel_mesher.tpp">
+      <Filter>Template Files</Filter>
+    </None>
+    <None Include="scene.tpp">
+      <Filter>Template Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
