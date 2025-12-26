@@ -172,8 +172,11 @@
     <ClInclude Include="helpers.h" />
     <ClInclude Include="chunk_provider_concept.h" />
     <ClInclude Include="joystick.h" />
+    <ClInclude Include="joystick_codes.h" />
     <ClInclude Include="keyboard.h" />
+    <ClInclude Include="key_codes.h" />
     <ClInclude Include="logger.h" />
+    <ClInclude Include="mouse_codes.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="uid_manager.h" />
     <ClInclude Include="voxel_math.h" />

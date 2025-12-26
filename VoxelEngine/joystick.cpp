@@ -19,7 +19,7 @@ void Joystick::Update() {
 }
 
 // get axis value
-float Joystick::axesState(int axis) {
+float Joystick::axesState(JoyStickCode axis) {
     if (m_Present) {
         return m_Axes[axis];
     }
@@ -28,7 +28,7 @@ float Joystick::axesState(int axis) {
 }
 
 // get button state
-unsigned char Joystick::buttonState(int button) {
+unsigned char Joystick::buttonState(JoyStickCode button) {
     if (m_Present) {
         return m_Buttons[button];
     }

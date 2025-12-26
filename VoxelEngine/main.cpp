@@ -143,7 +143,7 @@ int main()
 
 		// process input
 		processInput(screen, deltaTime);
-		if (Mouse::buttonUp(MOUSE_BUTTON_LEFT))
+		if (Mouse::buttonUp(MouseKey::ButtonLeft))
 		{
 			glm::ivec3 voxelCoords;
 			bool voxelHit = VoxelRayCast8::cast(Ray(camera.pos, camera.front, 10), world, voxelCoords);
@@ -177,37 +177,37 @@ int main()
 }
 
 void processInput(Screen& screen, double dt) {
-	if (Keyboard::key(GLFW_KEY_ESCAPE)) 
+	if (Keyboard::key(Key::Escape)) 
 	{
 		screen.close();
 	}
 
-	if (Keyboard::key(GLFW_KEY_W)) 
+	if (Keyboard::key(Key::W)) 
 	{
 		camera.UpdateCameraPos(CameraDirection::FORWARD, dt);
 	}
 
-	if (Keyboard::key(GLFW_KEY_S)) 
+	if (Keyboard::key(Key::S)) 
 	{
 		camera.UpdateCameraPos(CameraDirection::BACKWARD, dt);
 	}
 
-	if (Keyboard::key(GLFW_KEY_D)) 
+	if (Keyboard::key(Key::D)) 
 	{
 		camera.UpdateCameraPos(CameraDirection::RIGHT, dt);
 	}
 
-	if (Keyboard::key(GLFW_KEY_A)) 
+	if (Keyboard::key(Key::A)) 
 	{
 		camera.UpdateCameraPos(CameraDirection::LEFT, dt);
 	}
 
-	if (Keyboard::key(GLFW_KEY_SPACE)) 
+	if (Keyboard::key(Key::Space)) 
 	{
 		camera.UpdateCameraPos(CameraDirection::UP, dt);
 	}
 
-	if (Keyboard::key(GLFW_KEY_LEFT_SHIFT)) 
+	if (Keyboard::key(Key::LeftShift)) 
 	{
 		camera.UpdateCameraPos(CameraDirection::DOWN, dt);
 	}

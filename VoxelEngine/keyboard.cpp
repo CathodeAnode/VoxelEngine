@@ -27,12 +27,12 @@ void Keyboard::keyCallback(GLFWwindow* window, int key, int scancode, int action
 */
 
 // get key state
-bool Keyboard::key(int key) {
+bool Keyboard::key(KeyCode key) {
     return m_Keys[key];
 }
 
 // get if key recently changed
-bool Keyboard::keyChanged(int key) {
+bool Keyboard::keyChanged(KeyCode key) {
     bool ret = m_KeysChanged[key];
     // set to false because change no longer new
     m_KeysChanged[key] = false;
@@ -40,11 +40,11 @@ bool Keyboard::keyChanged(int key) {
 }
 
 // get if key recently changed and is up
-bool Keyboard::keyDown(int key) {
+bool Keyboard::keyDown(KeyCode key) {
     return m_Keys[key] && keyChanged(key);
 }
 
 // get if key recently changed and is down
-bool Keyboard::keyUp(int key) {
+bool Keyboard::keyUp(KeyCode key) {
     return !m_Keys[key] && keyChanged(key);
 }

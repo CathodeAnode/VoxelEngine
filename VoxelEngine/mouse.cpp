@@ -83,17 +83,17 @@ double Mouse::getScrollDY() {
 	return _scrollDY;
 }
 
-bool Mouse::button(int button) {
+bool Mouse::button(MouseCode button) {
 	return m_Buttons[button];
 }
-bool Mouse::buttonChanged(int button) {
+bool Mouse::buttonChanged(MouseCode button) {
 	bool ret = m_ChangedButtons[button];
 	m_ChangedButtons[button] = false;
 	return ret;
 }
-bool Mouse::buttonUp(int button) {
+bool Mouse::buttonUp(MouseCode button) {
 	return !m_Buttons[button] && buttonChanged(button);
 }
-bool Mouse::buttonDown(int button) {
+bool Mouse::buttonDown(MouseCode button) {
 	return m_Buttons[button] && buttonChanged(button);
 }

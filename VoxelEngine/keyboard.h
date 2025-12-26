@@ -4,6 +4,7 @@
 #include <glad/glad.h>
 #include <glfw/glfw3.h>
 
+#include "key_codes.h"
 
 class Keyboard {
 public:
@@ -13,16 +14,16 @@ public:
 	// static accessors
 
 	// get key state
-	static bool key(int key);
+	static bool key(KeyCode key);
 
 	// get if key changed
-	static bool keyChanged(int key);
+	static bool keyChanged(KeyCode key);
 
 	// get if key went up
-	static bool keyUp(int key);
+	static bool keyUp(KeyCode key);
 
 	// get if key went down
-	static bool keyDown(int key);
+	static bool keyDown(KeyCode key);
 
 private:
 	static bool m_Keys[]; // key state array (true for down, false for up)

@@ -4,19 +4,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#define 	MOUSE_BUTTON_1   0
-#define 	MOUSE_BUTTON_2   1
-#define 	MOUSE_BUTTON_3   2
-#define 	MOUSE_BUTTON_4   3
-#define 	MOUSE_BUTTON_5   4
-#define 	MOUSE_BUTTON_6   5
-#define 	MOUSE_BUTTON_7   6
-#define 	MOUSE_BUTTON_8   7
-
-#define 	MOUSE_BUTTON_LAST		MOUSE_BUTTON_8
-#define 	MOUSE_BUTTON_LEFT		MOUSE_BUTTON_1
-#define 	MOUSE_BUTTON_RIGHT		MOUSE_BUTTON_2
-#define 	MOUSE_BUTTON_MIDDLE		MOUSE_BUTTON_3
+#include "mouse_codes.h"
 
 class Mouse {
 public:
@@ -33,10 +21,10 @@ public:
 	static double getScrollDX();
 	static double getScrollDY();
 
-	static bool button(int button);
-	static bool buttonChanged(int button);
-	static bool buttonUp(int button);
-	static bool buttonDown(int button);
+	static bool button(MouseCode button);
+	static bool buttonChanged(MouseCode button);
+	static bool buttonUp(MouseCode button);
+	static bool buttonDown(MouseCode button);
 
 private:
 	static double m_X;
