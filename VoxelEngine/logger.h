@@ -7,10 +7,14 @@
 #include <memory>
 
 #define ENGINE_SYSTEMS	\
-	X(GREEDY_MESHER)	\
-	X(VOXEL_RENDERER)	\
-	X(CHUNK_MANAGER)	\
-	X(GPU_ALLOCATORS)
+	X(CORE)	\
+	X(RENDERER)	\
+	X(INPUTS)	\
+	X(CHUNK)	\
+	X(VOXEL_MESH)	\
+	X(SCENE)	\
+	X(GPU_BUFFER)	\
+	X(VOXEL_ENGINE)
 
 enum class EngineSystem
 {
@@ -19,6 +23,8 @@ enum class EngineSystem
 #undef X
 };
 
+// TODO: have one logger object to reduce memory footprint
+// TODO: option to output to file
 class LogManager
 {
 public:
