@@ -44,6 +44,7 @@
 // - project file structure
 // - namespacing
 // - make gpu buffers thread-safe & implment multi-thread architecture
+// - implement cherno event system for mouse, keyboard, & joystick
 
 // Futures:
 // - desgining & implementing gpu frustum culling to take advantage of indirect commands & caching system
@@ -103,6 +104,7 @@ Screen screen(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
 int main() 
 {
 	if (!screen.init()) {
+		LOG_CRITICAL(EngineSystem::CORE, "Screen initilization Failed");
 		return -1;
 	}
 
@@ -111,10 +113,10 @@ int main()
 
 	mainJ.Update();
 	if (mainJ.isPresent()) {
-		std::cout << mainJ.getName() << " is connected.\n";
+		LOG_INFO(EngineSystem::INPUTS, "Joystick {} is connected", mainJ.getName());
 	}
 	else {
-		std::cout << "Joystick not connected.\n";
+		LOG_INFO(EngineSystem::INPUTS, "Joystick not connected");
 	}
 
 	constexpr unsigned int loadedChunkDistance = 9;

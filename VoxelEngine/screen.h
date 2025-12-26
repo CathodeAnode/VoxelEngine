@@ -8,6 +8,10 @@
 #include "mouse.h"
 #include "keyboard.h"
 #include "joystick.h"
+#include "logger.h"
+
+#define SCREEN_OPENGL_MAJOR_VERISON 4
+#define SCREEN_OPENGL_MINOR_VERISON 6
 
 class Screen {
 public:
@@ -39,7 +43,9 @@ private:
 
 	bool m_CursorEnabled;
 
+private:
 	static void framebuffer_size_callback(GLFWwindow* m_Window, int _width, int _height);
+	static void log_Opengl_info();
 };
 
 #endif // !SCREEN_H

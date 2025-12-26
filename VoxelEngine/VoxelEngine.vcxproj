@@ -144,7 +144,6 @@
     <ClCompile Include="mouse.cpp" />
     <ClCompile Include="uid_manager.cpp" />
     <ClCompile Include="voxel_mesh_writer.cpp" />
-    <ClCompile Include="voxel_ray_cast.cpp" />
     <ClCompile Include="voxel_renderer.tpp" />
     <ClCompile Include="screen.cpp" />
     <ClCompile Include="shader.cpp" />
