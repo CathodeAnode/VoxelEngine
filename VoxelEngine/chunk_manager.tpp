@@ -7,6 +7,7 @@ ChunkManager<ChunkType>::ChunkManager(const glm::vec3& playerWorldCoords, unsign
 	: m_LoadedChunks(loadedChunksDistance)
 	, m_ChunkGenerator(std::move(generator))
 	, m_LastPlayerGridCoords(WorldToChunk(playerWorldCoords, ChunkType::Size))
+	, k_Uid(UIDManager::Generate())
 {
 	//assert(loadedChunksDistance % 2 != 0, "loaded chunks distance must be odd");
 

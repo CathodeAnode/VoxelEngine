@@ -15,6 +15,10 @@ concept ChunkProvider =
 &&
     requires(const T t, const glm::ivec3& coords) {
         { t.GetChunk(coords) } -> std::same_as<std::shared_ptr<const ChunkType>>;
+}
+&&
+    requires(const T t) {
+        { t.GetUID() } -> std::same_as<VoxelObjectID>;
 };
 
 #endif

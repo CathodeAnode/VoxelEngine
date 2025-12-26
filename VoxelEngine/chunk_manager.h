@@ -7,6 +7,7 @@
 #include "voxel_renderer.h"
 #include "3d_ring_buffer.h"
 #include "voxel_math.h"
+#include "types.h"
 
 
 template<typename ChunkType>
@@ -25,6 +26,7 @@ public:
 	bool Update(const glm::vec3& playerWorldCoords);
 
 	inline VoxelObjectID GetChunkID(const glm::ivec3& chunkCoords);
+	inline VoxelObjectID GetUID() const { return k_Uid; };
 
 	// Using this function will mark chunk as dirty, thus saving chunk to disk
 	std::shared_ptr<ChunkType> GetChunk(const glm::ivec3& chunkCoords);
@@ -40,6 +42,7 @@ private:
 	std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> m_ChunkGenerator;
 
 	glm::ivec3 m_LastPlayerGridCoords;
+	const VoxelObjectID k_Uid;
 
 private:
 	inline std::shared_ptr<ChunkType> _LoadChunk(const glm::ivec3& chunkCoords) const;
