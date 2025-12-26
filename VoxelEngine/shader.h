@@ -13,10 +13,33 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+#include "logger.h"
+
 struct ShaderFile
 {
 	const char* shaderPath;
 	GLenum shaderType; //GL_COMPUTE_SHADER, GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
+
+	const char* TypeToString() const
+	{
+		switch (shaderType)
+		{
+		case GL_COMPUTE_SHADER:
+			return "Compute_Shader";
+		case GL_VERTEX_SHADER:
+			return "Vertex_Shader";
+		case GL_TESS_CONTROL_SHADER:
+			return "Tessellation_Control_Shader";
+		case GL_TESS_EVALUATION_SHADER:
+			return "Tessellation_Evaluation_Shader";
+		case GL_GEOMETRY_SHADER:
+			return "Geometry_Shader";
+		case GL_FRAGMENT_SHADER:
+			return "Fragment_Shader";
+		default:
+			return "Unknown_Shader_Type";
+		}
+	}
 };
 
 class Shader {
@@ -42,6 +65,7 @@ public:
 	void SetBool(const std::string& name, bool value) const;
 	void SetInt(const std::string& name, int value) const;
 	void SetFloat(const std::string& name, float value) const;
+	// Implement setters and getters as needed
 
 	// TODO: implement getter functions uniform vals: getBool, getInt, getFloat
 

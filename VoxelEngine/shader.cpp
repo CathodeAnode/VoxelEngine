@@ -5,6 +5,7 @@
 
 Shader::Shader(std::initializer_list<ShaderFile> shaders)
 {
+	LOG_INFO(EngineSystem::RENDERER, "Creating shader program with {} shaders", shaders.size());
 	int success;
 	char infoLog[512];
 
@@ -12,6 +13,14 @@ Shader::Shader(std::initializer_list<ShaderFile> shaders)
 	shaderIDs.reserve(shaders.size());
 	for (const auto& shader : shaders)
 	{
+		LOG_INFO(
+			EngineSystem::RENDERER,
+			"Compiling shader: path='{}', type={}",
+			shader.shaderPath,
+			shader.TypeToString()
+		);
+
+
 		shaderIDs.push_back(compileShader(shader.shaderPath, shader.shaderType));
 	}
 
@@ -20,6 +29,12 @@ Shader::Shader(std::initializer_list<ShaderFile> shaders)
 	for (const auto& shaderID : shaderIDs)
 	{
 		glAttachShader(m_Id, shaderID);
+		LOG_TRACE(
+			EngineSystem::RENDERER,
+			"Attached shader ID {} to program {}",
+			shaderID,
+			m_Id
+		);
 	}
 
 	glLinkProgram(m_Id);
@@ -27,22 +42,50 @@ Shader::Shader(std::initializer_list<ShaderFile> shaders)
 	glGetProgramiv(m_Id, GL_LINK_STATUS, &success);
 	if (!success) {
 		glGetProgramInfoLog(m_Id, 512, NULL, infoLog);
-		std::cout << "Error: could not link shader program\n" << infoLog << "\n";
+		LOG_ERROR(
+			EngineSystem::RENDERER,
+			"Shader program link failed (program ID {}): {}",
+			m_Id,
+			infoLog
+		);
 	}
+
+	LOG_INFO(
+		EngineSystem::RENDERER,
+		"Shader program (ID={}) linked successfully",
+		m_Id
+	);
 
 	for (const auto& shaderID : shaderIDs)
 	{
 		glDeleteShader(shaderID);
+		LOG_TRACE(
+			EngineSystem::RENDERER,
+			"Deleted intermediate shader (ID={})",
+			shaderID
+		);
 	}
 }
 
 Shader::~Shader()
 {
+	LOG_INFO(
+		EngineSystem::RENDERER,
+		"Destroying shader program (ID={})",
+		m_Id
+	);
+
 	glDeleteShader(m_Id);
 }
 
 void Shader::Use() 
 {
+	LOG_TRACE(
+		EngineSystem::RENDERER,
+		"Using shader program (ID={})",
+		m_Id
+	);
+
 	glUseProgram(m_Id);
 }
 
@@ -54,6 +97,14 @@ unsigned int Shader::compileShader(const char* path, int shaderType)
 
 	unsigned int shader;
 	shader = glCreateShader(shaderType);
+
+	LOG_TRACE(
+		EngineSystem::RENDERER,
+		"Created shader object (ID={}) for '{}'",
+		shader,
+		path
+	);
+
 	std::string shaderSrc = loadShaderSrc(path);
 	const GLchar* shaderStr = shaderSrc.c_str();
 	glShaderSource(shader, 1, &shaderStr, NULL);
@@ -62,8 +113,19 @@ unsigned int Shader::compileShader(const char* path, int shaderType)
 	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
 	if (!success) {
 		glGetShaderInfoLog(shader, 512, NULL, infoLog);
-		std::cout << "Error: could not compile \"" << path << "\" shader\n" << infoLog << "\n";
+		LOG_ERROR(
+			EngineSystem::RENDERER,
+			"Shader compilation failed for '{}': {}",
+			path,
+			infoLog
+		);
 	}
+
+	LOG_TRACE(
+		EngineSystem::RENDERER,
+		"Shader compiled successfully: '{}'",
+		path
+	);
 
 	return shader;
 }
@@ -82,10 +144,20 @@ std::string Shader::loadShaderSrc(const char* path)
 		ret = buf.str();
 	}
 	else {
-		std::cout << "Error: Unable to open shader file at (" << path << ")\n";
+		LOG_ERROR(
+			EngineSystem::RENDERER,
+			"Failed to open shader file '{}'",
+			path
+		);
 	}
 
 	file.close();
+	LOG_TRACE(
+		EngineSystem::RENDERER,
+		"Loaded shader source from '{}'",
+		path
+	);
+
 	return ret;
 }
 

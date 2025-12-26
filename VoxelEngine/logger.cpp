@@ -18,7 +18,7 @@ LogManager::LogManager()
 	ENGINE_SYSTEMS
 #undef X
 
-#define X(ENGINESYSTEM)	m_LoggerMap[EngineSystem::ENGINESYSTEM]->set_level(spdlog::level::trace);
+#define X(ENGINESYSTEM)	m_LoggerMap[EngineSystem::ENGINESYSTEM]->set_level(spdlog::level::info);
 		ENGINE_SYSTEMS
 #undef X
 
