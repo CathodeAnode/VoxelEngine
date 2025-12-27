@@ -103,6 +103,8 @@ Screen screen(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
 
 int main() 
 {
+	LogManager::GetInstance()->GetLogger(EngineSystem::RENDERER)->set_level(spdlog::level::debug);
+
 	if (!screen.init()) {
 		LOG_CRITICAL(EngineSystem::CORE, "Screen initilization Failed");
 		return -1;

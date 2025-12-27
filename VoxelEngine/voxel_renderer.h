@@ -9,6 +9,8 @@
 #include <vector>
 #include <algorithm>
 
+#include "logger.h"
+
 #include "chunk.h"
 #include "types.h"
 #include "voxel_mesh_writer.h"
@@ -94,6 +96,8 @@ private:
 private:
 	// this function will clear the objects queued to be rendered on the next frame
 	void _RefreshFrame();
+	inline void _CreateGPUBuffers(size_t indirectBufferSize, size_t cachePageSize, size_t cachePages);
+	inline void _SetupOpenGLAttribs();
 };
 
 // object upload cases
