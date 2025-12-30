@@ -1,4 +1,15 @@
 #include "gpu_buffer_allocator.h"
+
+// LOGGING Format: [type|id] event (eventinfo1=, eventinfo2=, ...)
+// types: Persist, Ring, Orphan, Cache
+
+// someway to convay that other buffer allocators are just wrappers for GPUPersistentlyMappedBuffer
+
+// log levels:
+// trace for per frame calls
+// debug for internal logic such as evictions, wrap around in ring buffer
+// info for creation & destruction
+
 template<typename Atom, IBufferLockManager LockManager>
 GPUPersistentlyMappedBuffer<Atom, LockManager>::GPUPersistentlyMappedBuffer(bool _cpuUpdates)
 	: m_LockManager(_cpuUpdates)
@@ -6,16 +17,23 @@ GPUPersistentlyMappedBuffer<Atom, LockManager>::GPUPersistentlyMappedBuffer(bool
 	, m_Name()
 	, m_Target()
 {}
+
 template<typename Atom, IBufferLockManager LockManager>
 GPUPersistentlyMappedBuffer<Atom, LockManager>::~GPUPersistentlyMappedBuffer()
 {
+	LOG_INFO(EngineSystem::GPU_BUFFER, "[GPUPersistentlyMappedBuffer|ID={}] Destroyed", m_Name);
 	Destroy();
 }
 
 template<typename Atom, IBufferLockManager LockManager>
 bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count)
 {
+
+
 	if (m_BufferContents) {
+		LOG_WARN(EngineSystem::GPU_BUFFER,
+			"[GPUPersistentlyMappedBuffer|{}] Create called on already-initialized buffer, destroying old buffer",
+			m_Name);
 		Destroy();
 	}
 
@@ -36,9 +54,15 @@ bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLui
 	m_BufferContents = reinterpret_cast<Atom*>(glMapBufferRange(m_Target, 0, sizeof(Atom) * _count, flags));
 
 	if (!m_BufferContents) {
-		std::cout << "glMapBufferRange failed, probable bug.\n";
+		LOG_ERROR(EngineSystem::GPU_BUFFER,
+			"[GPUPersistentlyMappedBuffer|{}] glMapBufferRange failed (target={}, bytes={})",
+			m_Name, m_Target, sizeof(Atom) * _count);
 		return false;
 	}
+
+	LOG_INFO(EngineSystem::GPU_BUFFER,
+		"[GPUPersistentlyMappedBuffer|{}] Created (target={}, atomCount={}, atomSize={})",
+		m_Name, _target, _count, sizeof(Atom));
 
 	return true;
 }
@@ -46,6 +70,15 @@ bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLui
 template<typename Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::Destroy()
 {
+	if (!m_Name) {
+		LOG_WARN(EngineSystem::GPU_BUFFER, "Destroy called on empty GPUPersistentlyMappedBuffer");
+		return;
+	}
+
+	LOG_INFO(EngineSystem::GPU_BUFFER,
+		"[GPUPersistentlyMappedBuffer|{}] Destroyed (target={})",
+		m_Name, m_Target);
+
 	glBindBuffer(m_Target, m_Name);
 	glUnmapBuffer(m_Target);
 	glDeleteBuffers(1, &m_Name);
@@ -57,30 +90,60 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::Destroy()
 template<typename Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::WaitForLockedRange(size_t _lockBegin, size_t _lockLength)
 {
+	LOG_TRACE(EngineSystem::GPU_BUFFER,
+		"Waiting for locked range (ID={}, begin={}, length={}, range=[{}, {}))",
+		m_Name,
+		_lockBegin,
+		_lockLength,
+		_lockBegin,
+		(_lockBegin + _lockLength));
+
 	m_LockManager.WaitForLockedRange(_lockBegin * sizeof(Atom), _lockLength * sizeof(Atom));
 }
 
 template<typename Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::LockRange(size_t _lockBegin, size_t _lockLength)
 {
+	LOG_TRACE(EngineSystem::GPU_BUFFER,
+		"Locking range (ID={}, begin={}, length={}, range=[{}, {}))",
+		m_Name,
+		_lockBegin,
+		_lockLength,
+		_lockBegin,
+		(_lockBegin + _lockLength));
+
 	m_LockManager.LockRange(_lockBegin * sizeof(Atom), _lockLength * sizeof(Atom));
 }
 
 template<typename Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBuffer()
 {
+	LOG_TRACE(EngineSystem::GPU_BUFFER, "Binding buffer (ID={}, target={})", m_Name, m_Target);
 	glBindBuffer(m_Target, m_Name);
 }
 
 template<typename Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferBase(GLuint _index)
 {
+	LOG_TRACE(EngineSystem::GPU_BUFFER,
+		"Binding buffer base (ID={}, target={}, index={})",
+		m_Name, m_Target, _index);
 	glBindBufferBase(m_Target, _index, m_Name);
 }
 
 template<typename Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _count)
 {
+	LOG_TRACE(EngineSystem::GPU_BUFFER,
+		"Binding buffer range (ID={}, target={}, index={}, head={}, count={}, bytes=[{}, {}))",
+		m_Name,
+		m_Target,
+		_index,
+		_head,
+		_count,
+		_head * sizeof(Atom),
+		(_head + _count) * sizeof(Atom));
+
 	glBindBufferRange(m_Target, _index, m_Name , _head * sizeof(Atom), _count * sizeof(Atom));
 }
 
@@ -95,12 +158,19 @@ template<typename Atom, IBufferLockManager LockManager>
 bool GPUCircularBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count)
 {
 	m_Head = 0;
-	return m_Buffer.Create(_target, _count);
+	bool result = m_Buffer.Create(_target, _count);
+	LOG_INFO(EngineSystem::GPU_BUFFER,
+		"[GPUCircularBuffer|{}] Created (target={}, capacity={})",
+		m_Buffer.GetName(), _target, _count);
+	return result;
 }
 
 template<typename Atom, IBufferLockManager LockManager>
 void GPUCircularBuffer<Atom, LockManager>::Destroy()
 {
+	LOG_INFO(EngineSystem::GPU_BUFFER,
+		"[GPUCircularBuffer|{}] Destroyed",
+		m_Buffer.m_Name());
 	m_Buffer.Destroy();
 	m_Head = 0;
 }
@@ -109,12 +179,17 @@ template<typename Atom, IBufferLockManager LockManager>
 Atom* GPUCircularBuffer<Atom, LockManager>::Reserve(GLsizeiptr _count)
 {
 	if (_count > m_Buffer.GetSize()) {
-		std::cout << "Requested an update of size " << _count << " for a m_Buffer of size " << m_Buffer.GetSize() << " atoms.\n";
+		LOG_ERROR(EngineSystem::GPU_BUFFER,
+			"[GPUCircularBuffer|{}] Reserve request exceeds circular buffer capacity (requested={}, capacity={})",
+			m_Buffer.GetName(), _count, m_Buffer.GetSize());
 	}
 
 	GLsizeiptr lockStart = m_Head;
 
 	if (lockStart + _count > m_Buffer.GetSize()) {
+		LOG_DEBUG(EngineSystem::GPU_BUFFER,
+			"[GPUCircularBuffer|{}] buffer wrap: head={}, requested={}, capacity={}",
+			m_Buffer.GetName(), lockStart, _count, m_Buffer.GetSize());
 		// Need to wrap here.
 		lockStart = 0;
 	}
@@ -126,6 +201,7 @@ Atom* GPUCircularBuffer<Atom, LockManager>::Reserve(GLsizeiptr _count)
 template<typename Atom, IBufferLockManager LockManager>
 void GPUCircularBuffer<Atom, LockManager>::OnUsageComplete(GLsizeiptr _count)
 {
+	assert(_count > 0);
 	m_Buffer.LockRange(m_Head, _count);
 	m_Head = (m_Head + _count) % m_Buffer.GetSize();
 }
@@ -167,16 +243,28 @@ bool GPUOrphanBuffer<Atom>::Create(GLenum target, GLuint countPerBuffer, uint8_t
 {
 	assert(numOfBuffers > 0);
 
+
+
 	m_CountPerBuffer = countPerBuffer;
 	GLuint totalCount = m_CountPerBuffer * numOfBuffers;
 	m_Tail = 0;
 
-	return m_CircularBuffer.Create(target, totalCount);
+	bool result = m_CircularBuffer.Create(target, totalCount);
+
+	LOG_INFO(EngineSystem::GPU_BUFFER,
+		"[GPUOrphanBuffer|{}] Created (target={}, capacity={}, buffers={})",
+		m_CircularBuffer.GetName(), target, countPerBuffer, numOfBuffers);
+
+	return result;
 }
 
 template<typename Atom>
 void GPUOrphanBuffer<Atom>::Destroy()
 {
+	LOG_INFO(EngineSystem::GPU_BUFFER,
+		"[GPUOrphanBuffer|{}] Destroyed",
+		m_CircularBuffer.m_Name());
+
 	m_CountPerBuffer = 0;
 	m_Tail = 0;
 	m_CircularBuffer.Destroy();
@@ -369,8 +457,18 @@ GPUPagedLRUCache<Atom, ObjectID>::~GPUPagedLRUCache()
 template<typename Atom, typename ObjectID>
 bool GPUPagedLRUCache<Atom, ObjectID>::Create(GLenum target, size_t pageSize, size_t pageCount) noexcept
 {
-	if (pageSize == 0 || pageCount == 0)
-		return false;
+	assert(pageSize > 0 && pageCount > 0);
+
+	bool result = m_Buffer.Create(target, pageSize * pageCount);
+
+	LOG_INFO(EngineSystem::GPU_BUFFER,
+		"[GPUPagedLRUCache|{}] Created (pages={}, countPerPage={})",
+		m_Buffer.GetName(), pageSize, pageCount);
+
+	LOG_DEBUG(EngineSystem::GPU_BUFFER,
+		"[GPUPagedLRUCache|{}] reserved {:.2f} Mb",
+		m_Buffer.GetName(),
+		((sizeof(Atom) * pageCount * pageSize) / 1000000.0f));
 
 	m_PageSize = pageSize;
 
@@ -386,13 +484,16 @@ bool GPUPagedLRUCache<Atom, ObjectID>::Create(GLenum target, size_t pageSize, si
 		m_FreePages[arrSize - 1] ^= ghostPagesMask;
 	}
 
-
-	return m_Buffer.Create(target, pageSize * pageCount);
+	return result;
 }
 
 template<typename Atom, typename ObjectID>
 void GPUPagedLRUCache<Atom, ObjectID>::Destroy() noexcept
 {
+	LOG_INFO(EngineSystem::GPU_BUFFER,
+		"[GPUPagedLRUCache|{}] Destroyed",
+		m_Buffer.GetName());
+
 	m_PageSize = 0;
 	delete[] m_FreePages;
 	m_ObjectMapping.clear();
@@ -420,12 +521,24 @@ void GPUPagedLRUCache<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsign
 	// Add to object mapping
 	if (m_ObjectMapping.contains(obj))
 	{
+		LOG_DEBUG(EngineSystem::GPU_BUFFER,
+			"[GPUPagedLRUCache|{}] allocating {} pages for exisiting object {}",
+			m_Buffer.GetName(),
+			pages,
+			obj);
+
 		ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
 		objAlloc.PushBackPages(std::move(allocatedPages));
 		_MarkRecentlyUsed(obj);
 	}
 	else
 	{
+		LOG_DEBUG(EngineSystem::GPU_BUFFER,
+			"[GPUPagedLRUCache|{}] allocating {} pages for new object {}",
+			m_Buffer.GetName(),
+			pages,
+			obj);
+
 		ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
 		objAlloc.PushBackPages(std::move(allocatedPages));
 		m_ObjectAccessHistory.push_front(obj);
@@ -452,6 +565,10 @@ void GPUPagedLRUCache<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, con
 	// Allocate new page if needed
 	if (pageIndex >= objAlloc.GetSize())
 	{
+		LOG_DEBUG(EngineSystem::GPU_BUFFER,
+			"[GPUPagedLRUCache|{}] Push back overflow. Allocating page for object {}.",
+			m_Buffer.GetName(),
+			obj);
 		AllocatePages(obj, 1);
 	}
 
@@ -536,7 +653,7 @@ std::vector<GPUBufferRange> GPUPagedLRUCache<Atom, ObjectID>::GetObjectBufferRan
 			usedInLastPage = (usedInLastPage == 0 ? m_PageSize : usedInLastPage);
 
 			size_t length = pagesRange * m_PageSize + usedInLastPage;
-			result.emplace_back(GPUBufferRange(startPage * m_PageSize, length));
+			result.emplace_back(startPage * m_PageSize, length);
 
 		}
 	}

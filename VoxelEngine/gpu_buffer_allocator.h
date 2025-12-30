@@ -13,6 +13,7 @@
 
 #include "gpu_buffer_lock.h"
 #include "helpers.h"
+#include "logger.h"
 
 //template<typename T>
 //class GPUBufferAllocator

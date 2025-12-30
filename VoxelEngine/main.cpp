@@ -40,11 +40,11 @@
 // - terrain perlin noise generator
 // - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
 // - implement queue system for chunk loading to distrubite loading chunks over multiple frames (consumer-producer)
-// - different build types for each chunk size
 // - project file structure
 // - namespacing
 // - make gpu buffers thread-safe & implment multi-thread architecture
 // - implement cherno event system for mouse, keyboard, & joystick
+// - build config file for logger, chunktype, asserts
 
 // Futures:
 // - desgining & implementing gpu frustum culling to take advantage of indirect commands & caching system
@@ -103,7 +103,7 @@ Screen screen(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
 
 int main() 
 {
-	LogManager::GetInstance()->GetLogger(EngineSystem::RENDERER)->set_level(spdlog::level::debug);
+	LogManager::GetInstance()->GetLogger(EngineSystem::GPU_BUFFER)->set_level(spdlog::level::debug);
 
 	if (!screen.init()) {
 		LOG_CRITICAL(EngineSystem::CORE, "Screen initilization Failed");
@@ -121,7 +121,7 @@ int main()
 		LOG_INFO(EngineSystem::INPUTS, "Joystick not connected");
 	}
 
-	constexpr unsigned int loadedChunkDistance = 9;
+	constexpr unsigned int loadedChunkDistance = 5;
 
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
 	std::unique_ptr<SinusoidalChunkGeneration<Chunk8>> sineGenerator = std::make_unique<SinusoidalChunkGeneration<Chunk8>>(5);
