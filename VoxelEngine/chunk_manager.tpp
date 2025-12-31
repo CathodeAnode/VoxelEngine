@@ -24,6 +24,14 @@ ChunkManager<ChunkType>::ChunkManager(const glm::vec3& playerWorldCoords, unsign
 			}
 		}
 	}
+
+	LOG_INFO(EngineSystem::CHUNK,
+		"ChunkManager initialized. VoxelObjectHandle={}, PlayerChunk={}, LoadDist={}, GeneratorStrategy={}",
+		k_Uid,
+		glm::to_string(m_LastPlayerGridCoords),
+		loadedChunksDistance,
+		m_ChunkGenerator->ToString()
+	);
 }
 
 template<typename ChunkType>
@@ -38,6 +46,12 @@ bool ChunkManager<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 	}
 
 	const glm::ivec3 playerGridCoordsDiff = playerGridCoords - m_LastPlayerGridCoords;
+
+	LOG_DEBUG(EngineSystem::CHUNK,
+		"ChunkManager loading chunks in {} direction. playerGridCoords={}",
+		glm::to_string(playerGridCoordsDiff),
+		glm::to_string(playerGridCoords),
+	);
 
 	for (int axis = 0; axis < 3; axis++)
 	{
@@ -118,6 +132,7 @@ std::shared_ptr<ChunkType> ChunkManager<ChunkType>::_LoadChunk(const glm::ivec3&
 {
 	// TODO: assert chunk is not already loaded in ring buffer
 	// TODO: handle loading from filesystem here
+	// TODO: log using trace tell if chunk was loaded from disk or computed
 	// steps:
 	// 1. if chunk exisits in world map file, load and return from file
 	// 2. otherwise, generate and return chunk

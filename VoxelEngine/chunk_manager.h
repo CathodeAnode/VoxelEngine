@@ -2,12 +2,16 @@
 #define CHUNKMANAGER_H
 
 #include <glm/glm.hpp>
+#include <glm/gtx/string_cast.hpp>
+
 #include <memory>
 
 #include "voxel_renderer.h"
 #include "3d_ring_buffer.h"
 #include "voxel_math.h"
 #include "types.h"
+#include "logger.h"
+
 
 
 template<typename ChunkType>
