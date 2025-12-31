@@ -2,6 +2,7 @@
 #define CHUNK_GENERATOR_STRATEGY_H
 
 #include <memory>
+#include "string.h"
 
 // Forward declare glm::ivec3
 #include <glm/fwd.hpp> 
@@ -17,6 +18,8 @@ class ChunkGeneratorStrategy
 public:
 	virtual ~ChunkGeneratorStrategy() = default;
 	virtual void Generate(const glm::ivec3& chunkCoords, const std::shared_ptr<ChunkType>& outChunk) = 0;
+
+	virtual std::string ToString() = 0;
 };
 
 template<typename ChunkType>
@@ -33,6 +36,8 @@ public:
 			outChunk->m_OpaqueData[i] = 0;
 		}
 	}
+
+	std::string ToString() override { return "EmptyChunkGenertation"; }
 };
 
 template<typename ChunkType>
@@ -76,6 +81,8 @@ public:
 			chunkOpaqueData[i] = voxelFill;
 		}
 	}
+
+	std::string ToString() override { return "FlatChunkGenertation"; }
 
 private:
 	const int k_HeightLevel;
@@ -125,6 +132,8 @@ public:
 			}
 		}
 	}
+
+	std::string ToString() override { return "SinusoidalChunkGeneration"; }
 
 private:
 	const int m_Amplitude;
