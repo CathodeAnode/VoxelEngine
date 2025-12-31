@@ -277,7 +277,11 @@ private:
 
         }
 
-        assert(n > 0, "Something went wrong: Allocated more pages than needed");
+        if (n < 0)
+        {
+            LOG_ERROR(EngineSystem::GPU_BUFFER, "[GPUPagedLRUCache|{}] Something went wrong: Allocated more pages than needed"
+                , m_Buffer.GetName());
+        }
 
         return false;
     }
@@ -327,20 +331,18 @@ private:
         m_ObjectAccessHistory.pop_back();
         ObjectAllocationData& objData = m_ObjectMapping[objToEvict];
 
+        _FreePages(objData.pages);
+
         const int pagesToFree = objData.GetSize() - n;
-
-
-        if (pagesToFree > 0)
-        {
-            // If we have more pages than needed, free the tail portion
-            std::vector<unsigned int> pagesToBeFreed;
-            pagesToBeFreed.insert(pagesToBeFreed.begin(),
-                objData.pages.begin() + n, objData.pages.end());
-            _FreePages(pagesToBeFreed);
-        }
-
-
         size_t numPagesToMove = std::min(static_cast<size_t>(n), objData.pages.size());
+
+        LOG_DEBUG(EngineSystem::GPU_BUFFER,
+            "[GPUPagedLRUCache|{}] Evicting object {} from cache (pages_freed={}, pages_reserved={})"
+            , m_Buffer.GetName()
+            , objToEvict
+            , objData.GetSize()
+            , numPagesToMove);
+
         reservedPages.insert(reservedPages.end(),
             std::make_move_iterator(objData.pages.begin()),
             std::make_move_iterator(objData.pages.begin() + numPagesToMove));
