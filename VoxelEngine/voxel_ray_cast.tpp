@@ -8,6 +8,13 @@ template<typename ChunkType>
 template<ChunkProvider<ChunkType> ChunkContainer>
 inline bool VoxelRayCast<ChunkType>::cast(const Ray& ray, const ChunkContainer& chunkContainer, glm::ivec3& hitPos)
 {
+	LOG_TRACE(EngineSystem::VOXEL_ENGINE,
+		"Casting Voxel ray: origin=({},{},{}), dir=({},{},{}), maxSteps={}, container_ID={}"
+		, ray.origin.x, ray.origin.y, ray.origin.z
+		, ray.direction.x, ray.direction.y, ray.direction.z
+		, ray.voxelSteps
+		, chunkContainer.GetUID());
+
 	const int voxelUnit = 1;
 	glm::ivec3 currentVoxel(glm::floor(ray.origin));
 	glm::vec3 step(
@@ -27,6 +34,11 @@ inline bool VoxelRayCast<ChunkType>::cast(const Ray& ray, const ChunkContainer& 
 	while (steps < ray.voxelSteps) {
 		if (_IsVoxelSolid(chunkContainer, currentVoxel)) {
 			hitPos = currentVoxel;
+
+			LOG_DEBUG(EngineSystem::VOXEL_ENGINE,
+				"Ray cast hit Solid voxel at ({},{},{})"
+				, currentVoxel.x, currentVoxel.y, currentVoxel.z);
+
 			return true;
 		}
 

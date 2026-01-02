@@ -32,23 +32,22 @@
 
 // Agenda for 12/29/2025 - Week
 // - use logging system
-// - implement multi-threading class (thread pool) to handle chunk generation, chunk meshing & chunk uploading to gpu
+// - terrain perlin noise generator
+// - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
 
 // future TODOs:
 // - main/engine class for main loop and tie all classes together
 // - performance sampler profiler
-// - terrain perlin noise generator
-// - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
+// - implement multi-threading class (thread pool) to handle chunk generation, chunk meshing & chunk uploading to gpu
 // - implement queue system for chunk loading to distrubite loading chunks over multiple frames (consumer-producer)
+// - make gpu buffers thread-safe & implment multi-thread architecture
 // - project file structure
 // - namespacing
-// - make gpu buffers thread-safe & implment multi-thread architecture
-// - implement cherno event system for mouse, keyboard, & joystick
 // - build config file for logger, chunktype, asserts
 
-// Futures:
-// - desgining & implementing gpu frustum culling to take advantage of indirect commands & caching system
-// - region-based file saving system to save voxels/chunks of world
+// Futures: 
+// - desgining & implementing gpu frustum culling to take advantage of indirect commands & caching system (compute shader)
+// - region-based file saving system to save voxels/chunks of world (fixed sized files for regions of the world, i.e. 1 file save a volume of 16x16x16 chunks & multiple files for regions in world)
 // - lighting & SSAO
 // - more voxel edit functionality
 // - visuals for voxel editting functions (highlighting voxel camera is aiming at, highlighting selected volume, etc...)
@@ -99,7 +98,7 @@ int main()
 {
 	LogManager::Initialize();
 
-	LogManager::GetInstance()->GetLogger(EngineSystem::VOXEL_MESHER)->set_level(spdlog::level::trace);
+	LogManager::GetInstance()->GetLogger(EngineSystem::VOXEL_ENGINE)->set_level(spdlog::level::trace);
 
 	Joystick mainJ(0);
 	Camera camera(glm::vec3(1.0f, 1.0f, 1.0f), SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 1000.0f);

@@ -9,6 +9,7 @@
 #include "chunk_provider_concept.h"
 #include "chunk.h"
 #include "voxel_math.h"
+#include "logger.h"
 
 
 //https://www.cse.yorku.ca/~amana/research/grid.pdf
@@ -20,6 +21,7 @@ struct Ray
 	int voxelSteps;
 };
 
+// TODO: optimize _IsVoxelSolid to cache chunk & profile
 template <typename ChunkType>
 class VoxelRayCast
 {

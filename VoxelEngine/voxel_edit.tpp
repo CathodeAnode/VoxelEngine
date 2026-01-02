@@ -12,6 +12,11 @@ VoxelEdit<ChunkType, ChunkContainer>::VoxelEdit(ChunkContainer& chunkContainer, 
 template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
 void VoxelEdit<ChunkType, ChunkContainer>::SetVoxel(const glm::ivec3& coords, RGBAColor color)
 {
+	LOG_DEBUG(EngineSystem::VOXEL_MESHER
+		, "Setting voxel at ({},{},{}) to color=0x{:08X}"
+		, coords.x, coords.y, coords.z
+		, color);
+
 	const glm::ivec3 chunkCoords = WorldToChunk(coords, ChunkType::Size);
 	std::shared_ptr<ChunkType> chunk = m_ChunkContainer.GetChunk(chunkCoords);
 
@@ -46,6 +51,11 @@ void VoxelEdit<ChunkType, ChunkContainer>::SetVoxel(const glm::ivec3& coords, RG
 template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
 void VoxelEdit<ChunkType, ChunkContainer>::RemoveVoxel(const glm::ivec3& coords)
 {
+	LOG_DEBUG(EngineSystem::VOXEL_MESHER
+		, "Removing voxel at ({},{},{})"
+		, coords.x, coords.y, coords.z);
+
+
 	const glm::ivec3 chunkCoords = WorldToChunk(coords, ChunkType::Size);
 	std::shared_ptr<ChunkType> chunk = m_ChunkContainer.GetChunk(chunkCoords);
 
