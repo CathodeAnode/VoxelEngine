@@ -30,7 +30,7 @@
 #include "scene.h"
 #include "voxel_ray_cast.h"
 
-// Agenda for 12/22/2025 - Week
+// Agenda for 12/29/2025 - Week
 // - use logging system
 // - implement multi-threading class (thread pool) to handle chunk generation, chunk meshing & chunk uploading to gpu
 
@@ -82,27 +82,29 @@
 #define CACHE_NUM_OF_PAGES 125000
 #define AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK 3
 
-void processInput(Screen& screen, double dt);
-void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos);
+void processInput(Screen& screen, Camera& camera, Joystick & mainJ, double dt);
+void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos, Screen& screen);
 
-int countFPS = 0;
-float sumFPS = 0;
-
-Joystick mainJ(0);
 
 unsigned int SCREEN_WIDTH = 800, SCREEN_HEIGHT = 600;
-
-Camera camera(glm::vec3(1.0f, 1.0f, 1.0f), SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 1000.0f);
 
 float deltaTime = 0.0f;
 float fps = 0.0f;
 float lastFrame = 0.0f;
 
-Screen screen(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
-
+int countFPS = 0;
+float sumFPS = 0;
 
 int main() 
 {
+	LogManager::Initialize();
+
+	LogManager::GetInstance()->GetLogger(EngineSystem::VOXEL_MESHER)->set_level(spdlog::level::trace);
+
+	Joystick mainJ(0);
+	Camera camera(glm::vec3(1.0f, 1.0f, 1.0f), SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 1000.0f);
+	Screen screen(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
+
 	if (!screen.init()) {
 		LOG_CRITICAL(EngineSystem::CORE, "Screen initilization Failed");
 		return -1;
@@ -144,7 +146,7 @@ int main()
 		lastFrame = currTime;
 
 		// process input
-		processInput(screen, deltaTime);
+		processInput(screen, camera, mainJ, deltaTime);
 		if (Mouse::buttonUp(MouseKey::ButtonLeft))
 		{
 			glm::ivec3 voxelCoords;
@@ -164,7 +166,7 @@ int main()
 
 		// send back buffer to front buffer
 		screen.Update();
-		displayFPSOnWindow(fps, 400, camera.pos);
+		displayFPSOnWindow(fps, 400, camera.pos, screen);
 	}
 
 	GLenum err;
@@ -175,10 +177,12 @@ int main()
 
 	glfwTerminate();
 
+	//LogManager::Shutdown();
+
 	return 0;
 }
 
-void processInput(Screen& screen, double dt) {
+void processInput(Screen& screen, Camera& camera, Joystick& mainJ, double dt) {
 	if (Keyboard::key(Key::Escape)) 
 	{
 		screen.close();
@@ -229,7 +233,7 @@ void processInput(Screen& screen, double dt) {
 	mainJ.Update();
 }
 
-void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos) 
+void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos, Screen& screen) 
 {
 	if (countFPS > numOfFrames) 
 	{

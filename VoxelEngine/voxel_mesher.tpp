@@ -6,6 +6,14 @@
 #include "voxel_mesher.h"
 
 template<typename ChunkType>
+VoxelMesher<ChunkType>::VoxelMesher()
+{
+	LOG_INFO(EngineSystem::VOXEL_MESHER, "Initializing Greedy Mesher");
+	std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
+}
+
+
+template<typename ChunkType>
 template<ChunkProvider<ChunkType> ChunkContainer>
 VoxelMesher<ChunkType>::VoxelColumnData VoxelMesher<ChunkType>::_GetPaddedColumnRowBits(const ChunkContainer& world, int x, int z, const glm::ivec3& chunkLocation)
 {
@@ -120,9 +128,9 @@ VoxelMesher<ChunkType>::ColorFaceMasksMap VoxelMesher<ChunkType>::_SplitVoxelsBy
 
 template<typename ChunkType>
 template<ChunkProvider<ChunkType> ChunkContainer, VoxelMeshWriter MeshWriter>
-void VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out)
+void VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& chunkContainer, const glm::ivec3& chunkLocation, MeshWriter& out)
 {
-	std::shared_ptr<const ChunkType> chunk = chunkGrid.GetChunk(chunkLocation);
+	std::shared_ptr<const ChunkType> chunk = chunkContainer.GetChunk(chunkLocation);
 	assert(chunk != nullptr);
 
 	if (chunk->IsEmpty()) 
@@ -130,26 +138,33 @@ void VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& chunkGrid, const gl
 		return;
 	}
 
+	LOG_DEBUG(EngineSystem::VOXEL_MESHER,
+		"Meshing chunk at ({}, {}, {}) in container {}",
+		chunkLocation.x,
+		chunkLocation.y,
+		chunkLocation.z,
+		chunkContainer.GetUID());
+
 	std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
 
-	std::shared_ptr<const ChunkType> topChunk = chunkGrid.GetChunk(chunkLocation + glm::ivec3(0, 1, 0));
-	std::shared_ptr<const ChunkType> bottomChunk = chunkGrid.GetChunk(chunkLocation - glm::ivec3(0, 1, 0));
+	std::shared_ptr<const ChunkType> topChunk = chunkContainer.GetChunk(chunkLocation + glm::ivec3(0, 1, 0));
+	std::shared_ptr<const ChunkType> bottomChunk = chunkContainer.GetChunk(chunkLocation - glm::ivec3(0, 1, 0));
 
 	// face hulling
 	for (int a = 1; a < CS_P - 1; a++) {
 		for (int b = 1; b < CS_P - 1; b++) {
-			const VoxelColumnData columnBits = _GetPaddedColumnRowBits(chunkGrid, b, a, chunkLocation);
+			const VoxelColumnData columnBits = _GetPaddedColumnRowBits(chunkContainer, b, a, chunkLocation);
 			const int baIndex = (b - 1) + (a - 1) * CS;
 			const int abIndex = (a - 1) + (b - 1) * CS;
 
 
 			// +ve, -ve z
-			m_FaceMasks[baIndex + 0 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b, a - 1, chunkLocation));
-			m_FaceMasks[baIndex + 1 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b, a + 1, chunkLocation));
+			m_FaceMasks[baIndex + 0 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkContainer, b, a - 1, chunkLocation));
+			m_FaceMasks[baIndex + 1 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkContainer, b, a + 1, chunkLocation));
 
 			// +ve, -ve x
-			m_FaceMasks[abIndex + 2 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b + 1, a, chunkLocation));
-			m_FaceMasks[abIndex + 3 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkGrid, b - 1, a, chunkLocation));
+			m_FaceMasks[abIndex + 2 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkContainer, b + 1, a, chunkLocation));
+			m_FaceMasks[abIndex + 3 * CS_2] = (columnBits & ~_GetPaddedColumnRowBits(chunkContainer, b - 1, a, chunkLocation));
 
 			//TODO optimize and cleanup
 			// +ve, -ve y
@@ -216,6 +231,14 @@ void VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& chunkGrid, const gl
 							break;
 						}
 
+						LOG_TRACE(EngineSystem::VOXEL_MESHER,
+							"Chunk quad upload -> chunk=({},{},{}), size={}x{}, pos=({},{},{}), axis={}, color=0x{:08X}"
+						, chunkLocation.x, chunkLocation.y, chunkLocation.z
+						, w, h
+						, row, y, layer
+						, axis
+						, type)
+
 						out.Write(quad, type);
 
 
@@ -230,12 +253,16 @@ void VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& chunkGrid, const gl
 
 template<typename ChunkType>
 template<ChunkProvider<ChunkType> ChunkContianer, VoxelMeshWriter MeshWriter>
-void VoxelMesher<ChunkType>::MeshChunkGrid(const ChunkContianer& chunkGrid, MeshWriter& out)
+void VoxelMesher<ChunkType>::MeshChunkGrid(const ChunkContianer& chunkContainer, MeshWriter& out)
 {
-	for (const auto& [index, _] : chunkGrid)
+	LOG_DEBUG(EngineSystem::VOXEL_MESHER,
+		"Meshing chunk container {}",
+		chunkContainer.GetUID());
+
+	for (const auto& [index, _] : chunkContainer)
 	{
 		glm::ivec3 chunkCoords = ChunkGrid<ChunkType>::GetChunkCoords(index);
-		meshChunk(chunkGrid, chunkCoords, out);
+		meshChunk(chunkContainer, chunkCoords, out);
 	}
 }
 

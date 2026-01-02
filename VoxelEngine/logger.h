@@ -11,7 +11,7 @@
 	X(RENDERER)	\
 	X(INPUTS)	\
 	X(CHUNK)	\
-	X(VOXEL_MESH)	\
+	X(VOXEL_MESHER)	\
 	X(SCENE)	\
 	X(GPU_BUFFER)	\
 	X(VOXEL_ENGINE)
@@ -28,6 +28,9 @@ enum class EngineSystem
 class LogManager
 {
 public:
+	static void Initialize();
+	static void Shutdown();
+
 	static LogManager* GetInstance();
 
 	// delete cloning for singleton pattern
@@ -38,7 +41,7 @@ public:
 
 private:
 	std::unordered_map<EngineSystem, std::shared_ptr<spdlog::logger>> m_LoggerMap;
-	inline static LogManager* m_Instance = nullptr;
+	inline static LogManager* s_Instance = nullptr;
 
 	std::shared_ptr<spdlog::sinks::ansicolor_stdout_sink_mt> m_ConsoleSink = std::make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
 

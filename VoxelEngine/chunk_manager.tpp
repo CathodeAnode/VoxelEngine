@@ -50,7 +50,7 @@ bool ChunkManager<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 	LOG_DEBUG(EngineSystem::CHUNK,
 		"ChunkManager loading chunks in {} direction. playerGridCoords={}",
 		glm::to_string(playerGridCoordsDiff),
-		glm::to_string(playerGridCoords),
+		glm::to_string(playerGridCoords)
 	);
 
 	for (int axis = 0; axis < 3; axis++)

@@ -13,18 +13,20 @@
 #include "voxel_mesh_writer.h"
 #include "types.h"
 #include "helpers.h"
+#include "logger.h"
 
 
 template<typename ChunkType> 
 class VoxelMesher
 {
 public:
+	VoxelMesher();
 
 	template<ChunkProvider<ChunkType> ChunkContainer, VoxelMeshWriter MeshWriter>
-	void MeshChunk(const ChunkContainer& chunkGrid, const glm::ivec3& chunkLocation, MeshWriter& out);
+	void MeshChunk(const ChunkContainer& chunkContainer, const glm::ivec3& chunkLocation, MeshWriter& out);
 
 	template<ChunkProvider<ChunkType> ChunkContianer, VoxelMeshWriter MeshWriter>
-	void MeshChunkGrid(const ChunkContianer& chunkGrid, MeshWriter& out);
+	void MeshChunkGrid(const ChunkContianer& chunkContainer, MeshWriter& out);
 
 private:
 	static constexpr int CS = ChunkType::Size;
@@ -33,10 +35,12 @@ private:
 	static constexpr int CS_P2 = CS_P * CS_P;
 	static constexpr int CS_P3 = CS_P2 * CS_P;
 
+private:
 	using VoxelColumnData = typename ChunkType::ValueType;
 	using FaceVisibilityMasks = std::array<VoxelColumnData, CS_2 * 6>;
 	using ColorFaceMasksMap = std::unordered_map<RGBAColor, FaceVisibilityMasks>;
 
+private:
 	FaceVisibilityMasks m_FaceMasks;
 
 private:

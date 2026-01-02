@@ -39,14 +39,30 @@ const char* LogManager::SysToString(EngineSystem sys)
 	return nullptr;
 }
 
+void LogManager::Initialize()
+{
+	assert(!s_Instance);
+	s_Instance = new LogManager();
+
+	// TODO: log config parameters
+	LOG_INFO(EngineSystem::CORE,
+		"Initializing logging");
+}
+
+void LogManager::Shutdown()
+{
+	delete s_Instance;
+	s_Instance = nullptr;
+
+	LOG_INFO(EngineSystem::CORE,
+		"Shutdown logging");
+}
+
 LogManager* LogManager::GetInstance()
 {
-	if (m_Instance == nullptr)
-	{
-		m_Instance = new LogManager();
-	}
+	assert(s_Instance);
 
-	return m_Instance;
+	return s_Instance;
 }
 
 std::shared_ptr<spdlog::logger> LogManager::GetLogger(EngineSystem sys)
