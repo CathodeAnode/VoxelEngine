@@ -142,6 +142,7 @@
     <ClCompile Include="logger.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="mouse.cpp" />
+    <ClCompile Include="perlin_noise.cpp" />
     <ClCompile Include="uid_manager.cpp" />
     <ClCompile Include="voxel_mesh_writer.cpp" />
     <ClCompile Include="voxel_renderer.tpp" />
@@ -176,6 +177,7 @@
     <ClInclude Include="key_codes.h" />
     <ClInclude Include="logger.h" />
     <ClInclude Include="mouse_codes.h" />
+    <ClInclude Include="perlin_noise.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="uid_manager.h" />
     <ClInclude Include="voxel_math.h" />

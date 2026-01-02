@@ -66,6 +66,9 @@
     <ClCompile Include="voxel_renderer.tpp">
       <Filter>Template Files</Filter>
     </ClCompile>
+    <ClCompile Include="perlin_noise.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="voxel_shader.vert.glsl">
@@ -183,6 +186,9 @@
     </ClInclude>
     <ClInclude Include="screen.h">
       <Filter>Shaders</Filter>
+    </ClInclude>
+    <ClInclude Include="perlin_noise.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

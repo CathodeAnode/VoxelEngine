@@ -4,7 +4,8 @@
 #include <iterator>
 #include <algorithm>
 #include <random>
-
+#include <concepts>
+#include <functional>
 
 struct PerlinNoiseConfig
 {
@@ -27,6 +28,7 @@ public:
 	float Noise3D(float x, float y, float z);
 
 	template <typename NoiseFn, typename... Args>
+	requires std::invocable<NoiseFn, PerlinNoise&, Args...> && std::convertible_to<std::invoke_result_t<NoiseFn, PerlinNoise&, Args...>, float>
 	float AccumulatedNoise(PerlinNoiseConfig cfg, NoiseFn noiseFn, Args... args)
 	{
 		float result = 0.0f;
@@ -34,7 +36,7 @@ public:
 
 		for (; cfg.octves > 0; --cfg.octves)
 		{
-			result += noiseFn((args * cfg.freq)...) * cfg.amplitude;
+			result += std::invoke(noiseFn, *this, (args * cfg.freq)...) * cfg.amplitude;
 			maxVal += cfg.amplitude;
 
 			cfg.amplitude *= cfg.gain;
