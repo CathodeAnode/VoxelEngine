@@ -39,7 +39,7 @@ float PerlinNoise::Noise1D(float x)
         gradient(a, x - 1, 0, 0)
     );
 
-    return map(avg, -1, 1, 0, 1);
+    return avg;
 }
 
 float PerlinNoise::Noise2D(float x, float y)
@@ -68,12 +68,12 @@ float PerlinNoise::Noise2D(float x, float y)
         ),
         lerp(
             sx,
-            gradient(ba, x, y - 1, 0),
+            gradient(ab, x, y - 1, 0),
             gradient(bb, x - 1, y - 1, 0)
         )
     );
 
-    return map(avg, -1, 1, 0, 1);
+    return avg;
 }
 
 float PerlinNoise::Noise3D(float x, float y, float z)
@@ -116,11 +116,11 @@ float PerlinNoise::Noise3D(float x, float y, float z)
             )
         ),
         lerp( //rear
-            sx,
+            sy,
             lerp( // top
                 sx,
                 gradient(aab, x, y, z - 1),
-                gradient(bab, x - 1, y, z - 1)
+                gradient(bab, x - 1, y, z)
             ),
             lerp( // bottom
                 sx,
@@ -130,5 +130,5 @@ float PerlinNoise::Noise3D(float x, float y, float z)
         )
     );
 
-    return map(avg, -1, 1, 0, 1);
+    return avg;
 }

@@ -27,6 +27,7 @@ public:
 	float Noise2D(float x, float y);
 	float Noise3D(float x, float y, float z);
 
+	// example usage: obj.AccumulatedNoise(PerlinNoiseConfig{}, &PerlinNoise::Noise3D, 0, 1, 2);
 	template <typename NoiseFn, typename... Args>
 	requires std::invocable<NoiseFn, PerlinNoise&, Args...> && std::convertible_to<std::invoke_result_t<NoiseFn, PerlinNoise&, Args...>, float>
 	float AccumulatedNoise(PerlinNoiseConfig cfg, NoiseFn noiseFn, Args... args)
@@ -71,7 +72,7 @@ private:
 
 	inline static float map(float val, float currMin, float currMax, float newMin, float newMax)
 	{
-		float prop = (val - currMin) / (currMax - currMax);
+		float prop = (val - currMin) / (currMin - currMax);
 
 		return lerp(prop, newMin, newMax);
 	}
