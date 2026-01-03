@@ -98,7 +98,11 @@ int main()
 {
 	LogManager::Initialize();
 
-	LogManager::GetInstance()->GetLogger(EngineSystem::VOXEL_ENGINE)->set_level(spdlog::level::trace);
+	PerlinNoise test(4081952912);
+
+	std::cout << test.Noise3D(0.4f, 0.3f, 0.1f) << std::endl;
+
+	LogManager::GetInstance()->GetLogger(EngineSystem::CORE)->set_level(spdlog::level::warn);
 
 	Joystick mainJ(0);
 	Camera camera(glm::vec3(1.0f, 1.0f, 1.0f), SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 1000.0f);
@@ -120,11 +124,12 @@ int main()
 		LOG_INFO(EngineSystem::INPUTS, "Joystick not connected");
 	}
 
-	constexpr unsigned int loadedChunkDistance = 5;
+	constexpr unsigned int loadedChunkDistance = 9;
 
 	std::unique_ptr<FlatChunkGeneration<Chunk8>> flatGenerator = std::make_unique<FlatChunkGeneration<Chunk8>>(0);
 	std::unique_ptr<SinusoidalChunkGeneration<Chunk8>> sineGenerator = std::make_unique<SinusoidalChunkGeneration<Chunk8>>(5);
-	ChunkManager8 world(camera.pos, loadedChunkDistance, std::move(flatGenerator));
+	std::unique_ptr<Simple3DPerlinNoiseGeneration<Chunk8>> simple3DPerlinGenerator = std::make_unique<Simple3DPerlinNoiseGeneration<Chunk8>>();
+	ChunkManager8 world(camera.pos, loadedChunkDistance, std::move(simple3DPerlinGenerator));
 
 	std::unique_ptr<VoxelMesher8> greedyMesher = std::make_unique<VoxelMesher8>();
 	VoxelRenderer8 renderer(std::move(greedyMesher));
