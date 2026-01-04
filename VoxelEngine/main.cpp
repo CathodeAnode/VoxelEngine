@@ -98,6 +98,8 @@ int main()
 {
 	LogManager::Initialize();
 
+	PROFILE_BEGIN_SESSION("Startup", "Profile-Startup.json");
+
 	Joystick mainJ(0);
 	Camera camera(glm::vec3(1.0f, 1.0f, 1.0f), SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 1000.0f);
 	Screen screen(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
@@ -135,7 +137,11 @@ int main()
 	Scene8 scene(camera, world, renderer);
 
 	//camera.speed = 40.0f;
+	PROFILE_END_SESSION();
 
+	Profiler::GetInstance().SetEnabled(false);
+
+	PROFILE_BEGIN_SESSION("Runtime", "Profile-Runtime.json");
 	while (screen.isOpen()) 
 	{
 		double currTime = glfwGetTime();
@@ -166,7 +172,10 @@ int main()
 		screen.Update();
 		displayFPSOnWindow(fps, 400, camera.pos, screen);
 	}
+	PROFILE_END_SESSION();
 
+
+	// TODO profile shutdown once application class is created
 	GLenum err;
 	while ((err = glGetError()) != GL_NO_ERROR) 
 	{
@@ -184,6 +193,12 @@ void processInput(Screen& screen, Camera& camera, Joystick& mainJ, double dt) {
 	if (Keyboard::key(Key::Escape)) 
 	{
 		screen.close();
+	}
+
+	if (Keyboard::keyDown(Key::F1))
+	{
+		bool profilerStatus = Profiler::GetInstance().IsEnabled();
+		Profiler::GetInstance().SetEnabled(!profilerStatus);
 	}
 
 	if (Keyboard::key(Key::W)) 

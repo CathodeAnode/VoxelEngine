@@ -38,6 +38,9 @@ public:
 	void BeginSession(const std::string& name, const std::string& filepath = "profiling_result.json");
 	void EndSession();
 	void WriteProfile(const ProfileResult& result);
+
+	void SetEnabled(bool isEnabled);
+	bool IsEnabled() { return m_Enabled; }
 	
 private:
 	Profiler();
@@ -51,15 +54,25 @@ private:
 	std::mutex m_Mutex;
 	ProfilerSession* m_CurrentSession;
 	std::ofstream m_OutputStream;
+
+	bool m_Enabled;
 };
 
 class ProfilerTimer
 {
 public:
 	ProfilerTimer(const char* name)
-		: m_Name(name), m_Stopped(false)
+		: m_Name(name)
 	{
-		m_StartTimepoint = std::chrono::steady_clock::now();
+		if (Profiler::GetInstance().IsEnabled())
+		{
+			m_StartTimepoint = std::chrono::steady_clock::now();
+			m_Stopped = false;
+		}
+		else
+		{
+			m_Stopped = true;
+		}
 	}
 
 	~ProfilerTimer()

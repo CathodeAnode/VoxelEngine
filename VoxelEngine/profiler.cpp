@@ -2,6 +2,7 @@
 
 Profiler::Profiler()
     : m_CurrentSession(nullptr)
+    , m_Enabled(true)
 {}
 
 Profiler::~Profiler()
@@ -73,6 +74,15 @@ void Profiler::WriteProfile(const ProfileResult& result)
         m_OutputStream << json.str();
         m_OutputStream.flush();
     }
+}
+
+void Profiler::SetEnabled(bool isEnabled) 
+{ 
+    m_Enabled = isEnabled; 
+
+    LOG_INFO(EngineSystem::CORE,
+        "Profiler Status: {}",
+        isEnabled ? "Enabled" : "Disabled");
 }
 
 void Profiler::_WriteHeader()
