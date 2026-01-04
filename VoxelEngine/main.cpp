@@ -12,6 +12,7 @@
 #include <windows.h>
 
 #include "logger.h"
+#include "profiler.h"
 #include "shader.h"
 #include "mouse.h"
 #include "keyboard.h"
@@ -32,18 +33,18 @@
 
 // Agenda for 12/29/2025 - Week
 // - use logging system
-// - terrain perlin noise generator
-// - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
+// - performance sampler profiler
 
 // future TODOs:
 // - main/engine class for main loop and tie all classes together
-// - performance sampler profiler
 // - implement multi-threading class (thread pool) to handle chunk generation, chunk meshing & chunk uploading to gpu
 // - implement queue system for chunk loading to distrubite loading chunks over multiple frames (consumer-producer)
 // - make gpu buffers thread-safe & implment multi-thread architecture
+// - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
 // - project file structure
 // - namespacing
 // - build config file for logger, chunktype, asserts
+// - python script engine for terrian generation
 
 // Futures: 
 // - desgining & implementing gpu frustum culling to take advantage of indirect commands & caching system (compute shader)
@@ -52,7 +53,6 @@
 // - more voxel edit functionality
 // - visuals for voxel editting functions (highlighting voxel camera is aiming at, highlighting selected volume, etc...)
 // - camera editor controller
-// - python script engine
 // - ECS system
 // - entity rendering
 // - dear imgui wrapper & engine gui
@@ -97,12 +97,6 @@ float sumFPS = 0;
 int main() 
 {
 	LogManager::Initialize();
-
-	PerlinNoise test(4081952912);
-
-	std::cout << test.Noise3D(0.4f, 0.3f, 0.1f) << std::endl;
-
-	LogManager::GetInstance()->GetLogger(EngineSystem::CORE)->set_level(spdlog::level::warn);
 
 	Joystick mainJ(0);
 	Camera camera(glm::vec3(1.0f, 1.0f, 1.0f), SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 1000.0f);
