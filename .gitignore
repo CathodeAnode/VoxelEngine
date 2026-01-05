@@ -1,3 +1,6 @@
 .vs/
 VoxelEngine/x64/
 x64/
+Profile-Startup.json
+Profile-Runtime.json
+Profiling/
