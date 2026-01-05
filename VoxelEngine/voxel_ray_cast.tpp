@@ -8,6 +8,8 @@ template<typename ChunkType>
 template<ChunkProvider<ChunkType> ChunkContainer>
 inline bool VoxelRayCast<ChunkType>::cast(const Ray& ray, const ChunkContainer& chunkContainer, glm::ivec3& hitPos)
 {
+	PROFILE_FUNCTION();
+
 	LOG_TRACE(EngineSystem::VOXEL_ENGINE,
 		"Casting Voxel ray: origin=({},{},{}), dir=({},{},{}), maxSteps={}, container_ID={}"
 		, ray.origin.x, ray.origin.y, ray.origin.z

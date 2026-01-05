@@ -16,7 +16,9 @@ GPUPersistentlyMappedBuffer<Atom, LockManager>::GPUPersistentlyMappedBuffer(bool
 	, m_BufferContents()
 	, m_Name()
 	, m_Target()
-{}
+{
+	PROFILE_FUNCTION();
+}
 
 template<typename Atom, IBufferLockManager LockManager>
 GPUPersistentlyMappedBuffer<Atom, LockManager>::~GPUPersistentlyMappedBuffer()
@@ -28,7 +30,7 @@ GPUPersistentlyMappedBuffer<Atom, LockManager>::~GPUPersistentlyMappedBuffer()
 template<typename Atom, IBufferLockManager LockManager>
 bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count)
 {
-
+	PROFILE_FUNCTION();
 
 	if (m_BufferContents) {
 		LOG_WARN(EngineSystem::GPU_BUFFER,
@@ -70,6 +72,8 @@ bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLui
 template<typename Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::Destroy()
 {
+	PROFILE_FUNCTION();
+
 	if (!m_Name) {
 		LOG_WARN(EngineSystem::GPU_BUFFER, "Destroy called on empty GPUPersistentlyMappedBuffer");
 		return;
@@ -152,11 +156,14 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferRange(GLuint _ind
 template<typename Atom, IBufferLockManager LockManager>
 GPUCircularBuffer<Atom, LockManager>::GPUCircularBuffer(bool _cpuUpdates)
 	: m_Buffer(_cpuUpdates)
-{}
+{
+	PROFILE_FUNCTION();
+}
 
 template<typename Atom, IBufferLockManager LockManager>
 bool GPUCircularBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count)
 {
+	PROFILE_FUNCTION();
 	m_Head = 0;
 	bool result = m_Buffer.Create(_target, _count);
 	LOG_INFO(EngineSystem::GPU_BUFFER,
@@ -168,6 +175,7 @@ bool GPUCircularBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count)
 template<typename Atom, IBufferLockManager LockManager>
 void GPUCircularBuffer<Atom, LockManager>::Destroy()
 {
+	PROFILE_FUNCTION();
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUCircularBuffer|{}] Destroyed",
 		m_Buffer.m_Name());
@@ -236,13 +244,15 @@ void GPUCircularBuffer<Atom, LockManager>::BindBufferRange(GLuint _index, GLsize
 template<typename Atom>
 inline GPUOrphanBuffer<Atom>::GPUOrphanBuffer(bool _cpuUpdates)
 	: m_CircularBuffer(_cpuUpdates)
-{}
+{
+	PROFILE_FUNCTION();
+}
 
 template<typename Atom>
 bool GPUOrphanBuffer<Atom>::Create(GLenum target, GLuint countPerBuffer, uint8_t numOfBuffers)
 {
 	assert(numOfBuffers > 0);
-
+	PROFILE_FUNCTION();
 
 
 	m_CountPerBuffer = countPerBuffer;
@@ -261,6 +271,8 @@ bool GPUOrphanBuffer<Atom>::Create(GLenum target, GLuint countPerBuffer, uint8_t
 template<typename Atom>
 void GPUOrphanBuffer<Atom>::Destroy()
 {
+	PROFILE_FUNCTION();
+
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUOrphanBuffer|{}] Destroyed",
 		m_CircularBuffer.m_Name());
@@ -446,7 +458,9 @@ void GPUPagedBuffer<Atom>::move(size_t srcIndex, size_t dstIndex, size_t length)
 template<typename Atom, typename ObjectID>
 GPUPagedLRUCache<Atom, ObjectID>::GPUPagedLRUCache(bool cpuUpdates)
 	: m_Buffer(cpuUpdates)
-{}
+{
+	PROFILE_FUNCTION();
+}
 
 template<typename Atom, typename ObjectID>
 GPUPagedLRUCache<Atom, ObjectID>::~GPUPagedLRUCache()
@@ -457,6 +471,8 @@ GPUPagedLRUCache<Atom, ObjectID>::~GPUPagedLRUCache()
 template<typename Atom, typename ObjectID>
 bool GPUPagedLRUCache<Atom, ObjectID>::Create(GLenum target, size_t pageSize, size_t pageCount) noexcept
 {
+	PROFILE_FUNCTION();
+
 	assert(pageSize > 0 && pageCount > 0);
 
 	bool result = m_Buffer.Create(target, pageSize * pageCount);
@@ -490,6 +506,8 @@ bool GPUPagedLRUCache<Atom, ObjectID>::Create(GLenum target, size_t pageSize, si
 template<typename Atom, typename ObjectID>
 void GPUPagedLRUCache<Atom, ObjectID>::Destroy() noexcept
 {
+	PROFILE_FUNCTION();
+
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUPagedLRUCache|{}] Destroyed",
 		m_Buffer.GetName());

@@ -14,6 +14,7 @@
 #include "types.h"
 #include "helpers.h"
 #include "logger.h"
+#include "profiler.h"
 
 
 template<typename ChunkType> 

@@ -144,6 +144,8 @@ int main()
 	PROFILE_BEGIN_SESSION("Runtime", "Profile-Runtime.json");
 	while (screen.isOpen()) 
 	{
+		PROFILE_SCOPE("Frame");
+
 		double currTime = glfwGetTime();
 		deltaTime = currTime - lastFrame;
 		fps = 1 / deltaTime;
@@ -189,7 +191,10 @@ int main()
 	return 0;
 }
 
-void processInput(Screen& screen, Camera& camera, Joystick& mainJ, double dt) {
+void processInput(Screen& screen, Camera& camera, Joystick& mainJ, double dt) 
+{
+	PROFILE_FUNCTION();
+
 	if (Keyboard::key(Key::Escape)) 
 	{
 		screen.close();
@@ -248,6 +253,8 @@ void processInput(Screen& screen, Camera& camera, Joystick& mainJ, double dt) {
 
 void displayFPSOnWindow(float frameFPS, int numOfFrames, glm::vec3 cameraPos, Screen& screen) 
 {
+	PROFILE_FUNCTION();
+
 	if (countFPS > numOfFrames) 
 	{
 		// this is taking alot of cpu cycles

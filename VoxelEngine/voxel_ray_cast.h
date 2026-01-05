@@ -10,6 +10,7 @@
 #include "chunk.h"
 #include "voxel_math.h"
 #include "logger.h"
+#include "profiler.h"
 
 
 //https://www.cse.yorku.ca/~amana/research/grid.pdf

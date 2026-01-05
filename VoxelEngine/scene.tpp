@@ -9,6 +9,8 @@ Scene<ChunkType>::Scene(Camera& camera, ChunkManager<ChunkType>& world, VoxelRen
     , m_World(world)
     , m_Renderer(renderer)
 {
+	PROFILE_FUNCTION();
+
 	_UploadTerrain();
 	m_Renderer.NextFrame();
 	m_Renderer.Render(m_Camera);
@@ -17,6 +19,8 @@ Scene<ChunkType>::Scene(Camera& camera, ChunkManager<ChunkType>& world, VoxelRen
 template<typename ChunkType>
 void Scene<ChunkType>::Update()
 {
+	PROFILE_FUNCTION();
+
     m_Camera.Update();
 	m_DirtyFrame = m_World.Update(m_Camera.pos);
 }
@@ -25,6 +29,8 @@ void Scene<ChunkType>::Update()
 template<typename ChunkType>
 void Scene<ChunkType>::Render()
 {
+	PROFILE_FUNCTION();
+
 	if (m_DirtyFrame)
 	{
 		_UploadTerrain();
@@ -36,6 +42,8 @@ void Scene<ChunkType>::Render()
 template<typename ChunkType>
 inline void Scene<ChunkType>::_UploadTerrain()
 {
+	PROFILE_FUNCTION();
+
 	const int halfLoadedDist = m_World.GetLoadedChunksDistance() / 2;
 	const int chunkSize = ChunkType::Size;
 	const glm::ivec3 cameraChunkCoords = WorldToChunk(m_Camera.pos, chunkSize);

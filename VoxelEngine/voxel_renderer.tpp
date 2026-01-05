@@ -10,11 +10,14 @@ VoxelRenderer<ChunkType>::VoxelRenderer(std::unique_ptr<VoxelMesher<ChunkType>> 
     , m_DrawLines(false)
     , m_Mesher(std::move(mesher))
     , m_VoxelShaders({{"voxel_shader.vert.glsl", GL_VERTEX_SHADER}, {"voxel_shader.frag.glsl", GL_FRAGMENT_SHADER}})
-{}
+{
+    PROFILE_FUNCTION();
+}
 
 template <typename ChunkType>
 VoxelRenderer<ChunkType>::~VoxelRenderer() 
 {
+    PROFILE_FUNCTION();
     LOG_INFO(EngineSystem::RENDERER, "Destroying Voxel Renderer");
 
     glDeleteVertexArrays(1, &m_VAO);
@@ -24,6 +27,7 @@ VoxelRenderer<ChunkType>::~VoxelRenderer()
 template <typename ChunkType>
 void VoxelRenderer<ChunkType>::Init(size_t cachePages, size_t cachePageSize, size_t indirectBufferSize)
 {
+    PROFILE_FUNCTION();
     LOG_INFO(EngineSystem::RENDERER,
         "Initializing VoxelRenderer (cachePages={}, cachePageSize={}, indirectBufferSize={})",
         cachePages, cachePageSize, indirectBufferSize);
@@ -113,6 +117,8 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer)
 template <typename ChunkType>
 void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position)
 {
+    PROFILE_FUNCTION();
+
     if (!m_DataCache.Has(objectID))
     {
         LOG_WARN(EngineSystem::RENDERER, "Attempted to draw uncached voxel object (VoxelObjectHandle={})", objectID);
@@ -154,6 +160,8 @@ void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm
 template <typename ChunkType>
 void VoxelRenderer<ChunkType>::NextFrame()
 {
+    PROFILE_FUNCTION();
+
     LOG_TRACE(EngineSystem::RENDERER,
         "VoxelRenderer advancing frame (indirectCmds={})",
         m_NextIndirectCmdsCount);
@@ -185,6 +193,8 @@ void VoxelRenderer<ChunkType>::ToggleDrawLines()
 template <typename ChunkType>
 void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 {
+    PROFILE_FUNCTION();
+
     m_VoxelShaders.Use();
     m_VoxelShaders.SetMat4("view", camera.GetViewMatrix());
     m_VoxelShaders.SetMat4("projection", camera.GetProjMatrix());
@@ -219,6 +229,8 @@ void VoxelRenderer<ChunkType>::_RefreshFrame()
 template<typename ChunkType>
 void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size_t cachePageSize, size_t cachePages)
 {
+    PROFILE_FUNCTION();
+
     m_IndirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, indirectBufferSize, k_TripleBuffer);
     m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
     m_DataCache.Create(GL_ARRAY_BUFFER, cachePageSize, cachePages);
@@ -233,6 +245,8 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
 template<typename ChunkType>
 void VoxelRenderer<ChunkType>::_SetupOpenGLAttribs()
 {
+    PROFILE_FUNCTION();
+
     // setup default quad that will be instanced
     glGenVertexArrays(1, &m_VAO);
     glGenBuffers(1, &m_QuadVBO);

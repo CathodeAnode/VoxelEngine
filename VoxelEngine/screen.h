@@ -9,6 +9,7 @@
 #include "keyboard.h"
 #include "joystick.h"
 #include "logger.h"
+#include "profiler.h"
 
 #define SCREEN_OPENGL_MAJOR_VERISON 4
 #define SCREEN_OPENGL_MINOR_VERISON 6

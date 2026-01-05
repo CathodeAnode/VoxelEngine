@@ -8,6 +8,7 @@
 template<typename ChunkType>
 VoxelMesher<ChunkType>::VoxelMesher()
 {
+	PROFILE_FUNCTION();
 	LOG_INFO(EngineSystem::VOXEL_MESHER, "Initializing Greedy Mesher");
 	std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
 }

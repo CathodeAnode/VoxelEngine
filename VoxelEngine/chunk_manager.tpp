@@ -9,6 +9,7 @@ ChunkManager<ChunkType>::ChunkManager(const glm::vec3& playerWorldCoords, unsign
 	, m_LastPlayerGridCoords(WorldToChunk(playerWorldCoords, ChunkType::Size))
 	, k_Uid(UIDManager::Generate())
 {
+	PROFILE_FUNCTION();
 	//assert(loadedChunksDistance % 2 != 0, "loaded chunks distance must be odd");
 
 	// pre-allocate all chunks in memory
@@ -37,6 +38,8 @@ ChunkManager<ChunkType>::ChunkManager(const glm::vec3& playerWorldCoords, unsign
 template<typename ChunkType>
 bool ChunkManager<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 {
+	PROFILE_FUNCTION();
+
 	// step 1: convert player world coordinates to grid coordinates
 	const glm::ivec3 playerGridCoords = WorldToChunk(playerWorldCoords, ChunkType::Size);
 
@@ -130,6 +133,8 @@ std::shared_ptr<const ChunkType> ChunkManager<ChunkType>::GetChunk(const glm::iv
 template<typename ChunkType>
 std::shared_ptr<ChunkType> ChunkManager<ChunkType>::_LoadChunk(const glm::ivec3& chunkCoords) const
 {
+	PROFILE_FUNCTION();
+
 	// TODO: assert chunk is not already loaded in ring buffer
 	// TODO: handle loading from filesystem here
 	// TODO: log using trace tell if chunk was loaded from disk or computed

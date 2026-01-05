@@ -90,6 +90,8 @@ void Screen::toggleCursor() {
 }
 
 void Screen::Update() {
+	PROFILE_FUNCTION();
+
 	glfwSwapBuffers(m_Window);
 	glfwPollEvents();
 }

@@ -80,6 +80,8 @@ Shader::~Shader()
 
 void Shader::Use() 
 {
+	PROFILE_FUNCTION();
+
 	LOG_TRACE(
 		EngineSystem::RENDERER,
 		"Using shader program (ID={})",

@@ -10,6 +10,7 @@
 #include <algorithm>
 
 #include "logger.h"
+#include "profiler.h"
 
 #include "chunk.h"
 #include "types.h"

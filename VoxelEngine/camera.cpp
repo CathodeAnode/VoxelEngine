@@ -78,6 +78,8 @@ void Camera::UpdateCameraZoom(double dy) {
 
 void Camera::Update()
 {
+	PROFILE_FUNCTION();
+
 	m_ViewMatrix = glm::lookAt(pos, pos + front, up);
 	m_ProjectionMatrix = glm::perspective(glm::radians(zoom), (float)m_ScreenWidth / m_ScreenHeight, m_ZNear, m_ZFar);
 

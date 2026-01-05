@@ -14,6 +14,7 @@
 #include <glm/gtc/type_ptr.hpp>
 
 #include "logger.h"
+#include "profiler.h"
 
 struct ShaderFile
 {

@@ -14,6 +14,7 @@
 #include "gpu_buffer_lock.h"
 #include "helpers.h"
 #include "logger.h"
+#include "profiler.h"
 
 //template<typename T>
 //class GPUBufferAllocator
