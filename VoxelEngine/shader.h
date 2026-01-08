@@ -72,7 +72,7 @@ public:
 
 	inline GLuint GetID() const { return m_Id; }
 
-private:
+protected:
 	GLuint m_Id; // program ID
 	unsigned int compileShader(const char* path, int shaderType);
 	std::string loadShaderSrc(const char* path);

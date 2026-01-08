@@ -13,6 +13,8 @@ Shader::Shader(std::initializer_list<ShaderFile> shaders)
 	shaderIDs.reserve(shaders.size());
 	for (const auto& shader : shaders)
 	{
+		assert(shader.shaderType != GL_COMPUTE_SHADER && "Use ComputerShader class for compute shader");
+
 		LOG_INFO(
 			EngineSystem::RENDERER,
 			"Compiling shader: path='{}', type={}",

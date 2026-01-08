@@ -135,6 +135,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="compute_shader.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="gpu_buffer_lock.cpp" />
     <ClCompile Include="joystick.cpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="chunk.h" />
     <ClInclude Include="chunk_generator_strategy.h" />
+    <ClInclude Include="compute_shader.h" />
     <ClInclude Include="gpu_buffer_allocator.h" />
     <ClInclude Include="gpu_buffer_lock.h" />
     <ClInclude Include="helpers.h" />
