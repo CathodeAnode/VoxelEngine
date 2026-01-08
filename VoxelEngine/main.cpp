@@ -31,15 +31,15 @@
 #include "scene.h"
 #include "voxel_ray_cast.h"
 
-// Agenda for 12/29/2025 - Week
+// Agenda for 1/5/2026 - Week
 // - use logging system
-// - performance sampler profiler
-
-// future TODOs:
-// - main/engine class for main loop and tie all classes together
 // - implement multi-threading class (thread pool) to handle chunk generation, chunk meshing & chunk uploading to gpu
 // - implement queue system for chunk loading to distrubite loading chunks over multiple frames (consumer-producer)
 // - make gpu buffers thread-safe & implment multi-thread architecture
+// - desgining & implementing gpu frustum culling to take advantage of indirect commands & caching system (compute shader)
+
+// future TODOs:
+// - main/engine class for main loop and tie all classes together
 // - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
 // - project file structure
 // - namespacing
@@ -47,7 +47,6 @@
 // - python script engine for terrian generation
 
 // Futures: 
-// - desgining & implementing gpu frustum culling to take advantage of indirect commands & caching system (compute shader)
 // - region-based file saving system to save voxels/chunks of world (fixed sized files for regions of the world, i.e. 1 file save a volume of 16x16x16 chunks & multiple files for regions in world)
 // - lighting & SSAO
 // - more voxel edit functionality
@@ -98,7 +97,7 @@ int main()
 {
 	LogManager::Initialize();
 
-	PROFILE_BEGIN_SESSION("Startup", "Profile-Startup.json");
+	PROFILE_BEGIN_SESSION("Startup", "../Profile-Startup.json");
 
 	Joystick mainJ(0);
 	Camera camera(glm::vec3(1.0f, 1.0f, 1.0f), SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 1000.0f);
@@ -132,7 +131,6 @@ int main()
 	renderer.Init(CACHE_NUM_OF_PAGES, CACHE_PAGE_SIZE, AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(loadedChunkDistance, 3));
 
 	VoxelEdit<Chunk8, decltype(world)> worldEdit(world, renderer);
-	worldEdit.RemoveVoxel(glm::ivec3(0, -1, 0));
 
 	Scene8 scene(camera, world, renderer);
 
@@ -141,7 +139,7 @@ int main()
 
 	Profiler::GetInstance().SetEnabled(false);
 
-	PROFILE_BEGIN_SESSION("Runtime", "Profile-Runtime.json");
+	PROFILE_BEGIN_SESSION("Runtime", "../Profile-Runtime.json");
 	while (screen.isOpen()) 
 	{
 		PROFILE_SCOPE("Frame");
@@ -172,7 +170,7 @@ int main()
 
 		// send back buffer to front buffer
 		screen.Update();
-		displayFPSOnWindow(fps, 400, camera.pos, screen);
+		//displayFPSOnWindow(fps, 400, camera.pos, screen);
 	}
 	PROFILE_END_SESSION();
 

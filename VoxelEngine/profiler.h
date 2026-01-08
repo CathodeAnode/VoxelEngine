@@ -11,6 +11,7 @@
 #include <thread>
 #include <mutex>
 #include <sstream>
+#include <iostream>
 
 #include "logger.h"
 

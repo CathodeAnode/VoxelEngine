@@ -49,6 +49,8 @@ template<typename ChunkType>
 template <ChunkProvider<ChunkType> ChunkContainer>
 void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer, const glm::ivec3& chunkCoords)
 {
+    PROFILE_FUNCTION();
+
     std::shared_ptr<const ChunkType> chunk = chunkContainer.GetChunk(chunkCoords);
     VoxelObjectID chunkUID = chunk->GetUID();
     GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
@@ -86,6 +88,8 @@ template<typename ChunkType>
 template <ChunkProvider<ChunkType> ChunkContainer>
 void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer)
 {
+    PROFILE_FUNCTION();
+
     VoxelObjectID containerUID = chunkContainer.GetUID();
     GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
 

@@ -131,6 +131,8 @@ template<typename ChunkType>
 template<ChunkProvider<ChunkType> ChunkContainer, VoxelMeshWriter MeshWriter>
 void VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& chunkContainer, const glm::ivec3& chunkLocation, MeshWriter& out)
 {
+	PROFILE_FUNCTION();
+
 	std::shared_ptr<const ChunkType> chunk = chunkContainer.GetChunk(chunkLocation);
 	assert(chunk != nullptr);
 

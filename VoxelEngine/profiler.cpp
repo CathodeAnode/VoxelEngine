@@ -18,6 +18,8 @@ Profiler& Profiler::GetInstance()
 
 void Profiler::BeginSession(const std::string& name, const std::string& filepath)
 {
+    LOG_INFO(EngineSystem::CORE, "Starting profiler session '{}'", name);
+
     std::lock_guard lock(m_Mutex);
     if (m_CurrentSession)
     {
@@ -48,6 +50,10 @@ void Profiler::EndSession()
     if (!m_CurrentSession)
     {
         LOG_WARN(EngineSystem::CORE, "Profiler end session called when no session was open");
+    }
+    else
+    {
+        LOG_INFO(EngineSystem::CORE, "Ending profiler session '{}'", m_CurrentSession->Name);
     }
 
     _InternalEndSession();
