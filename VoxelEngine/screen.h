@@ -24,7 +24,7 @@ public:
 	void enableInputs();
 	void toggleCursor();
 
-	void Update();
+	void Flush();
 
 	void close();
 	bool isOpen();

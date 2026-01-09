@@ -9,7 +9,6 @@ VoxelRenderer<ChunkType>::VoxelRenderer(std::unique_ptr<VoxelMesher<ChunkType>> 
     , m_PositionSSBO(true)
     , m_DrawLines(false)
     , m_Mesher(std::move(mesher))
-    , m_VoxelShaders({{"voxel_shader.vert.glsl", GL_VERTEX_SHADER}, {"voxel_shader.frag.glsl", GL_FRAGMENT_SHADER}})
 {
     PROFILE_FUNCTION();
 }
@@ -33,6 +32,7 @@ void VoxelRenderer<ChunkType>::Init(size_t cachePages, size_t cachePageSize, siz
         cachePages, cachePageSize, indirectBufferSize);
     assert(cachePages * cachePageSize * 5 > indirectBufferSize, "Cache Size too small");
 
+    m_VoxelShaders = Shader({ {"voxel_shader.vert.glsl", GL_VERTEX_SHADER}, {"voxel_shader.frag.glsl", GL_FRAGMENT_SHADER} });
     glEnable(GL_DEPTH_TEST);
 
     _CreateGPUBuffers(indirectBufferSize, cachePageSize, cachePages);

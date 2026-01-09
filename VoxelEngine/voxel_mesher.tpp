@@ -262,11 +262,14 @@ void VoxelMesher<ChunkType>::MeshChunkGrid(const ChunkContianer& chunkContainer,
 		"Meshing chunk container {}",
 		chunkContainer.GetUID());
 
-	for (const auto& [index, _] : chunkContainer)
-	{
-		glm::ivec3 chunkCoords = ChunkGrid<ChunkType>::GetChunkCoords(index);
-		meshChunk(chunkContainer, chunkCoords, out);
-	}
+	LOG_ERROR(EngineSystem::VOXEL_MESHER,
+		"MeshChunkGrid Not Implemented");
+
+	//for (const auto& [index, _] : chunkContainer)
+	//{
+	//	glm::ivec3 chunkCoords = chunkContainer<ChunkType>::GetChunkCoords(index);
+	//	meshChunk(chunkContainer, chunkCoords, out);
+	//}
 }
 
 #endif

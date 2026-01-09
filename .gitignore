@@ -3,4 +3,5 @@ VoxelEngine/x64/
 x64/
 Profile-Startup.json
 Profile-Runtime.json
+Profile-Shutdown.json
 Profiling/

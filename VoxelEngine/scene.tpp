@@ -10,6 +10,12 @@ Scene<ChunkType>::Scene(Camera& camera, ChunkManager<ChunkType>& world, VoxelRen
     , m_Renderer(renderer)
 	, m_WorldUpdateFlag(true)
 {
+
+}
+
+template<typename ChunkType>
+void Scene<ChunkType>::Init()
+{
 	PROFILE_FUNCTION();
 
 	_UploadTerrain();

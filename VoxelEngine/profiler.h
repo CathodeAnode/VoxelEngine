@@ -125,6 +125,16 @@ namespace ProfilerUtils {
 		}
 		return result;
 	}
+
+#define TIME_FUNCTION(func_call) \
+    do { \
+        auto start_time = std::chrono::high_resolution_clock::now(); \
+        func_call; \
+        auto end_time = std::chrono::high_resolution_clock::now(); \
+        auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end_time - start_time).count(); \
+        std::cout << "Function '" << #func_call << "' executed in " << duration << " microseconds." << std::endl; \
+    } while (0)
+
 }
 
 

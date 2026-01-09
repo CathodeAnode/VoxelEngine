@@ -7,7 +7,8 @@ Profiler::Profiler()
 
 Profiler::~Profiler()
 {
-    EndSession();
+    if(m_CurrentSession)
+        EndSession();
 }
 
 Profiler& Profiler::GetInstance()

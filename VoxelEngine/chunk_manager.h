@@ -25,7 +25,9 @@ class ChunkManager
 public:
 	explicit ChunkManager(const glm::vec3& playerWorldCoords, unsigned int loadedChunksDistance, std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generator);
 	// TODO: Create world from file
-	ChunkManager(const char* filePath); 
+	ChunkManager(const char* filePath);
+
+	void InitializeStartingChunks();
 
 	// NOTE: assumes player cannont move faster than one chunk per frame (will likely break if player moves faster than 1 chunk per frame)
 	bool Update(const glm::vec3& playerWorldCoords);

@@ -10,10 +10,16 @@ ChunkManager<ChunkType>::ChunkManager(const glm::vec3& playerWorldCoords, unsign
 	, k_Uid(UIDManager::Generate())
 {
 	PROFILE_FUNCTION();
+}
+
+template<typename ChunkType>
+void ChunkManager<ChunkType>::InitializeStartingChunks()
+{
+	PROFILE_FUNCTION();
 	//assert(loadedChunksDistance % 2 != 0, "loaded chunks distance must be odd");
 
 	// pre-allocate all chunks in memory
-	const int halfLoadedDist = loadedChunksDistance / 2;
+	const int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
 	for (int z = -halfLoadedDist; z <= halfLoadedDist; ++z)
 	{
 		for (int y = -halfLoadedDist; y <= halfLoadedDist; ++y)
@@ -27,10 +33,10 @@ ChunkManager<ChunkType>::ChunkManager(const glm::vec3& playerWorldCoords, unsign
 	}
 
 	LOG_INFO(EngineSystem::CHUNK,
-		"ChunkManager initialized. VoxelObjectHandle={}, PlayerChunk={}, LoadDist={}, GeneratorStrategy={}",
+		"ChunkManager starting Chunks initialized. VoxelObjectHandle={}, PlayerChunk={}, LoadDist={}, GeneratorStrategy={}",
 		k_Uid,
 		glm::to_string(m_LastPlayerGridCoords),
-		loadedChunksDistance,
+		m_LoadedChunks.GetLength(),
 		m_ChunkGenerator->ToString()
 	);
 }

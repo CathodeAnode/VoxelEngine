@@ -46,17 +46,11 @@ struct ShaderFile
 class Shader {
 public:
 
-	Shader() = delete;
+	Shader() = default;
 
 	// constructor reads and compiles shaders into program
 	Shader(std::initializer_list<ShaderFile> shaders);
 	~Shader();
-
-	// delete copy&move functionality for now
-	Shader(const Shader&) = delete;
-	Shader& operator=(const Shader&) = delete;
-	Shader(Shader&&) = delete;
-	Shader& operator=(Shader&&) = delete;
 
 	// uses shader
 	void Use();

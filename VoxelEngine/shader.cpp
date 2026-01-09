@@ -1,8 +1,5 @@
 #include "shader.h"
 
-//Shader::Shader() : Shader("object.vs", "object.fs") {}
-
-
 Shader::Shader(std::initializer_list<ShaderFile> shaders)
 {
 	LOG_INFO(EngineSystem::RENDERER, "Creating shader program with {} shaders", shaders.size());

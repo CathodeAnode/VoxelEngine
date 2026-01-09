@@ -75,6 +75,9 @@
     <ClCompile Include="compute_shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="application.tpp">
+      <Filter>Template Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="voxel_shader.vert.glsl">
@@ -203,6 +206,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="screen.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="application.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

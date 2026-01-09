@@ -51,11 +51,11 @@ void LogManager::Initialize()
 
 void LogManager::Shutdown()
 {
-	delete s_Instance;
-	s_Instance = nullptr;
-
 	LOG_INFO(EngineSystem::CORE,
 		"Shutdown logging");
+
+	delete s_Instance;
+	s_Instance = nullptr;
 }
 
 LogManager* LogManager::GetInstance()

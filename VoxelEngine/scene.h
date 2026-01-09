@@ -25,6 +25,7 @@ public:
 	Scene(const Scene&) = delete;
 	Scene& operator=(const Scene&) = delete;
 
+	void Init();
 	void Update();
 	void Render();
 

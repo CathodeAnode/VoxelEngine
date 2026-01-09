@@ -89,7 +89,7 @@ void Screen::toggleCursor() {
 	}
 }
 
-void Screen::Update() {
+void Screen::Flush() {
 	PROFILE_FUNCTION();
 
 	glfwSwapBuffers(m_Window);
