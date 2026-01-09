@@ -1,4 +1,4 @@
-#version 430
+#version 460
 
 
 // 256 threads => 8 NVIDA wraps

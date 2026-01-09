@@ -156,6 +156,7 @@
   <ItemGroup>
     <None Include="chunk.tpp" />
     <None Include="scene.tpp" />
+    <None Include="terrian_culling_shader.comp.glsl" />
     <None Include="voxel_mesher.tpp" />
     <None Include="voxel_ray_cast.tpp" />
     <None Include="voxel_shader.frag.glsl" />

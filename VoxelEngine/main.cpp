@@ -101,6 +101,7 @@ int main()
 
 	Joystick mainJ(0);
 	Camera camera(glm::vec3(1.0f, 1.0f, 1.0f), SCREEN_WIDTH, SCREEN_HEIGHT, 0.1f, 1000.0f);
+	Camera nonUpdateCamera = camera;
 	Screen screen(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
 
 	if (!screen.init()) {
@@ -140,6 +141,8 @@ int main()
 	Profiler::GetInstance().SetEnabled(false);
 
 	PROFILE_BEGIN_SESSION("Runtime", "../Profile-Runtime.json");
+
+	bool freezeWorld = false;
 	while (screen.isOpen()) 
 	{
 		PROFILE_SCOPE("Frame");
@@ -159,6 +162,21 @@ int main()
 			{
 				std::cout << "Voxel hit at: " << voxelCoords.x << ", " << voxelCoords.y << ", " << voxelCoords.z << std::endl;
 				worldEdit.RemoveVoxel(voxelCoords);
+			}
+		}
+		if (Keyboard::keyUp(Key::F2))
+		{
+			freezeWorld = !freezeWorld;
+			scene.SetWorldUpdate(!freezeWorld);
+
+			if (freezeWorld)
+			{
+				nonUpdateCamera.pos = camera.pos;
+				scene.SwitchCamera(nonUpdateCamera);
+			}
+			else
+			{
+				scene.SwitchCamera(camera);
 			}
 		}
 

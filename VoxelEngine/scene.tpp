@@ -8,6 +8,7 @@ Scene<ChunkType>::Scene(Camera& camera, ChunkManager<ChunkType>& world, VoxelRen
     : m_Camera(camera)
     , m_World(world)
     , m_Renderer(renderer)
+	, m_WorldUpdateFlag(true)
 {
 	PROFILE_FUNCTION();
 
@@ -22,7 +23,11 @@ void Scene<ChunkType>::Update()
 	PROFILE_FUNCTION();
 
     m_Camera.Update();
-	m_DirtyFrame = m_World.Update(m_Camera.pos);
+
+	if (m_WorldUpdateFlag)
+	{
+		m_DirtyFrame = m_World.Update(m_Camera.pos);
+	}
 }
 
 

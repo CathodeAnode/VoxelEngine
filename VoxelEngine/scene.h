@@ -28,6 +28,8 @@ public:
 	void Update();
 	void Render();
 
+	void SetWorldUpdate(bool enabled) { m_WorldUpdateFlag = enabled; }
+
 	inline void SwitchCamera(Camera& camera) { m_Camera = camera; }
 
 private:
@@ -39,6 +41,7 @@ private:
 	VoxelRenderer<ChunkType>& m_Renderer;
 
 	bool m_DirtyFrame;
+	bool m_WorldUpdateFlag;
 
 };
 
