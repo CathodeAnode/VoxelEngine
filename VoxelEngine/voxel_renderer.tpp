@@ -251,7 +251,7 @@ template<typename ChunkType>
 void VoxelRenderer<ChunkType>::_CompileShaders()
 {
     m_VoxelShader = Shader({ { "voxel_shader.vert.glsl", GL_VERTEX_SHADER },{ "voxel_shader.frag.glsl", GL_FRAGMENT_SHADER } });
-    m_FrustumCullingShader = ComputeShader("terrian_culling_shader.comp.frag");
+    m_FrustumCullingShader = ComputeShader("terrian_culling_shader.comp.glsl");
 }
 template<typename ChunkType>
 void VoxelRenderer<ChunkType>::_EnableOpenGLFeatures()

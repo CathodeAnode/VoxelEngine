@@ -1,7 +1,7 @@
 #version 460
 
 
-// 256 threads => 8 NVIDA wraps
+// 256 threads => 8 wraps
 layout(local_size_x = 8, local_size_y = 8, local_size_z = 4) in;
 
 //struct Frustum
@@ -34,16 +34,16 @@ uniform ivec3 u_CameraPos;
 layout(std430, binding = 1) buffer ResultBuffer
 {
     uint  count;
-    ivec3 results[];
+    ivec4 results[];
 };
 
 
-bool test_AABB_against_frustum(AABB aabb)
+bool test_AABB_against_frustum(ChunkAABB aabb)
 {
     for (int i = 0; i < 6; ++i)
     {
-        vec3 n = u_Frustum[i].xyz;
-        float d = u_Frustum[i].w;
+        vec3 n = u_FrustumPlanes[i].xyz;
+        float d = u_FrustumPlanes[i].w;
 
         vec3 p;
         p.x = (n.x >= 0.0) ? aabb.max.x : aabb.min.x;
@@ -64,7 +64,7 @@ void main()
     //TODO: use shared mem count to write results in batches
     //TODO: gpu indirect draw 
 
-    ivec3 chunkCoord = gl_GlobalInvocationID + u_CameraPos;
+    ivec3 chunkCoord = ivec3(gl_GlobalInvocationID) + u_CameraPos;
 
     // Build AABB
     ChunkAABB chunkAABB;
@@ -78,7 +78,7 @@ void main()
         uint writeIndex = atomicAdd(count, 1);
 
         // Append visible chunk coordinate
-        results[writeIndex] = chunkCoord;
+        results[writeIndex] = ivec4(chunkCoord, 0);;
     }
 
 }
