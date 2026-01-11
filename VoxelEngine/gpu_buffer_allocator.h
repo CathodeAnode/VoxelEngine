@@ -64,6 +64,65 @@ struct Page
     }
 };
 
+enum class BufferAccess : uint8_t {
+    WriteOnly,
+    ReadWrite,
+    ReadOnly
+};
+
+namespace GPUAllocatorsUtils
+{
+    constexpr const char* ToString(BufferAccess access) noexcept
+    {
+        switch (access)
+        {
+        case BufferAccess::WriteOnly: return "WriteOnly";
+        case BufferAccess::ReadWrite: return "ReadWrite";
+        case BufferAccess::ReadOnly:  return "ReadOnly";
+        }
+        return "Unknown";
+    }
+
+    constexpr const char* ToString(GLenum target)
+    {
+        switch (target)
+        {
+        case GL_ARRAY_BUFFER:
+            return "GL_ARRAY_BUFFER";
+        case GL_ATOMIC_COUNTER_BUFFER:
+            return "GL_ATOMIC_COUNTER_BUFFER";
+        case GL_COPY_READ_BUFFER:
+            return "GL_COPY_READ_BUFFER";
+        case GL_COPY_WRITE_BUFFER:
+            return "GL_COPY_WRITE_BUFFER";
+        case GL_DISPATCH_INDIRECT_BUFFER:
+            return "GL_DISPATCH_INDIRECT_BUFFER";
+        case GL_DRAW_INDIRECT_BUFFER:
+            return "GL_DRAW_INDIRECT_BUFFER";
+        case GL_ELEMENT_ARRAY_BUFFER:
+            return "GL_ELEMENT_ARRAY_BUFFER";
+        case GL_PIXEL_PACK_BUFFER:
+            return "GL_PIXEL_PACK_BUFFER";
+        case GL_PIXEL_UNPACK_BUFFER:
+            return "GL_PIXEL_UNPACK_BUFFER";
+        case GL_QUERY_BUFFER:
+            return "GL_QUERY_BUFFER";
+        case GL_SHADER_STORAGE_BUFFER:
+            return "GL_SHADER_STORAGE_BUFFER";
+        case GL_TEXTURE_BUFFER:
+            return "GL_TEXTURE_BUFFER";
+        case GL_TRANSFORM_FEEDBACK_BUFFER:
+            return "GL_TRANSFORM_FEEDBACK_BUFFER";
+        case GL_UNIFORM_BUFFER:
+            return "GL_UNIFORM_BUFFER";
+        default:
+            return "UNKNOWN_GL_BUFFER_TARGET";
+        }
+    }
+}
+
+
+
 template<typename Atom, IBufferLockManager LockManager = GPUBufferLockManager>
 class GPUPersistentlyMappedBuffer
 {
@@ -71,7 +130,7 @@ public:
     GPUPersistentlyMappedBuffer(bool _cpuUpdates);
     ~GPUPersistentlyMappedBuffer();
 
-    bool Create(GLenum _target, GLuint _count);
+    bool Create(GLenum _target, GLuint _count, BufferAccess access=BufferAccess::WriteOnly);
     void Destroy();
 
     void WaitForLockedRange(size_t _lockBegin, size_t _lockLength);

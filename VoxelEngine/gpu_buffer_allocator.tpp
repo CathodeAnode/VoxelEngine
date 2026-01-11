@@ -28,7 +28,7 @@ GPUPersistentlyMappedBuffer<Atom, LockManager>::~GPUPersistentlyMappedBuffer()
 }
 
 template<typename Atom, IBufferLockManager LockManager>
-bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count)
+bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count, BufferAccess access)
 {
 	PROFILE_FUNCTION();
 
@@ -46,9 +46,20 @@ bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLui
 	// on a 64-byte boundary we're okay with this for now. 
 	// A robust implementation would ensure that the memory returned had enough slop that it could deal
 	// with it's own alignment issues, at least. That's more work than I want to do right this second.
-	GLbitfield flags = GL_MAP_WRITE_BIT |
-		GL_MAP_PERSISTENT_BIT |
-		GL_MAP_COHERENT_BIT;
+	GLbitfield flags = GL_MAP_PERSISTENT_BIT | GL_MAP_COHERENT_BIT;
+
+	switch (access) 
+	{
+	case BufferAccess::WriteOnly:
+		flags |= GL_MAP_WRITE_BIT;
+		break;
+	case BufferAccess::ReadWrite:
+		flags |= GL_MAP_WRITE_BIT | GL_MAP_READ_BIT;
+		break;
+	case BufferAccess::ReadOnly:
+		flags |= GL_MAP_READ_BIT;
+		break;
+	}
 
 	glGenBuffers(1, &m_Name);
 	glBindBuffer(m_Target, m_Name);
@@ -58,13 +69,13 @@ bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLui
 	if (!m_BufferContents) {
 		LOG_ERROR(EngineSystem::GPU_BUFFER,
 			"[GPUPersistentlyMappedBuffer|{}] glMapBufferRange failed (target={}, bytes={})",
-			m_Name, m_Target, sizeof(Atom) * _count);
+			m_Name, GPUAllocatorsUtils::ToString(m_Target), sizeof(Atom) * _count);
 		return false;
 	}
 
 	LOG_INFO(EngineSystem::GPU_BUFFER,
-		"[GPUPersistentlyMappedBuffer|{}] Created (target={}, atomCount={}, atomSize={})",
-		m_Name, _target, _count, sizeof(Atom));
+		"[GPUPersistentlyMappedBuffer|{}] Created (target={}, atomCount={}, atomSize={}, access={})",
+		m_Name, GPUAllocatorsUtils::ToString(_target), _count, sizeof(Atom), GPUAllocatorsUtils::ToString(access));
 
 	return true;
 }
@@ -81,7 +92,7 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::Destroy()
 
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUPersistentlyMappedBuffer|{}] Destroyed (target={})",
-		m_Name, m_Target);
+		m_Name, GPUAllocatorsUtils::ToString(m_Target));
 
 	glBindBuffer(m_Target, m_Name);
 	glUnmapBuffer(m_Target);
@@ -122,7 +133,7 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::LockRange(size_t _lockBegin
 template<typename Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBuffer()
 {
-	LOG_TRACE(EngineSystem::GPU_BUFFER, "Binding buffer (ID={}, target={})", m_Name, m_Target);
+	LOG_TRACE(EngineSystem::GPU_BUFFER, "Binding buffer (ID={}, target={})", m_Name, GPUAllocatorsUtils::ToString(m_Target));
 	glBindBuffer(m_Target, m_Name);
 }
 
@@ -141,7 +152,7 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferRange(GLuint _ind
 	LOG_TRACE(EngineSystem::GPU_BUFFER,
 		"Binding buffer range (ID={}, target={}, index={}, head={}, count={}, bytes=[{}, {}))",
 		m_Name,
-		m_Target,
+		GPUAllocatorsUtils::ToString(m_Target),
 		_index,
 		_head,
 		_count,
@@ -168,7 +179,7 @@ bool GPUCircularBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count)
 	bool result = m_Buffer.Create(_target, _count);
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUCircularBuffer|{}] Created (target={}, capacity={})",
-		m_Buffer.GetName(), _target, _count);
+		m_Buffer.GetName(), GPUAllocatorsUtils::ToString(_target), _count);
 	return result;
 }
 
@@ -263,7 +274,7 @@ bool GPUOrphanBuffer<Atom>::Create(GLenum target, GLuint countPerBuffer, uint8_t
 
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUOrphanBuffer|{}] Created (target={}, capacity={}, buffers={})",
-		m_CircularBuffer.GetName(), target, countPerBuffer, numOfBuffers);
+		m_CircularBuffer.GetName(), GPUAllocatorsUtils::ToString(target), countPerBuffer, numOfBuffers);
 
 	return result;
 }
