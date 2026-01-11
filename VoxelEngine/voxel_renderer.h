@@ -62,17 +62,26 @@ public:
 
 	bool UpdatePosition(VoxelObjectID objectID, const glm::vec3& newPosition);
 	void DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position);
+
+	void DispatchFrustumCullPass(unsigned int renderDistance, const Camera& camera);
+	std::span<const glm::vec4> GetFrustumCulledChunkCoords() const;
+
 	void NextFrame();
 	void Render(const Camera& camera);
 
 	inline bool IsCached(VoxelObjectID objectID) { return m_DataCache.Has(objectID); }
+
 	void ToggleDrawLines();
 private:
-	std::unique_ptr<VoxelMesher<ChunkType>> m_Mesher;
 
 	GPUPagedLRUCache<VoxelQuad, VoxelObjectID> m_DataCache;
 	GPUOrphanBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
 	GPUOrphanBuffer<glm::vec4> m_PositionSSBO;
+	GPUPersistentlyMappedBuffer<glm::ivec4> m_CulledChunkCoordsReadbackBuffer; // TODO figure out sizing
+
+	Shader m_VoxelShader;
+	ComputeShader m_FrustumCullingShader;
+	std::unique_ptr<VoxelMesher<ChunkType>> m_Mesher;
 
 	std::vector<VoxelObjectID> m_ObjectsRenderedInCurrentFrame;
 	std::vector<VoxelObjectID> m_ObjectsRenderedInNextFrame;
@@ -81,14 +90,13 @@ private:
 	size_t m_NextIndirectCmdsCount = 0;
 
 	unsigned int m_VAO, m_QuadVBO;
-	float m_QuadVertices[20] = {
+	static constexpr float m_QuadVertices[20] = {
 		// position             texture
 		0.0f,  0.0f, 0.0f,    0.0f, 1.0f,    // Bottom left
 		0.0f,  1.0f, 0.0f,    1.0f, 1.0f,    // Top Left
 		1.0f,  0.0f, 0.0f,    0.0f, 0.0f, // Bottom Right
 		1.0f,  1.0f, 0.0f,    1.0f, 0.0f  // Top Right
 	};
-	Shader m_VoxelShaders;
 
 	bool m_DrawLines;
 
@@ -98,6 +106,8 @@ private:
 	// this function will clear the objects queued to be rendered on the next frame
 	void _RefreshFrame();
 	inline void _CreateGPUBuffers(size_t indirectBufferSize, size_t cachePageSize, size_t cachePages);
+	inline void _CompileShaders();
+	inline void _EnableOpenGLFeatures();
 	inline void _SetupOpenGLAttribs();
 };
 

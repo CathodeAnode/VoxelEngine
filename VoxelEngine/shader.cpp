@@ -10,8 +10,6 @@ Shader::Shader(std::initializer_list<ShaderFile> shaders)
 	shaderIDs.reserve(shaders.size());
 	for (const auto& shader : shaders)
 	{
-		assert(shader.shaderType != GL_COMPUTE_SHADER && "Use ComputerShader class for compute shader");
-
 		LOG_INFO(
 			EngineSystem::RENDERER,
 			"Compiling shader: path='{}', type={}",
@@ -74,6 +72,7 @@ Shader::~Shader()
 		m_Id
 	);
 
+	assert(m_Id != 0);
 	glDeleteShader(m_Id);
 }
 
@@ -86,6 +85,8 @@ void Shader::Use()
 		"Using shader program (ID={})",
 		m_Id
 	);
+	
+	assert(m_Id != 0);
 
 	glUseProgram(m_Id);
 }

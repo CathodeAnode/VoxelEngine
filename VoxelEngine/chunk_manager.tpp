@@ -65,7 +65,8 @@ bool ChunkManager<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 	for (int axis = 0; axis < 3; axis++)
 	{
 		if (playerGridCoordsDiff[axis] == 0) continue;
-		//std::cout << "Chunk generated at axis: " << axis << std::endl;
+
+		assert(abs(playerGridCoordsDiff[axis]) == 1);
 
 		const int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
 		int plane = halfLoadedDist * playerGridCoordsDiff[axis];

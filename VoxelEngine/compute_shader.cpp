@@ -7,6 +7,7 @@ ComputeShader::ComputeShader(const char* filepath)
 void ComputeShader::Dispatch(unsigned int x, unsigned int y, unsigned int z)
 {
 	assert(x > 1 && y > 1 && z > 1);
+	assert(m_Id != 0);
 	glDispatchCompute(x, y, z);
 }
 

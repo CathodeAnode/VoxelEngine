@@ -72,5 +72,7 @@ protected:
 	std::string loadShaderSrc(const char* path);
 };
 
+#include "compute_shader.h"
+
 
 #endif

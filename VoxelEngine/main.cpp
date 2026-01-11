@@ -68,7 +68,6 @@ int main()
 	LogManager::Initialize();
 	constexpr unsigned int SCREEN_WIDTH = 800, SCREEN_HEIGHT = 600;
 
-
 	PROFILE_BEGIN_SESSION("Startup", "../Profile-Startup.json");
 	auto* app = new Application<Chunk8>(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
 	app->Init();
@@ -83,6 +82,4 @@ int main()
 	PROFILE_END_SESSION();
 
 	LogManager::Shutdown();
-
-	return 0;
 }

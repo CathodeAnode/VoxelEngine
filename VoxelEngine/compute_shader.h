@@ -7,6 +7,8 @@ class ComputeShader :
     protected Shader
 {
 public:
+    ComputeShader() = default;
+
     ComputeShader(const char* filepath);
 
     void Dispatch(unsigned int x, unsigned int y, unsigned int z);

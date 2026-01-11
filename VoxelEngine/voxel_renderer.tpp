@@ -7,6 +7,7 @@ VoxelRenderer<ChunkType>::VoxelRenderer(std::unique_ptr<VoxelMesher<ChunkType>> 
     : m_DataCache(true)
     , m_IndirectCommandBuffer(true)
     , m_PositionSSBO(true)
+    , m_CulledChunkCoordsReadbackBuffer(true)
     , m_DrawLines(false)
     , m_Mesher(std::move(mesher))
 {
@@ -32,10 +33,9 @@ void VoxelRenderer<ChunkType>::Init(size_t cachePages, size_t cachePageSize, siz
         cachePages, cachePageSize, indirectBufferSize);
     assert(cachePages * cachePageSize * 5 > indirectBufferSize, "Cache Size too small");
 
-    m_VoxelShaders = Shader({ {"voxel_shader.vert.glsl", GL_VERTEX_SHADER}, {"voxel_shader.frag.glsl", GL_FRAGMENT_SHADER} });
-    glEnable(GL_DEPTH_TEST);
-
+    _CompileShaders();
     _CreateGPUBuffers(indirectBufferSize, cachePageSize, cachePages);
+    _EnableOpenGLFeatures();
 
     m_ObjectsRenderedInCurrentFrame.reserve(indirectBufferSize);
     m_ObjectsRenderedInNextFrame.reserve(indirectBufferSize);
@@ -199,9 +199,9 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 {
     PROFILE_FUNCTION();
 
-    m_VoxelShaders.Use();
-    m_VoxelShaders.SetMat4("view", camera.GetViewMatrix());
-    m_VoxelShaders.SetMat4("projection", camera.GetProjMatrix());
+    m_VoxelShader.Use();
+    m_VoxelShader.SetMat4("view", camera.GetViewMatrix());
+    m_VoxelShader.SetMat4("projection", camera.GetProjMatrix());
 
     glBindVertexArray(m_VAO);
     m_PositionSSBO.BindTailBufferRange(m_CurrentIndirectCmdsCount);
@@ -235,15 +235,28 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
 {
     PROFILE_FUNCTION();
 
+    m_DataCache.Create(GL_ARRAY_BUFFER, cachePageSize, cachePages);
     m_IndirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, indirectBufferSize, k_TripleBuffer);
     m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
-    m_DataCache.Create(GL_ARRAY_BUFFER, cachePageSize, cachePages);
+    m_CulledChunkCoordsReadbackBuffer.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, BufferAccess::ReadOnly);
 
     // Offset head from tail on OrphanBuffers
     m_IndirectCommandBuffer.AdvanceHead();
     m_PositionSSBO.AdvanceHead();
 
     LOG_DEBUG(EngineSystem::RENDERER, "GPU Buffers Created")
+}
+
+template<typename ChunkType>
+void VoxelRenderer<ChunkType>::_CompileShaders()
+{
+    m_VoxelShader = Shader({ { "voxel_shader.vert.glsl", GL_VERTEX_SHADER },{ "voxel_shader.frag.glsl", GL_FRAGMENT_SHADER } });
+    m_FrustumCullingShader = ComputeShader("terrian_culling_shader.comp.frag");
+}
+template<typename ChunkType>
+void VoxelRenderer<ChunkType>::_EnableOpenGLFeatures()
+{
+    glEnable(GL_DEPTH_TEST);
 }
 
 template<typename ChunkType>
