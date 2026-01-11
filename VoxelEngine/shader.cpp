@@ -134,6 +134,15 @@ unsigned int Shader::compileShader(const char* path, int shaderType)
 
 std::string Shader::loadShaderSrc(const char* path) 
 {
+	if (!std::filesystem::exists(path)) {
+		LOG_CRITICAL(
+			EngineSystem::RENDERER,
+			"Shader file does not exist '{}'",
+			path
+		);
+		return {};
+	}
+
 	std::fstream file;
 	std::stringstream buf;
 
