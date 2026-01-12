@@ -172,22 +172,37 @@ std::string Shader::loadShaderSrc(const char* path)
 	return ret;
 }
 
-void Shader::SetMat4(const std::string& name, glm::mat4 val) const 
+void Shader::SetMat4(const char* name, const glm::mat4& val, unsigned int count) const
 {
-	glUniformMatrix4fv(glGetUniformLocation(m_Id, name.c_str()), 1, GL_FALSE, glm::value_ptr(val));
+	glUniformMatrix4fv(glGetUniformLocation(m_Id, name), count, GL_FALSE, glm::value_ptr(val));
 }
 
-void Shader::SetBool(const std::string& name, bool value) const
+void Shader::SetVec4(const char* name, const glm::vec4& val, unsigned int count) const
 {
-	glUniform1i(glGetUniformLocation(m_Id, name.c_str()), (int)value);
+	glUniform4fv(glGetUniformLocation(m_Id, name), count, glm::value_ptr(val));
 }
 
-void Shader::SetInt(const std::string& name, int value) const
+void Shader::SetIVec3(const char* name, const glm::ivec3& val, unsigned int count) const
 {
-	glUniform1i(glGetUniformLocation(m_Id, name.c_str()), value);
+	glUniform3iv(glGetUniformLocation(m_Id, name), count, glm::value_ptr(val));
 }
 
-void Shader::SetFloat(const std::string& name, float value) const
+void Shader::SetBool(const char* name, bool value) const
 {
-	glUniform1f(glGetUniformLocation(m_Id, name.c_str()), value);
+	glUniform1i(glGetUniformLocation(m_Id, name), (int)value);
+}
+
+void Shader::SetInt(const char* name, int value) const
+{
+	glUniform1i(glGetUniformLocation(m_Id, name), value);
+}
+
+void Shader::SetUInt(const char* name, unsigned int value) const
+{
+	glUniform1ui(glGetUniformLocation(m_Id, name), value);
+}
+
+void Shader::SetFloat(const char* name, float value) const
+{
+	glUniform1f(glGetUniformLocation(m_Id, name), value);
 }

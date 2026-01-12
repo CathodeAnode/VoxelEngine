@@ -96,7 +96,7 @@ glm::mat4 Camera::GetProjMatrix() const
 	return m_ProjectionMatrix;
 }
 
-Frustum Camera::GetFrustum()
+const Frustum& Camera::GetFrustum() const
 {
 	return m_CamFrustum;
 }

@@ -19,6 +19,7 @@
 #include "chunk_provider_concept.h"
 #include "shader.h"
 #include "camera.h"
+#include "voxel_math.h"
 
 
 template<typename ChunkType> 
@@ -44,6 +45,12 @@ struct DrawArraysIndirectCommand
 	unsigned int instanceCount;
 	unsigned int first = 0;
 	unsigned int baseInstance;
+};
+
+struct alignas(16) CulledChunkHeader
+{
+	uint32_t count;
+	uint32_t _pad[3];
 };
 
 template<typename ChunkType>
@@ -77,7 +84,7 @@ private:
 	GPUPagedLRUCache<VoxelQuad, VoxelObjectID> m_DataCache;
 	GPUOrphanBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
 	GPUOrphanBuffer<glm::vec4> m_PositionSSBO;
-	GPUPersistentlyMappedBuffer<glm::ivec4> m_CulledChunkCoordsReadbackBuffer; // TODO figure out sizing
+	GPUPersistentlyMappedBuffer<std::byte> m_CulledChunkCoordsReadbackBuffer; // TODO figure out sizing
 
 	Shader m_VoxelShader;
 	ComputeShader m_FrustumCullingShader;

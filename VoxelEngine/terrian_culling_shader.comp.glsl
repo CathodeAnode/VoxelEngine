@@ -29,7 +29,7 @@ uniform ivec3 u_CameraPos;
 
 
 // --------------------
-// Output SSBO
+// Output
 // --------------------
 layout(std430, binding = 1) buffer ResultBuffer
 {

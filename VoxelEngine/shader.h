@@ -57,10 +57,14 @@ public:
 	void Use();
 
 	// util uniform functions
-	void SetMat4(const std::string& name, glm::mat4 value) const;
-	void SetBool(const std::string& name, bool value) const;
-	void SetInt(const std::string& name, int value) const;
-	void SetFloat(const std::string& name, float value) const;
+	void SetMat4(const char* name, const glm::mat4& value, unsigned int count = 1) const;
+	void SetVec4(const char* name, const glm::vec4& value, unsigned int count = 1) const;
+	void SetIVec3(const char* name, const glm::ivec3& value, unsigned int count = 1) const;
+
+	void SetBool(const char* name, bool value) const;
+	void SetInt(const char* name, int value) const;
+	void SetUInt(const char* name, unsigned int value) const;
+	void SetFloat(const char* name, float value) const;
 	// Implement setters and getters as needed
 
 	// TODO: implement getter functions uniform vals: getBool, getInt, getFloat

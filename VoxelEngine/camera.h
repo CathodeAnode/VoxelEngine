@@ -77,6 +77,24 @@ struct Frustum
 
 };
 
+static_assert(
+	sizeof(Frustum) == sizeof(glm::vec4) * 6,
+	"Frustum must contain exactly 6 tightly-packed vec4 planes"
+	);
+
+static_assert(offsetof(Frustum, leftClipPlane) == sizeof(glm::vec4) * 0,
+	"Frustum plane order changed: leftClipPlane must be first");
+static_assert(offsetof(Frustum, rightClipPlane) == sizeof(glm::vec4) * 1,
+	"Frustum plane order changed: rightClipPlane must be second");
+static_assert(offsetof(Frustum, bottomClipPlane) == sizeof(glm::vec4) * 2,
+	"Frustum plane order changed: bottomClipPlane must be third");
+static_assert(offsetof(Frustum, topClipPlane) == sizeof(glm::vec4) * 3,
+	"Frustum plane order changed: topClipPlane must be fourth");
+static_assert(offsetof(Frustum, nearClipPlane) == sizeof(glm::vec4) * 4,
+	"Frustum plane order changed: nearClipPlane must be fifth");
+static_assert(offsetof(Frustum, farClipPlane) == sizeof(glm::vec4) * 5,
+	"Frustum plane order changed: farClipPlane must be sixth");
+
 class Camera {
 public:
 	glm::vec3 pos;
@@ -101,7 +119,7 @@ public:
 
 	glm::mat4 GetViewMatrix() const;
 	glm::mat4 GetProjMatrix() const;
-	Frustum GetFrustum();
+	const Frustum& GetFrustum() const;
 
 private:
 	float m_ZNear, m_ZFar;

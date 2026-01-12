@@ -161,6 +161,17 @@ void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm
 
 }
 
+template<typename ChunkType>
+void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistance, const Camera& camera)
+{
+    const Frustum& camFrustum = camera.GetFrustum();
+
+    m_FrustumCullingShader.Use();
+
+    m_FrustumCullingShader.SetVec4("u_FrustumPlanes", &camFrustum.leftClipPlane, 6);
+    m_FrustumCullingShader.SetUInt("u_ChunkSize", static_cast<unsigned int>(ChunkType::Size));
+}
+
 template <typename ChunkType>
 void VoxelRenderer<ChunkType>::NextFrame()
 {
@@ -238,7 +249,11 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
     m_DataCache.Create(GL_ARRAY_BUFFER, cachePageSize, cachePages);
     m_IndirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, indirectBufferSize, k_TripleBuffer);
     m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
-    m_CulledChunkCoordsReadbackBuffer.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, BufferAccess::ReadOnly);
+
+    constexpr size_t CulledHeaderSize = sizeof(CulledChunkHeader);
+    constexpr size_t CulledCoordsSize = sizeof(glm::vec4) * indirectBufferSize;
+    constexpr size_t CulledSSBOSize = CulledHeaderSize + CulledCoordsSize;
+    m_CulledChunkCoordsReadbackBuffer.Create(GL_SHADER_STORAGE_BUFFER, CulledSSBOSize, BufferAccess::ReadOnly);
 
     // Offset head from tail on OrphanBuffers
     m_IndirectCommandBuffer.AdvanceHead();
