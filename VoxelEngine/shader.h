@@ -73,8 +73,10 @@ public:
 
 protected:
 	GLuint m_Id; // program ID
+
 	unsigned int compileShader(const char* path, int shaderType);
 	std::string loadShaderSrc(const char* path);
+	GLuint getVarLocation(const char* name) const;
 };
 
 #include "compute_shader.h"

@@ -172,37 +172,46 @@ std::string Shader::loadShaderSrc(const char* path)
 	return ret;
 }
 
+GLuint Shader::getVarLocation(const char* name) const
+{
+	GLuint location = glGetUniformLocation(m_Id, name);
+
+	assert(location != -1 && "Could not find variable in shader");
+
+	return location;
+}
+
 void Shader::SetMat4(const char* name, const glm::mat4& val, unsigned int count) const
 {
-	glUniformMatrix4fv(glGetUniformLocation(m_Id, name), count, GL_FALSE, glm::value_ptr(val));
+	glUniformMatrix4fv(getVarLocation(name), count, GL_FALSE, glm::value_ptr(val));
 }
 
 void Shader::SetVec4(const char* name, const glm::vec4& val, unsigned int count) const
 {
-	glUniform4fv(glGetUniformLocation(m_Id, name), count, glm::value_ptr(val));
+	glUniform4fv(getVarLocation(name), count, glm::value_ptr(val));
 }
 
 void Shader::SetIVec3(const char* name, const glm::ivec3& val, unsigned int count) const
 {
-	glUniform3iv(glGetUniformLocation(m_Id, name), count, glm::value_ptr(val));
+	glUniform3iv(getVarLocation(name), count, glm::value_ptr(val));
 }
 
 void Shader::SetBool(const char* name, bool value) const
 {
-	glUniform1i(glGetUniformLocation(m_Id, name), (int)value);
+	glUniform1i(getVarLocation(name), (int)value);
 }
 
 void Shader::SetInt(const char* name, int value) const
 {
-	glUniform1i(glGetUniformLocation(m_Id, name), value);
+	glUniform1i(getVarLocation(name), value);
 }
 
 void Shader::SetUInt(const char* name, unsigned int value) const
 {
-	glUniform1ui(glGetUniformLocation(m_Id, name), value);
+	glUniform1ui(getVarLocation(name), value);
 }
 
 void Shader::SetFloat(const char* name, float value) const
 {
-	glUniform1f(glGetUniformLocation(m_Id, name), value);
+	glUniform1f(getVarLocation(name), value);
 }
