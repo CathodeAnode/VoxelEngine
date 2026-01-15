@@ -158,7 +158,7 @@ class GPUCircularBuffer
 public:
     GPUCircularBuffer(bool _cpuUpdates = true);
 
-    bool Create(GLenum _target, GLuint _count);
+    bool Create(GLenum _target, GLuint _count, BufferAccess access = BufferAccess::WriteOnly);
     void Destroy();
 
     Atom* Reserve(GLsizeiptr _count);
@@ -185,7 +185,7 @@ class GPUOrphanBuffer
 public:
     GPUOrphanBuffer(bool _cpuUpdates = true);
 
-    bool Create(GLenum target, GLuint countPerBuffer, uint8_t numOfBuffers);
+    bool Create(GLenum target, GLuint countPerBuffer, uint8_t numOfBuffers, BufferAccess access = BufferAccess::WriteOnly);
     void Destroy();
 
     void AdvanceHead();

@@ -172,11 +172,11 @@ GPUCircularBuffer<Atom, LockManager>::GPUCircularBuffer(bool _cpuUpdates)
 }
 
 template<typename Atom, IBufferLockManager LockManager>
-bool GPUCircularBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count)
+bool GPUCircularBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count, BufferAccess access)
 {
 	PROFILE_FUNCTION();
 	m_Head = 0;
-	bool result = m_Buffer.Create(_target, _count);
+	bool result = m_Buffer.Create(_target, _count, access);
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUCircularBuffer|{}] Created (target={}, capacity={})",
 		m_Buffer.GetName(), GPUAllocatorsUtils::ToString(_target), _count);
@@ -260,7 +260,7 @@ inline GPUOrphanBuffer<Atom>::GPUOrphanBuffer(bool _cpuUpdates)
 }
 
 template<typename Atom>
-bool GPUOrphanBuffer<Atom>::Create(GLenum target, GLuint countPerBuffer, uint8_t numOfBuffers)
+bool GPUOrphanBuffer<Atom>::Create(GLenum target, GLuint countPerBuffer, uint8_t numOfBuffers, BufferAccess access)
 {
 	assert(numOfBuffers > 0);
 	PROFILE_FUNCTION();
@@ -270,7 +270,7 @@ bool GPUOrphanBuffer<Atom>::Create(GLenum target, GLuint countPerBuffer, uint8_t
 	GLuint totalCount = m_CountPerBuffer * numOfBuffers;
 	m_Tail = 0;
 
-	bool result = m_CircularBuffer.Create(target, totalCount);
+	bool result = m_CircularBuffer.Create(target, totalCount, access);
 
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUOrphanBuffer|{}] Created (target={}, capacity={}, buffers={})",
