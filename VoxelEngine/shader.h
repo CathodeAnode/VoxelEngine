@@ -10,6 +10,7 @@
 #include <iostream>
 #include <initializer_list>
 #include <vector>
+#include <span>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -48,18 +49,23 @@ class Shader {
 public:
 
 	Shader() = default;
+	Shader(const Shader&) = delete;
+	Shader& operator=(const Shader&) = delete;
 
 	// constructor reads and compiles shaders into program
 	Shader(std::initializer_list<ShaderFile> shaders);
 	~Shader();
+	Shader(Shader&& other) noexcept;
+	Shader& operator=(Shader&& other) noexcept;
 
 	// uses shader
 	void Use();
 
 	// util uniform functions
-	void SetMat4(const char* name, const glm::mat4& value, unsigned int count = 1) const;
-	void SetVec4(const char* name, const glm::vec4& value, unsigned int count = 1) const;
-	void SetIVec3(const char* name, const glm::ivec3& value, unsigned int count = 1) const;
+	void SetMat4(const char* name, const glm::mat4& value) const;
+	void SetVec4(const char* name, const glm::vec4& value) const;
+	void SetVec4Array(const char* name, const glm::vec4* values, unsigned int count) const;
+	void SetIVec3(const char* name, const glm::ivec3& value) const;
 
 	void SetBool(const char* name, bool value) const;
 	void SetInt(const char* name, int value) const;
@@ -68,6 +74,8 @@ public:
 	// Implement setters and getters as needed
 
 	// TODO: implement getter functions uniform vals: getBool, getInt, getFloat
+	void GetVec4(const char* name, glm::vec4* out, unsigned int count) const;
+
 
 	inline GLuint GetID() const { return m_Id; }
 
@@ -77,6 +85,7 @@ protected:
 	unsigned int compileShader(const char* path, int shaderType);
 	std::string loadShaderSrc(const char* path);
 	GLuint getVarLocation(const char* name) const;
+	void cleanup();
 };
 
 #include "compute_shader.h"

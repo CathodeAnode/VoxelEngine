@@ -66,14 +66,24 @@ Shader::Shader(std::initializer_list<ShaderFile> shaders)
 
 Shader::~Shader()
 {
-	LOG_INFO(
-		EngineSystem::RENDERER,
-		"Destroying shader program (ID={})",
-		m_Id
-	);
+	cleanup();
+}
 
-	assert(m_Id != 0);
-	glDeleteShader(m_Id);
+Shader::Shader(Shader&& other) noexcept 
+{
+	m_Id = other.m_Id;
+	other.m_Id = 0;
+}
+
+Shader& Shader::operator=(Shader&& other) noexcept 
+{
+	if (this != &other) 
+	{
+		cleanup();
+		m_Id = other.m_Id;
+		other.m_Id = 0;
+	}
+	return *this;
 }
 
 void Shader::Use() 
@@ -181,19 +191,37 @@ GLuint Shader::getVarLocation(const char* name) const
 	return location;
 }
 
-void Shader::SetMat4(const char* name, const glm::mat4& val, unsigned int count) const
+void Shader::cleanup()
 {
-	glUniformMatrix4fv(getVarLocation(name), count, GL_FALSE, glm::value_ptr(val));
+	LOG_INFO(
+		EngineSystem::RENDERER,
+		"Destroying shader program (ID={})",
+		m_Id
+	);
+
+	if(m_Id != 0)
+		glDeleteShader(m_Id);
 }
 
-void Shader::SetVec4(const char* name, const glm::vec4& val, unsigned int count) const
+void Shader::SetMat4(const char* name, const glm::mat4& val) const
 {
-	glUniform4fv(getVarLocation(name), count, glm::value_ptr(val));
+	glUniformMatrix4fv(getVarLocation(name), 1, GL_FALSE, glm::value_ptr(val));
 }
 
-void Shader::SetIVec3(const char* name, const glm::ivec3& val, unsigned int count) const
+void Shader::SetVec4(const char* name, const glm::vec4& val) const
 {
-	glUniform3iv(getVarLocation(name), count, glm::value_ptr(val));
+	glUniform4fv(getVarLocation(name), 1, glm::value_ptr(val));
+}
+
+void Shader::SetVec4Array(const char* name, const glm::vec4* values, unsigned int count) const
+{
+	glUniform4fv(getVarLocation(name), count, glm::value_ptr(values[0]));
+	assert(glGetError() == GL_NO_ERROR);
+}
+
+void Shader::SetIVec3(const char* name, const glm::ivec3& val) const
+{
+	glUniform3iv(getVarLocation(name), 1, glm::value_ptr(val));
 }
 
 void Shader::SetBool(const char* name, bool value) const
@@ -209,9 +237,20 @@ void Shader::SetInt(const char* name, int value) const
 void Shader::SetUInt(const char* name, unsigned int value) const
 {
 	glUniform1ui(getVarLocation(name), value);
+	assert(glGetError() == GL_NO_ERROR);
 }
 
 void Shader::SetFloat(const char* name, float value) const
 {
 	glUniform1f(getVarLocation(name), value);
+}
+
+void Shader::GetVec4(const char* name, glm::vec4* out, unsigned int count) const
+{
+	assert(out == nullptr);
+
+	out = new glm::vec4[count];
+
+	glGetnUniformfv(m_Id, getVarLocation(name), count, glm::value_ptr(out[0]));
+	//assert(glGetError() == GL_NO_ERROR);
 }
