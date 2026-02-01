@@ -1,5 +1,7 @@
 #include "joystick.h"
 
+// TODO: add logging
+
 // generate an instance for joystick with id i
 Joystick::Joystick(int i) {
     m_Id = getId(i);

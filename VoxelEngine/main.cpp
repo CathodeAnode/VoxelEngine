@@ -39,10 +39,17 @@
 
 // future TODOs:
 // - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
-// - project file structure
-// - namespacing
+// - region-based world generation. Each region maps with user-defined chunk generation strategy, and chunks are generated according to the strategy defined for that region
 // - build config file for logger, chunktype, asserts
 // - python script engine for terrian generation
+
+// codebase clean up todos:
+// - remove unnecessary includes and use forward declarations
+// - project file structure
+// - namespacing
+// - PCH file
+// - Cmake /w chunk size param
+// - single umbrella engine header (UnityEngine-style) that has core engine component includes
 
 // Futures: 
 // - region-based file saving system to save voxels/chunks of world (fixed sized files for regions of the world, i.e. 1 file save a volume of 16x16x16 chunks & multiple files for regions in world)
