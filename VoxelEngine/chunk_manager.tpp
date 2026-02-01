@@ -33,9 +33,12 @@ void ChunkManager<ChunkType>::InitializeStartingChunks()
 	}
 
 	LOG_INFO(EngineSystem::CHUNK,
-		"ChunkManager starting Chunks initialized. VoxelObjectHandle={}, PlayerChunk={}, LoadDist={}, GeneratorStrategy={}",
+		"ChunkManager starting Chunks initialized. "
+		"VoxelObjectHandle={}, PlayerChunk=({}, {}, {}), LoadDist={}, GeneratorStrategy={}",
 		k_Uid,
-		glm::to_string(m_LastPlayerGridCoords),
+		m_LastPlayerGridCoords.x,
+		m_LastPlayerGridCoords.y,
+		m_LastPlayerGridCoords.z,
 		m_LoadedChunks.GetLength(),
 		m_ChunkGenerator->ToString()
 	);
@@ -46,60 +49,76 @@ bool ChunkManager<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 {
 	PROFILE_FUNCTION();
 
-	// step 1: convert player world coordinates to grid coordinates
-	const glm::ivec3 playerGridCoords = WorldToChunk(playerWorldCoords, ChunkType::Size);
+	// Step 1: world to chunk grid
+	const glm::ivec3 playerGridCoords =
+		WorldToChunk(playerWorldCoords, ChunkType::Size);
 
-	// step 2: check if player grid coords has changed since last call
-	if (playerGridCoords == m_LastPlayerGridCoords) {
-		return false; //exit early
+	// Step 2: early exit if unchanged
+	if (playerGridCoords == m_LastPlayerGridCoords)
+	{
+		LOG_TRACE(EngineSystem::CHUNK,
+			"ChunkManager::Update skipped (player still in same chunk {})",
+			m_LastPlayerGridCoords.x,
+			m_LastPlayerGridCoords.y,
+			m_LastPlayerGridCoords.z
+		);
+		return false;
 	}
 
-	const glm::ivec3 playerGridCoordsDiff = playerGridCoords - m_LastPlayerGridCoords;
+	const glm::ivec3 diff = playerGridCoords - m_LastPlayerGridCoords;
 
 	LOG_DEBUG(EngineSystem::CHUNK,
-		"ChunkManager loading chunks in {} direction. playerGridCoords={}",
-		glm::to_string(playerGridCoordsDiff),
-		glm::to_string(playerGridCoords)
+		"ChunkManager::Update player moved chunks. "
+		"From=({}, {}, {}) To=({}, {}, {}) Diff=({}, {}, {})",
+		m_LastPlayerGridCoords.x, m_LastPlayerGridCoords.y, m_LastPlayerGridCoords.z,
+		playerGridCoords.x, playerGridCoords.y, playerGridCoords.z,
+		diff.x, diff.y, diff.z
 	);
 
+	const int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
+
+	// Step 3: load planes per moved axis
 	for (int axis = 0; axis < 3; axis++)
 	{
-		if (playerGridCoordsDiff[axis] == 0) continue;
+		if (diff[axis] == 0)
+			continue;
 
-		assert(abs(playerGridCoordsDiff[axis]) == 1);
+		assert(std::abs(diff[axis]) == 1);
 
-		const int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
-		int plane = halfLoadedDist * playerGridCoordsDiff[axis];
+		const int plane = halfLoadedDist * diff[axis];
+
+		static constexpr const char* AxisName[3] = { "X", "Y", "Z" };
+
+		LOG_DEBUG(EngineSystem::CHUNK,
+			"Loading chunk plane on {} axis (dir={}, plane={})",
+			AxisName[axis],
+			diff[axis],
+			plane
+		);
 
 		for (int i = -halfLoadedDist; i <= halfLoadedDist; i++)
 		{
 			for (int j = -halfLoadedDist; j <= halfLoadedDist; j++)
 			{
 				glm::ivec3 local(0);
-				glm::ivec3 global(0);
+
 				switch (axis)
 				{
-				case 0: // x axis
-					local = glm::ivec3(plane, i, j);
-					break;
-				case 1: // y axis
-					local = glm::ivec3(i, plane, j);
-					break;
-				case 2: // z axis
-					local = glm::ivec3(j, i, plane);
-					break;
+				case 0: local = { plane, i, j }; break; // X
+				case 1: local = { i, plane, j }; break; // Y
+				case 2: local = { j, i, plane }; break; // Z
 				}
 
-				global = local + playerGridCoords;
+				const glm::ivec3 global = local + playerGridCoords;
 				m_LoadedChunks.At(global) = std::move(_LoadChunk(global));
 			}
 		}
-
 	}
 
 	m_LastPlayerGridCoords = playerGridCoords;
 	return true;
 }
+
 
 template<typename ChunkType>
 VoxelObjectID ChunkManager<ChunkType>::GetChunkID(const glm::ivec3& chunkCoords)

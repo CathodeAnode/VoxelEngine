@@ -2,7 +2,6 @@
 #define CHUNKMANAGER_H
 
 #include <glm/glm.hpp>
-#include <glm/gtx/string_cast.hpp>
 
 #include <memory>
 
