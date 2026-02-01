@@ -216,7 +216,7 @@ void Shader::SetVec4(const char* name, const glm::vec4& val) const
 void Shader::SetVec4Array(const char* name, const glm::vec4* values, unsigned int count) const
 {
 	glUniform4fv(getVarLocation(name), count, glm::value_ptr(values[0]));
-	assert(glGetError() == GL_NO_ERROR);
+	//assert(glGetError() == GL_NO_ERROR);
 }
 
 void Shader::SetIVec3(const char* name, const glm::ivec3& val) const
@@ -237,7 +237,7 @@ void Shader::SetInt(const char* name, int value) const
 void Shader::SetUInt(const char* name, unsigned int value) const
 {
 	glUniform1ui(getVarLocation(name), value);
-	assert(glGetError() == GL_NO_ERROR);
+	//assert(glGetError() == GL_NO_ERROR);
 }
 
 void Shader::SetFloat(const char* name, float value) const
@@ -247,9 +247,7 @@ void Shader::SetFloat(const char* name, float value) const
 
 void Shader::GetVec4(const char* name, glm::vec4* out, unsigned int count) const
 {
-	assert(out == nullptr);
-
-	out = new glm::vec4[count];
+	assert(out != nullptr);
 
 	glGetnUniformfv(m_Id, getVarLocation(name), count, glm::value_ptr(out[0]));
 	//assert(glGetError() == GL_NO_ERROR);

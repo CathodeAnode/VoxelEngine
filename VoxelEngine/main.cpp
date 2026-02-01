@@ -9,8 +9,6 @@
 #include <memory>
 #include <chrono>
 
-#include <windows.h>
-
 #include "logger.h"
 #include "profiler.h"
 #include "shader.h"

@@ -4,7 +4,7 @@
 #include "shader.h"
 
 class ComputeShader :
-    protected Shader
+    public Shader
 {
 public:
     ComputeShader() = default;

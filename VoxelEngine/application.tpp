@@ -67,7 +67,7 @@ bool Application<ChunkT>::Init()
     m_Renderer.Init(
         CACHE_NUM_OF_PAGES,
         CACHE_PAGE_SIZE,
-        AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(LOADED_CHUNK_DISTANCE, 3)
+        static_cast<size_t>(AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(LOADED_CHUNK_DISTANCE, 3))
     );
 
     m_World.InitializeStartingChunks();

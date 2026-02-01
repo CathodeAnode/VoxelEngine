@@ -147,7 +147,7 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferBase(GLuint _inde
 }
 
 template<typename Atom, IBufferLockManager LockManager>
-void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _count)
+void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferRange(GLuint _index, size_t _head, size_t _count)
 {
 	LOG_TRACE(EngineSystem::GPU_BUFFER,
 		"Binding buffer range (ID={}, target={}, index={}, head={}, count={}, bytes=[{}, {}))",
@@ -195,7 +195,7 @@ void GPUCircularBuffer<Atom, LockManager>::Destroy()
 }
 
 template<typename Atom, IBufferLockManager LockManager>
-Atom* GPUCircularBuffer<Atom, LockManager>::Reserve(GLsizeiptr _count)
+Atom* GPUCircularBuffer<Atom, LockManager>::Reserve(size_t _count)
 {
 	if (_count > m_Buffer.GetSize()) {
 		LOG_ERROR(EngineSystem::GPU_BUFFER,
@@ -203,7 +203,7 @@ Atom* GPUCircularBuffer<Atom, LockManager>::Reserve(GLsizeiptr _count)
 			m_Buffer.GetName(), _count, m_Buffer.GetSize());
 	}
 
-	GLsizeiptr lockStart = m_Head;
+	size_t lockStart = m_Head;
 
 	if (lockStart + _count > m_Buffer.GetSize()) {
 		LOG_DEBUG(EngineSystem::GPU_BUFFER,
@@ -218,7 +218,7 @@ Atom* GPUCircularBuffer<Atom, LockManager>::Reserve(GLsizeiptr _count)
 }
 
 template<typename Atom, IBufferLockManager LockManager>
-void GPUCircularBuffer<Atom, LockManager>::OnUsageComplete(GLsizeiptr _count)
+void GPUCircularBuffer<Atom, LockManager>::OnUsageComplete(size_t _count)
 {
 	assert(_count > 0);
 	m_Buffer.LockRange(m_Head, _count);
@@ -239,13 +239,13 @@ void GPUCircularBuffer<Atom, LockManager>::BindBufferBase(GLuint _index)
 
 
 template<typename Atom, IBufferLockManager LockManager>
-void GPUCircularBuffer<Atom, LockManager>::BindBufferHeadRange(GLuint _index, GLsizeiptr _count)
+void GPUCircularBuffer<Atom, LockManager>::BindBufferHeadRange(GLuint _index, size_t _count)
 {
 	m_Buffer.BindBufferRange(_index, m_Head, _count);
 }
 
 template<typename Atom, IBufferLockManager LockManager>
-void GPUCircularBuffer<Atom, LockManager>::BindBufferRange(GLuint _index, GLsizeiptr _offset, GLsizeiptr _count)
+void GPUCircularBuffer<Atom, LockManager>::BindBufferRange(GLuint _index, size_t _offset, size_t _count)
 {
 	m_Buffer.BindBufferRange(_index, _offset, _count);
 }
@@ -312,7 +312,7 @@ void GPUOrphanBuffer<Atom>::BindHeadBuffer()
 }
 
 template<typename Atom>
-void GPUOrphanBuffer<Atom>::BindHeadBufferRange(GLsizeiptr count)
+void GPUOrphanBuffer<Atom>::BindHeadBufferRange(size_t count)
 {
 	m_CircularBuffer.BindBufferHeadRange(0, count);
 }
@@ -324,7 +324,7 @@ void GPUOrphanBuffer<Atom>::BindTailBuffer()
 }
 
 template<typename Atom>
-void GPUOrphanBuffer<Atom>::BindTailBufferRange(GLsizeiptr count)
+void GPUOrphanBuffer<Atom>::BindTailBufferRange(size_t count)
 {
 	m_CircularBuffer.BindBufferRange(0, m_Tail, count);
 }
@@ -482,36 +482,38 @@ GPUPagedLRUCache<Atom, ObjectID>::~GPUPagedLRUCache()
 template<typename Atom, typename ObjectID>
 bool GPUPagedLRUCache<Atom, ObjectID>::Create(GLenum target, size_t pageSize, size_t pageCount) noexcept
 {
-	PROFILE_FUNCTION();
+    PROFILE_FUNCTION();
 
-	assert(pageSize > 0 && pageCount > 0);
+    assert(pageSize > 0 && pageCount > 0);
 
-	bool result = m_Buffer.Create(target, pageSize * pageCount);
+    bool result = m_Buffer.Create(target, pageSize * pageCount);
 
-	LOG_INFO(EngineSystem::GPU_BUFFER,
-		"[GPUPagedLRUCache|{}] Created (pages={}, countPerPage={})",
-		m_Buffer.GetName(), pageSize, pageCount);
+    LOG_INFO(EngineSystem::GPU_BUFFER,
+        "[GPUPagedLRUCache|{}] Created (pages={}, countPerPage={})",
+        m_Buffer.GetName(), pageSize, pageCount);
 
-	LOG_DEBUG(EngineSystem::GPU_BUFFER,
-		"[GPUPagedLRUCache|{}] reserved {:.2f} Mb",
-		m_Buffer.GetName(),
-		((sizeof(Atom) * pageCount * pageSize) / 1000000.0f));
+    LOG_DEBUG(EngineSystem::GPU_BUFFER,
+        "[GPUPagedLRUCache|{}] reserved {:.2f} Mb",
+        m_Buffer.GetName(),
+        ((sizeof(Atom) * pageCount * pageSize) / 1000000.0f));
 
-	m_PageSize = pageSize;
+    m_PageSize = pageSize;
 
-	const size_t arrSize = ceil(pageCount / BYTE_TYPE_SIZE);
-	m_FreePages = new ByteType[arrSize];
-	std::fill(m_FreePages, m_FreePages + arrSize, std::numeric_limits<ByteType>::max());
+    // calculate the number of elements needed for m_FreePages
+    const size_t arrSize = std::ceil(static_cast<double>(pageCount) / BYTE_TYPE_SIZE);
 
-	// reserve ghost pages in data struct
-	if (pageCount % BYTE_TYPE_SIZE > 0) 
-	{
-		const uint8_t lastElemUsedPages = pageCount % BYTE_TYPE_SIZE;
-		const ByteType ghostPagesMask = ~((1u << (lastElemUsedPages)) - 1);
-		m_FreePages[arrSize - 1] ^= ghostPagesMask;
-	}
+    m_FreePages = new ByteType[arrSize];
+    std::fill(m_FreePages, m_FreePages + arrSize, std::numeric_limits<ByteType>::max());
 
-	return result;
+    // reserve ghost pages in data struct
+    if (pageCount % BYTE_TYPE_SIZE > 0) 
+    {
+        const uint8_t lastElemUsedPages = pageCount % BYTE_TYPE_SIZE;
+        const ByteType ghostPagesMask = ~((1u << lastElemUsedPages) - 1);
+        m_FreePages[arrSize - 1] ^= ghostPagesMask;
+    }
+
+    return result;
 }
 
 template<typename Atom, typename ObjectID>

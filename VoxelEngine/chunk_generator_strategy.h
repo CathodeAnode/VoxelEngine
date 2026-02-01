@@ -167,7 +167,7 @@ public:
 					int worldY = chunkCoords.y * ChunkType::Size + y;
 					int worldZ = chunkCoords.z * ChunkType::Size + z;
 
-					float noiseVal = m_PerlinNoise.Noise3D(worldX * 0.1, worldY * 0.1, worldZ * 0.1);
+					float noiseVal = m_PerlinNoise.Noise3D(worldX * 0.1f, worldY * 0.1f, worldZ * 0.1f);
 
 					if (noiseVal > 0.2f)
 					{

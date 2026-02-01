@@ -38,7 +38,7 @@ public:
 	std::shared_ptr<ChunkType> GetChunk(const glm::ivec3& chunkCoords);
 	std::shared_ptr<const ChunkType> GetChunk(const glm::ivec3& chunkCoords) const;
 
-	inline int GetLoadedChunksDistance() const { return m_LoadedChunks.GetLength(); }
+	inline unsigned int GetLoadedChunksDistance() const { return static_cast<unsigned int>(m_LoadedChunks.GetLength()); }
 
 	// TODO
 	void SaveWorld(const char* filePath);

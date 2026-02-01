@@ -25,20 +25,6 @@
 template<typename ChunkType> 
 class VoxelMesher;
 
-// What happens if:
-//	1. an upload causes an eviction on an object we are currently rendering or will render on next frame (bcuz of small cache size)
-//		- solve by not allowing small caches (ex: min cache size 5 * maxObjectRendered)
-//	2. we re-upload an object we are currently rendering
-
-// additions needed:
-//	1. rotation for each obj??
-//	2. scale for each obj??
-
-// how to?
-//	1. implement a func to only update positionSSBO of current objects being rendered
-//	2. support rendering of dynamic objects (currently ObjectID uses position of chunk. so how to assign an id for objects that move)
-
-
 struct DrawArraysIndirectCommand 
 {
 	unsigned int count = 4;
@@ -47,11 +33,6 @@ struct DrawArraysIndirectCommand
 	unsigned int baseInstance;
 };
 
-struct alignas(16) CulledChunkHeader
-{
-	uint32_t count;
-	uint32_t _pad[3];
-};
 
 template<typename ChunkType>
 class VoxelRenderer 
@@ -71,7 +52,7 @@ public:
 	void DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position);
 
 	void DispatchFrustumCullPass(unsigned int renderDistance, const Camera& camera);
-	std::span<const glm::vec4> GetFrustumCulledChunkCoords() const;
+	std::span<const glm::ivec4> GetFrustumCulledChunkCoords();
 
 	void NextFrame();
 	void Render(const Camera& camera);
@@ -117,30 +98,6 @@ private:
 	inline void _EnableOpenGLFeatures();
 	inline void _SetupOpenGLAttribs();
 };
-
-// object upload cases
-// case 1: object not in cache
-//	- no problem just upload normally to gpu cache
-// case 2: object in cache but not being rendered
-//	- upload mesh normally under its own UID (same as case 1)
-// case 3: object in cache and being rendered
-//	- upload mesh under a temp ID then refresh frame
-
-/*
-	// use for loop for better performance
-	if (std::find(m_ObjectsRenderedInCurrentFrame.begin(),
-		m_ObjectsRenderedInCurrentFrame.end(),
-		chunkUID) != m_ObjectsRenderedInCurrentFrame.end())
-	{
-		VoxelObjectID tempUID = UIDManager::Generate();
-		meshWriter.SetTargetObject(tempUID);
-		mesher.MeshChunk(chunkGrid, chunkCoords, meshWriter);
-
-		m_DataCache.Swap(tempUID, chunkUID);
-		_RefreshFrame();
-		m_DataCache.DeallocateObject(tempUID);
-	}
-*/
 
 typedef VoxelRenderer<Chunk8> VoxelRenderer8;
 typedef VoxelRenderer<Chunk16> VoxelRenderer16;

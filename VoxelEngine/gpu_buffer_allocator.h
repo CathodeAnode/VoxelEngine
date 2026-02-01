@@ -138,7 +138,7 @@ public:
 
     void BindBuffer();
     void BindBufferBase(GLuint _index);
-    void BindBufferRange(GLuint _index, GLsizeiptr _head, GLsizeiptr _count);
+    void BindBufferRange(GLuint _index, size_t _head, size_t _count);
 
     inline Atom* GetContents() { return m_BufferContents; }
     inline size_t GetSize() const { return m_CountAtoms; }
@@ -161,22 +161,22 @@ public:
     bool Create(GLenum _target, GLuint _count, BufferAccess access = BufferAccess::WriteOnly);
     void Destroy();
 
-    Atom* Reserve(GLsizeiptr _count);
-    void OnUsageComplete(GLsizeiptr _count);
+    Atom* Reserve(size_t _count);
+    void OnUsageComplete(size_t _count);
 
     void BindBuffer();
     void BindBufferBase(GLuint _index);
-    void BindBufferHeadRange(GLuint _index, GLsizeiptr _count);
-    void BindBufferRange(GLuint _index, GLsizeiptr _offset, GLsizeiptr _count);
+    void BindBufferHeadRange(GLuint _index, size_t _count);
+    void BindBufferRange(GLuint _index, size_t _offset, size_t _count);
 
-    inline GLsizeiptr GetHead() const { return m_Head; }
+    inline size_t GetHead() const { return m_Head; }
     inline void* GetHeadOffset() const { return (void*)(m_Head * sizeof(Atom)); }
     inline size_t GetSize() const { return m_Buffer.GetSize(); }
     inline GLuint GetName() const { return m_Buffer.GetName(); }
 
 private:
     GPUPersistentlyMappedBuffer<Atom, LockManager> m_Buffer;
-    GLsizeiptr m_Head = 0;
+    size_t m_Head = 0;
 };
 
 template<typename Atom>
@@ -192,16 +192,16 @@ public:
     void AdvanceTail();
 
     void BindHeadBuffer();
-    void BindHeadBufferRange(GLsizeiptr count);
+    void BindHeadBufferRange(size_t count);
 
     void BindTailBuffer();
-    void BindTailBufferRange(GLsizeiptr count);
+    void BindTailBufferRange(size_t count);
 
-    inline GLsizeiptr GetHead() const { return m_CircularBuffer.GetHead(); }
+    inline size_t GetHead() const { return m_CircularBuffer.GetHead(); }
     inline void* GetHeadOffset() const { return m_CircularBuffer.GetHeadOffset(); }
     inline Atom* GetHeadContents() { return m_CircularBuffer.Reserve(m_CountPerBuffer); }
 
-    inline GLsizeiptr GetTail() const { return m_Tail; }
+    inline size_t GetTail() const { return m_Tail; }
     inline void* GetTailOffset() const { return (void*)(m_Tail * sizeof(Atom)); }
 
     inline size_t GetSize() const { return m_CountPerBuffer; }
@@ -209,7 +209,7 @@ public:
 
 private:
     GPUCircularBuffer<Atom, NullBufferLockManager> m_CircularBuffer;
-    GLsizeiptr m_Tail = 0;
+    size_t m_Tail = 0;
     uint32_t m_CountPerBuffer;
 };
 
@@ -308,7 +308,7 @@ private:
         assert(m_FreePages != nullptr);
 
         const size_t pageCount = m_Buffer.GetSize() / m_PageSize;
-        const size_t freePagesArrSize = ceil(pageCount / BYTE_TYPE_SIZE);
+        const size_t freePagesArrSize = ceil(static_cast<double>(pageCount) / BYTE_TYPE_SIZE);
 
         for (size_t index = 0; index < freePagesArrSize; index++)
         {
@@ -363,7 +363,7 @@ private:
         assert(m_FreePages != nullptr);
 #ifndef NDEBUG
         const size_t pageCount = m_Buffer.GetSize() / m_PageSize;
-        const size_t arrSize = ceil(pageCount / BYTE_TYPE_SIZE);
+        const size_t arrSize = ceil(static_cast<double>(pageCount) / BYTE_TYPE_SIZE);
         if (pageCount % BYTE_TYPE_SIZE > 0)
         {
             const uint8_t ghostPages = BYTE_TYPE_SIZE - pageCount % BYTE_TYPE_SIZE;
