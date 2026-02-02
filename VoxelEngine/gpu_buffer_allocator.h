@@ -16,44 +16,6 @@
 #include "logger.h"
 #include "profiler.h"
 
-//template<typename T>
-//class GPUBufferAllocator
-//{
-//public:
-//	GPUBufferAllocator(GLenum bufferType, GLenum bufferUsage, const std::vector<T>& data);
-//	GPUBufferAllocator(GLenum bufferType, GLenum bufferUsage, unsigned int size);
-//	~GPUBufferAllocator();
-//
-//	void upload(const std::vector<T>& data);
-//	void append(T data);
-//	void append(const std::vector<T>& data);
-//	void insert(T data, unsigned int index);
-//	void insert(const std::vector<T>& data, unsigned int index);
-//	void replace(const std::vector<T>& data, unsigned int index, unsigned int oldSize);
-//
-//	void resize(unsigned int size);
-//
-//	inline unsigned int getMaxSize() const { return bufferSize; };
-//	inline unsigned int getSize() const { return currentSize; };
-//	inline GLuint getBufferID() const { return bufferID; };
-//
-//
-//private:
-//	unsigned int bufferSize;
-//	unsigned int bufferID;
-//	unsigned int currentSize;
-//
-//	GLenum type;
-//	GLenum usage;
-//
-//	// assumes move is valid in m_Buffer, i.e. endIndex + size < buffersize and startIndex < buffersize
-//	// does not change currentSize
-//	void move(unsigned int startIndex, unsigned int endIndex, unsigned int size);
-//
-//
-//
-//};
-
 struct Page 
 {
     size_t index;
@@ -162,6 +124,7 @@ public:
     void Destroy();
 
     Atom* Reserve(size_t _count);
+    Atom* ReserveRange(size_t start, size_t count);
     void OnUsageComplete(size_t _count);
 
     void BindBuffer();
@@ -203,6 +166,7 @@ public:
 
     inline size_t GetTail() const { return m_Tail; }
     inline void* GetTailOffset() const { return (void*)(m_Tail * sizeof(Atom)); }
+    inline Atom* GetTailContents() const { return m_CircularBuffer.ReserveRange(m_Tail, m_CountPerBuffer); }
 
     inline size_t GetSize() const { return m_CountPerBuffer; }
     inline GLuint GetName() const { return m_CircularBuffer.GetName(); }

@@ -201,6 +201,7 @@ Atom* GPUCircularBuffer<Atom, LockManager>::Reserve(size_t _count)
 		LOG_ERROR(EngineSystem::GPU_BUFFER,
 			"[GPUCircularBuffer|{}] Reserve request exceeds circular buffer capacity (requested={}, capacity={})",
 			m_Buffer.GetName(), _count, m_Buffer.GetSize());
+		return nullptr;
 	}
 
 	size_t lockStart = m_Head;
@@ -215,6 +216,29 @@ Atom* GPUCircularBuffer<Atom, LockManager>::Reserve(size_t _count)
 
 	m_Buffer.WaitForLockedRange(lockStart, _count);
 	return &m_Buffer.GetContents()[lockStart];
+}
+
+template<typename Atom, IBufferLockManager LockManager>
+Atom* GPUCircularBuffer<Atom, LockManager>::ReserveRange(size_t start, size_t count)
+{
+	if (count > m_Buffer.GetSize()) {
+		LOG_ERROR(EngineSystem::GPU_BUFFER,
+			"[GPUCircularBuffer|{}] Reserve request exceeds circular buffer capacity (requested={}, capacity={})",
+			m_Buffer.GetName(), count, m_Buffer.GetSize());
+		return nullptr;
+	}
+
+
+	if (start + count > m_Buffer.GetSize()) {
+		LOG_DEBUG(EngineSystem::GPU_BUFFER,
+			"[GPUCircularBuffer|{}] buffer wrap: head={}, requested={}, capacity={}",
+			m_Buffer.GetName(), start, count, m_Buffer.GetSize());
+		// Need to wrap here.
+		start = 0;
+	}
+
+	m_Buffer.WaitForLockedRange(start, count);
+	return &m_Buffer.GetContents()[start];
 }
 
 template<typename Atom, IBufferLockManager LockManager>
