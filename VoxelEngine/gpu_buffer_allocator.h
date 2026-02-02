@@ -166,7 +166,7 @@ public:
 
     inline size_t GetTail() const { return m_Tail; }
     inline void* GetTailOffset() const { return (void*)(m_Tail * sizeof(Atom)); }
-    inline Atom* GetTailContents() const { return m_CircularBuffer.ReserveRange(m_Tail, m_CountPerBuffer); }
+    inline Atom* GetTailContents() { return m_CircularBuffer.ReserveRange(m_Tail, m_CountPerBuffer); }
 
     inline size_t GetSize() const { return m_CountPerBuffer; }
     inline GLuint GetName() const { return m_CircularBuffer.GetName(); }
