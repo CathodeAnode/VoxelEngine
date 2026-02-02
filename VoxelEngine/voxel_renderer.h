@@ -65,7 +65,7 @@ private:
 	GPUPagedLRUCache<VoxelQuad, VoxelObjectID> m_DataCache;
 	GPUOrphanBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
 	GPUOrphanBuffer<glm::vec4> m_PositionSSBO;
-	GPUPersistentlyMappedBuffer<std::byte> m_CulledChunkCoordsReadbackBuffer; // TODO figure out sizing
+	GPUOrphanBuffer<std::byte> m_CulledChunkCoordsReadbackBuffer; // TODO figure out sizing
 
 	Shader m_VoxelShader;
 	ComputeShader m_FrustumCullingShader;

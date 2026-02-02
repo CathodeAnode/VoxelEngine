@@ -42,7 +42,7 @@ void Scene<ChunkType>::Render()
 {
 	PROFILE_FUNCTION();
 
-	//std::span<const glm::ivec4> coords = m_Renderer.GetFrustumCulledChunkCoords();
+	std::span<const glm::ivec4> coords = m_Renderer.GetFrustumCulledChunkCoords();
 
 	if (m_DirtyFrame)
 	{

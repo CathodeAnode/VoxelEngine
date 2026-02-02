@@ -30,8 +30,7 @@
 #include "voxel_ray_cast.h"
 #include "application.h"
 
-// Agenda for 1/5/2026 - Week
-// - use logging system
+// current TODOs:
 // - implement multi-threading class (thread pool) to handle chunk generation, chunk meshing & chunk uploading to gpu
 // - implement queue system for chunk loading to distrubite loading chunks over multiple frames (consumer-producer)
 // - make gpu buffers thread-safe & implment multi-thread architecture
@@ -57,8 +56,6 @@
 // - more voxel edit functionality
 // - visuals for voxel editting functions (highlighting voxel camera is aiming at, highlighting selected volume, etc...)
 // - camera editor controller
-// - ECS system
-// - entity rendering
 // - dear imgui wrapper & engine gui
 
 // Future Future:
