@@ -333,27 +333,27 @@ void GPUOrphanBuffer<Atom>::AdvanceTail()
 }
 
 template<typename Atom>
-void GPUOrphanBuffer<Atom>::BindHeadBuffer()
+void GPUOrphanBuffer<Atom>::BindHeadBuffer(GLuint index)
 {
-	m_CircularBuffer.BindBufferHeadRange(0, m_CountPerBuffer);
+	m_CircularBuffer.BindBufferHeadRange(index, m_CountPerBuffer);
 }
 
 template<typename Atom>
-void GPUOrphanBuffer<Atom>::BindHeadBufferRange(size_t count)
+void GPUOrphanBuffer<Atom>::BindHeadBufferRange(GLuint index, size_t count)
 {
-	m_CircularBuffer.BindBufferHeadRange(0, count);
+	m_CircularBuffer.BindBufferHeadRange(index, count);
 }
 
 template<typename Atom>
-void GPUOrphanBuffer<Atom>::BindTailBuffer()
+void GPUOrphanBuffer<Atom>::BindTailBuffer(GLuint index)
 {
-	m_CircularBuffer.BindBufferRange(0, m_Tail, m_CountPerBuffer);
+	m_CircularBuffer.BindBufferRange(index, m_Tail, m_CountPerBuffer);
 }
 
 template<typename Atom>
-void GPUOrphanBuffer<Atom>::BindTailBufferRange(size_t count)
+void GPUOrphanBuffer<Atom>::BindTailBufferRange(GLuint index, size_t count)
 {
-	m_CircularBuffer.BindBufferRange(0, m_Tail, count);
+	m_CircularBuffer.BindBufferRange(index, m_Tail, count);
 }
 
 // ------------------------------------------------------------------------------------------------------------------

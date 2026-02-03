@@ -42,15 +42,15 @@ void Scene<ChunkType>::Render()
 {
 	PROFILE_FUNCTION();
 
-	std::span<const glm::ivec4> coords = m_Renderer.GetFrustumCulledChunkCoords();
+	m_Renderer.DispatchFrustumCullPass(8, m_Camera);
 
 	if (m_DirtyFrame)
 	{
 		_UploadTerrain();
 	    m_Renderer.NextFrame();
 	}
+	std::span<const glm::ivec4> coords = m_Renderer.GetFrustumCulledChunkCoords();
 	m_Renderer.Render(m_Camera);
-	m_Renderer.DispatchFrustumCullPass(8, m_Camera);
 }
 
 template<typename ChunkType>

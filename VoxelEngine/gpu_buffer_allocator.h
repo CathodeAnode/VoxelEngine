@@ -154,11 +154,11 @@ public:
     void AdvanceHead();
     void AdvanceTail();
 
-    void BindHeadBuffer();
-    void BindHeadBufferRange(size_t count);
+    void BindHeadBuffer(GLuint index);
+    void BindHeadBufferRange(GLuint index, size_t count);
 
-    void BindTailBuffer();
-    void BindTailBufferRange(size_t count);
+    void BindTailBuffer(GLuint index);
+    void BindTailBufferRange(GLuint index, size_t count);
 
     inline size_t GetHead() const { return m_CircularBuffer.GetHead(); }
     inline void* GetHeadOffset() const { return m_CircularBuffer.GetHeadOffset(); }

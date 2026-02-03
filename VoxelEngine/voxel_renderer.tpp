@@ -174,7 +174,7 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     assert(glGetError() == GL_NO_ERROR);
 
 
-    m_CulledChunkCoordsReadbackBuffer.BindHeadBuffer();
+    m_CulledChunkCoordsReadbackBuffer.BindHeadBuffer(1);
 
     m_FrustumCullingShader.Dispatch(ceil(renderDistance / 8), ceil(renderDistance / 8), ceil(renderDistance / 4));
 
@@ -245,7 +245,7 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
     m_VoxelShader.SetMat4("projection", camera.GetProjMatrix());
 
     glBindVertexArray(m_VAO);
-    m_PositionSSBO.BindTailBufferRange(m_CurrentIndirectCmdsCount);
+    m_PositionSSBO.BindTailBufferRange(0, m_CurrentIndirectCmdsCount);
 
     //assert(glGetError() == GL_NO_ERROR);
 
