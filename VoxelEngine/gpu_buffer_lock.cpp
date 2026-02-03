@@ -7,10 +7,9 @@ GPUBufferLockManager::GPUBufferLockManager(bool _cpuUpdates)
 
 GPUBufferLockManager::~GPUBufferLockManager()
 {
-    for (auto it = m_BufferLocks.begin(); it != m_BufferLocks.end(); ++it) {
-        Cleanup(&*it);
+    for (auto& lock : m_BufferLocks) {
+        Cleanup(&lock);
     }
-
     m_BufferLocks.clear();
 }
 
@@ -69,5 +68,8 @@ void GPUBufferLockManager::Wait(GLsync* _syncObj)
 
 void GPUBufferLockManager::Cleanup(GPUBufferLock* _bufferLock)
 {
-    glDeleteSync(_bufferLock->syncObj);
+    if (_bufferLock->syncObj) {
+        glDeleteSync(_bufferLock->syncObj);
+        _bufferLock->syncObj = nullptr;
+    }
 }

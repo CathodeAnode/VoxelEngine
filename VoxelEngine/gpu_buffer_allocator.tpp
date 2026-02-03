@@ -212,6 +212,7 @@ Atom* GPUCircularBuffer<Atom, LockManager>::Reserve(size_t _count)
 			m_Buffer.GetName(), lockStart, _count, m_Buffer.GetSize());
 		// Need to wrap here.
 		lockStart = 0;
+		m_Head = 0;
 	}
 
 	m_Buffer.WaitForLockedRange(lockStart, _count);
@@ -245,6 +246,7 @@ template<typename Atom, IBufferLockManager LockManager>
 void GPUCircularBuffer<Atom, LockManager>::OnUsageComplete(size_t _count)
 {
 	assert(_count > 0);
+	assert(_count <= m_Buffer.GetSize());
 	m_Buffer.LockRange(m_Head, _count);
 	m_Head = (m_Head + _count) % m_Buffer.GetSize();
 }
@@ -265,6 +267,7 @@ void GPUCircularBuffer<Atom, LockManager>::BindBufferBase(GLuint _index)
 template<typename Atom, IBufferLockManager LockManager>
 void GPUCircularBuffer<Atom, LockManager>::BindBufferHeadRange(GLuint _index, size_t _count)
 {
+	assert(m_Head + _count <= m_Buffer.GetSize());
 	m_Buffer.BindBufferRange(_index, m_Head, _count);
 }
 

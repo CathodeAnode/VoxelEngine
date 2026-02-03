@@ -34,10 +34,14 @@
 // - implement multi-threading class (thread pool) to handle chunk generation, chunk meshing & chunk uploading to gpu
 // - implement queue system for chunk loading to distrubite loading chunks over multiple frames (consumer-producer)
 // - make gpu buffers thread-safe & implment multi-thread architecture
-// - desgining & implementing gpu frustum culling to take advantage of indirect commands & caching system (compute shader)
+// - implement gpu frustum culling
+// - gpu frustum culling to directly write into indirect buffer from gpu-side if mesh is cached
+// - gpu frustum culling shared varaibles optimizations
+// - configure opengl face culling
 
 // future TODOs:
 // - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
+// - seperation between voxel engine lib and generation strat application
 // - region-based world generation. Each region maps with user-defined chunk generation strategy, and chunks are generated according to the strategy defined for that region
 // - build config file for logger, chunktype, asserts
 // - python script engine for terrian generation
