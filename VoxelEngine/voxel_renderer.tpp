@@ -173,6 +173,8 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     m_FrustumCullingShader.SetIVec3("u_CameraPos", WorldToChunk(glm::ivec3(camera.pos), static_cast<unsigned int>(ChunkType::Size)));
     assert(glGetError() == GL_NO_ERROR);
 
+    std::byte* rawDataPtr = m_CulledChunkCoordsReadbackBuffer.GetHeadContents();
+    *reinterpret_cast<uint32_t*>(rawDataPtr) = 0;
 
     m_CulledChunkCoordsReadbackBuffer.BindHeadBuffer(1);
 
@@ -184,6 +186,7 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
 template<typename ChunkType>
 std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetFrustumCulledChunkCoords()
 {
+    m_CulledChunkCoordsReadbackBuffer.AdvanceTail();
     std::byte* rawDataPtr = m_CulledChunkCoordsReadbackBuffer.GetTailContents();
     assert(rawDataPtr != nullptr);
 
@@ -195,9 +198,6 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetFrustumCulledChunkCoord
 
     // Interpret GPU ivec4[] as glm::vec4[]
     const glm::ivec4* results = reinterpret_cast<const glm::ivec4*>(resultsPtr);
-
-    m_CulledChunkCoordsReadbackBuffer.AdvanceTail();
-
 
     return std::span<const glm::ivec4>(results, count);
 }
@@ -283,7 +283,7 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
     const size_t CulledHeaderSize = sizeof(uint32_t);
     const size_t CulledCoordsSize = sizeof(glm::vec4) * indirectBufferSize;
     const size_t CulledSSBOSize = CulledHeaderSize + CulledCoordsSize;
-    m_CulledChunkCoordsReadbackBuffer.Create(GL_SHADER_STORAGE_BUFFER, CulledSSBOSize, k_TripleBuffer, BufferAccess::ReadOnly);
+    m_CulledChunkCoordsReadbackBuffer.Create(GL_SHADER_STORAGE_BUFFER, CulledSSBOSize, k_TripleBuffer, BufferAccess::ReadWrite);
 
     // Offset head from tail on OrphanBuffers
     m_IndirectCommandBuffer.AdvanceHead();
