@@ -22,7 +22,7 @@ Camera::Camera(glm::vec3 position, int _screenWidth, int _screenHeight, float _z
 }
 
 
-void Camera::UpdateCameraDirection(double dx, double dy) {
+void Camera::UpdateCameraDirection(float dx, float dy) {
 	yaw += dx;
 	pitch += dy;
 
@@ -35,7 +35,7 @@ void Camera::UpdateCameraDirection(double dx, double dy) {
 
 	_UpdateCameraVectors();
 }
-void Camera::UpdateCameraPos(CameraDirection dir, double dt) {
+void Camera::UpdateCameraPos(CameraDirection dir, float dt) {
 	float velocity = (float)dt * speed;
 
 	switch (dir)

@@ -112,8 +112,8 @@ public:
 	Camera(glm::vec3 position, int _screenWidth, int _screenHeight, float _zNear, float _zFar);
 	~Camera() = default;
 	
-	void UpdateCameraDirection(double dx, double dy);
-	void UpdateCameraPos(CameraDirection dir, double dt);
+	void UpdateCameraDirection(float dx, float dy);
+	void UpdateCameraPos(CameraDirection dir, float dt);
 	void UpdateCameraZoom(double dy);
 	void Update();
 
