@@ -173,9 +173,6 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     m_FrustumCullingShader.SetIVec3("u_CameraPos", WorldToChunk(glm::ivec3(camera.pos), static_cast<unsigned int>(ChunkType::Size)));
     assert(glGetError() == GL_NO_ERROR);
 
-    std::byte* rawDataPtr = m_CulledChunkCoordsReadbackBuffer.GetHeadContents();
-    *reinterpret_cast<uint32_t*>(rawDataPtr) = 0;
-
     m_CulledChunkCoordsReadbackBuffer.BindHeadBuffer(1);
 
     m_FrustumCullingShader.Dispatch(ceil(renderDistance / 8), ceil(renderDistance / 8), ceil(renderDistance / 4));
@@ -190,13 +187,10 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetFrustumCulledChunkCoord
     std::byte* rawDataPtr = m_CulledChunkCoordsReadbackBuffer.GetTailContents();
     assert(rawDataPtr != nullptr);
 
-    // Read count (first 4 bytes)
     const uint32_t count = *reinterpret_cast<const uint32_t*>(rawDataPtr);
 
-    // Results start immediately after `uint count`
     const std::byte* resultsPtr = rawDataPtr + sizeof(uint32_t);
 
-    // Interpret GPU ivec4[] as glm::vec4[]
     const glm::ivec4* results = reinterpret_cast<const glm::ivec4*>(resultsPtr);
 
     return std::span<const glm::ivec4>(results, count);
