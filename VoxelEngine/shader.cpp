@@ -18,7 +18,7 @@ Shader::Shader(std::initializer_list<ShaderFile> shaders)
 		);
 
 
-		shaderIDs.push_back(compileShader(shader.shaderPath, shader.shaderType));
+		shaderIDs.push_back(_CompileShader(shader.shaderPath, shader.shaderType));
 	}
 
 	m_Id = glCreateProgram();
@@ -66,7 +66,7 @@ Shader::Shader(std::initializer_list<ShaderFile> shaders)
 
 Shader::~Shader()
 {
-	cleanup();
+	Cleanup();
 }
 
 Shader::Shader(Shader&& other) noexcept 
@@ -79,7 +79,7 @@ Shader& Shader::operator=(Shader&& other) noexcept
 {
 	if (this != &other) 
 	{
-		cleanup();
+		Cleanup();
 		m_Id = other.m_Id;
 		other.m_Id = 0;
 	}
@@ -102,7 +102,7 @@ void Shader::Use()
 }
 
 
-unsigned int Shader::compileShader(const char* path, int shaderType) 
+unsigned int Shader::_CompileShader(const char* path, int shaderType) 
 {
 	int success;
 	char infoLog[512];
@@ -117,7 +117,7 @@ unsigned int Shader::compileShader(const char* path, int shaderType)
 		path
 	);
 
-	std::string shaderSrc = loadShaderSrc(path);
+	std::string shaderSrc = _LoadShaderSrc(path);
 	const GLchar* shaderStr = shaderSrc.c_str();
 	glShaderSource(shader, 1, &shaderStr, NULL);
 	glCompileShader(shader);
@@ -142,7 +142,7 @@ unsigned int Shader::compileShader(const char* path, int shaderType)
 	return shader;
 }
 
-std::string Shader::loadShaderSrc(const char* path) 
+std::string Shader::_LoadShaderSrc(const char* path) 
 {
 	if (!std::filesystem::exists(path)) {
 		LOG_CRITICAL(
@@ -182,7 +182,93 @@ std::string Shader::loadShaderSrc(const char* path)
 	return ret;
 }
 
-GLuint Shader::getVarLocation(const char* name) const
+std::string Shader::_StripGLSLComments(const std::string& shaderSrc)
+{
+	std::string out;
+	out.reserve(shaderSrc.size());
+
+	enum class State {
+		Normal,
+		LineComment,
+		BlockComment,
+		String,
+		Char
+	};
+
+	State state = State::Normal;
+
+	for (size_t i = 0; i < shaderSrc.size(); ++i)
+	{
+		char c = shaderSrc[i];
+		char next = (i + 1 < shaderSrc.size()) ? shaderSrc[i + 1] : '\0';
+
+		switch (state)
+		{
+		case State::Normal:
+			if (c == '/' && next == '/') {
+				state = State::LineComment;
+				++i;
+			}
+			else if (c == '/' && next == '*') {
+				state = State::BlockComment;
+				++i;
+			}
+			else if (c == '"') {
+				state = State::String;
+				out += c;
+			}
+			else if (c == '\'') {
+				state = State::Char;
+				out += c;
+			}
+			else {
+				out += c;
+			}
+			break;
+
+		case State::LineComment:
+			if (c == '\n') {
+				state = State::Normal;
+				out += c;
+			}
+			break;
+
+		case State::BlockComment:
+			if (c == '*' && next == '/') {
+				state = State::Normal;
+				++i;
+			}
+			break;
+
+		case State::String:
+			out += c;
+			if (c == '\\' && next != '\0') {
+				// Escape sequence: copy next char verbatim
+				out += next;
+				++i;
+			}
+			else if (c == '"') {
+				state = State::Normal;
+			}
+			break;
+
+		case State::Char:
+			out += c;
+			if (c == '\\' && next != '\0') {
+				out += next;
+				++i;
+			}
+			else if (c == '\'') {
+				state = State::Normal;
+			}
+			break;
+		}
+	}
+
+	return out;
+}
+
+GLuint Shader::GetVarLocation(const char* name) const
 {
 	GLuint location = glGetUniformLocation(m_Id, name);
 
@@ -191,7 +277,7 @@ GLuint Shader::getVarLocation(const char* name) const
 	return location;
 }
 
-void Shader::cleanup()
+void Shader::Cleanup()
 {
 	LOG_INFO(
 		EngineSystem::RENDERER,
@@ -205,50 +291,50 @@ void Shader::cleanup()
 
 void Shader::SetMat4(const char* name, const glm::mat4& val) const
 {
-	glUniformMatrix4fv(getVarLocation(name), 1, GL_FALSE, glm::value_ptr(val));
+	glUniformMatrix4fv(GetVarLocation(name), 1, GL_FALSE, glm::value_ptr(val));
 }
 
 void Shader::SetVec4(const char* name, const glm::vec4& val) const
 {
-	glUniform4fv(getVarLocation(name), 1, glm::value_ptr(val));
+	glUniform4fv(GetVarLocation(name), 1, glm::value_ptr(val));
 }
 
 void Shader::SetVec4Array(const char* name, const glm::vec4* values, unsigned int count) const
 {
-	glUniform4fv(getVarLocation(name), count, glm::value_ptr(values[0]));
+	glUniform4fv(GetVarLocation(name), count, glm::value_ptr(values[0]));
 	//assert(glGetError() == GL_NO_ERROR);
 }
 
 void Shader::SetIVec3(const char* name, const glm::ivec3& val) const
 {
-	glUniform3iv(getVarLocation(name), 1, glm::value_ptr(val));
+	glUniform3iv(GetVarLocation(name), 1, glm::value_ptr(val));
 }
 
 void Shader::SetBool(const char* name, bool value) const
 {
-	glUniform1i(getVarLocation(name), (int)value);
+	glUniform1i(GetVarLocation(name), (int)value);
 }
 
 void Shader::SetInt(const char* name, int value) const
 {
-	glUniform1i(getVarLocation(name), value);
+	glUniform1i(GetVarLocation(name), value);
 }
 
 void Shader::SetUInt(const char* name, unsigned int value) const
 {
-	glUniform1ui(getVarLocation(name), value);
+	glUniform1ui(GetVarLocation(name), value);
 	//assert(glGetError() == GL_NO_ERROR);
 }
 
 void Shader::SetFloat(const char* name, float value) const
 {
-	glUniform1f(getVarLocation(name), value);
+	glUniform1f(GetVarLocation(name), value);
 }
 
 void Shader::GetVec4(const char* name, glm::vec4* out, unsigned int count) const
 {
 	assert(out != nullptr);
 
-	glGetnUniformfv(m_Id, getVarLocation(name), count, glm::value_ptr(out[0]));
+	glGetnUniformfv(m_Id, GetVarLocation(name), count, glm::value_ptr(out[0]));
 	//assert(glGetError() == GL_NO_ERROR);
 }

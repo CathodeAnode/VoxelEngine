@@ -61,6 +61,8 @@ public:
 	// uses shader
 	void Use();
 
+	GLuint GetVarLocation(const char* name) const;
+
 	// util uniform functions
 	void SetMat4(const char* name, const glm::mat4& value) const;
 	void SetVec4(const char* name, const glm::vec4& value) const;
@@ -82,10 +84,10 @@ public:
 protected:
 	GLuint m_Id; // program ID
 
-	unsigned int compileShader(const char* path, int shaderType);
-	std::string loadShaderSrc(const char* path);
-	GLuint getVarLocation(const char* name) const;
-	void cleanup();
+	inline unsigned int _CompileShader(const char* path, int shaderType);
+	inline std::string _LoadShaderSrc(const char* path);
+	std::string _StripGLSLComments(const std::string& shaderSrc);
+	void Cleanup();
 };
 
 #include "compute_shader.h"

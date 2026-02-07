@@ -175,7 +175,16 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
 
     m_CulledChunkCoordsReadbackBuffer.BindHeadBuffer(1);
 
-    m_FrustumCullingShader.Dispatch(ceil(renderDistance / 8), ceil(renderDistance / 8), ceil(renderDistance / 4));
+
+    unsigned int localX = m_FrustumCullingShader.GetLocalSizeX();
+    unsigned int localY = m_FrustumCullingShader.GetLocalSizeY();
+    unsigned int localZ = m_FrustumCullingShader.GetLocalSizeZ();
+
+    unsigned int groupX = (renderDistance + localX - 1) / localX;
+    unsigned int groupY = (renderDistance + localY - 1) / localY;
+    unsigned int groupZ = (renderDistance + localZ - 1) / localZ;
+
+    m_FrustumCullingShader.Dispatch(groupX, groupY, groupZ);
 
     m_CulledChunkCoordsReadbackBuffer.AdvanceHead();
 }

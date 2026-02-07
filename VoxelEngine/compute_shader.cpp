@@ -2,7 +2,10 @@
 
 ComputeShader::ComputeShader(const char* filepath)
 	: Shader({ {filepath, GL_COMPUTE_SHADER} })
-{}
+    , m_LocalSize(1)
+{
+    _ParseLocalGroupSize(_LoadShaderSrc(filepath));
+}
 
 void ComputeShader::Dispatch(unsigned int x, unsigned int y, unsigned int z)
 {
