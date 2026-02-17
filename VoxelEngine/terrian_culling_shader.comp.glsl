@@ -25,7 +25,7 @@ struct ChunkAABB
 // --------------------
 uniform vec4 u_FrustumPlanes[6];
 uniform uint u_ChunkSize;
-uniform ivec3 u_CameraPos;
+uniform ivec3 u_CameraChunkPos;
 
 
 // --------------------
@@ -68,21 +68,18 @@ void main()
         count = 0;
     }
 
-    ivec3 chunkCoord = ivec3(gl_GlobalInvocationID) + u_CameraPos;
+    ivec3 chunkCoord = ivec3(gl_GlobalInvocationID) + u_CameraChunkPos;
 
     // Build AABB
     ChunkAABB chunkAABB;
-    chunkAABB.min = chunkCoord;
+    chunkAABB.min = chunkCoord * int(u_ChunkSize);
     chunkAABB.max = chunkAABB.min + ivec3(u_ChunkSize);
 
     // Frustum culling
     if (test_AABB_against_frustum(chunkAABB))
     {
-        // Atomically get write index
-        uint writeIndex = atomicAdd(count, 1);
-
-        // Append visible chunk coordinate
-        results[writeIndex] = ivec4(chunkCoord, 0);;
+        uint index = atomicAdd(count, 1);
+        results[index] = ivec4(chunkCoord, 0);
     }
 
 }
