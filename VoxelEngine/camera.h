@@ -33,11 +33,11 @@ struct Frustum
 
 		bool isInside =
 			glm::dot(leftClipPlane, paddedCoords) >= 0 &&
-			glm::dot(rightClipPlane, paddedCoords) <= 0 &&
-			glm::dot(topClipPlane, paddedCoords) <= 0 &&
+			glm::dot(rightClipPlane, paddedCoords) >= 0 &&
+			glm::dot(topClipPlane, paddedCoords) >= 0 &&
 			glm::dot(bottomClipPlane, paddedCoords) >= 0 &&
 			glm::dot(nearClipPlane, paddedCoords) >= 0 &&
-			glm::dot(farClipPlane, paddedCoords) <= 0;
+			glm::dot(farClipPlane, paddedCoords) >= 0;
 
 		return isInside;
 	}

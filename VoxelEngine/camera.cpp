@@ -120,10 +120,10 @@ void Camera::_UpdateFrustum()
 	glm::vec4 row2 = glm::row(m_ViewMatrix, 2);
 	glm::vec4 row3 = glm::row(m_ViewMatrix, 3);
 
-	m_CamFrustum.leftClipPlane = row0 + row3;
-	m_CamFrustum.rightClipPlane = row0 - row3;
-	m_CamFrustum.bottomClipPlane = row1 + row3;
-	m_CamFrustum.topClipPlane = row1 - row3;
-	m_CamFrustum.nearClipPlane = row2 + row3;
-	m_CamFrustum.farClipPlane = row2 - row3;
+	m_CamFrustum.leftClipPlane = row3 + row0;
+	m_CamFrustum.rightClipPlane = row3 - row0;
+	m_CamFrustum.bottomClipPlane = row3 + row1;
+	m_CamFrustum.topClipPlane = row3 - row1;
+	m_CamFrustum.nearClipPlane = row3 + row2;
+	m_CamFrustum.farClipPlane = row3 - row2;
 }
