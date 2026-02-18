@@ -12,6 +12,8 @@
 #include "chunk_provider_concept.h"
 
 
+#define NULL_CHUNK_ID 0
+
 // TODO algin data for SIMD instructions
 template<typename T, unsigned int ChunkSize>
 class Chunk {

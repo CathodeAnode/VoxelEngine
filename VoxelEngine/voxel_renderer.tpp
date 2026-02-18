@@ -170,8 +170,11 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     
     m_FrustumCullingShader.SetVec4Array("u_FrustumPlanes", reinterpret_cast<const glm::vec4*>(&camFrustum), 6);
     m_FrustumCullingShader.SetUInt("u_ChunkSize", static_cast<unsigned int>(ChunkType::Size));
-    m_FrustumCullingShader.SetIVec3("u_CameraPos", WorldToChunk(glm::ivec3(camera.pos), static_cast<unsigned int>(ChunkType::Size)));
-    assert(glGetError() == GL_NO_ERROR);
+    m_FrustumCullingShader.SetIVec3("u_CameraChunkPos", WorldToChunk(glm::ivec3(camera.pos), static_cast<unsigned int>(ChunkType::Size)));
+    //assert(glGetError() == GL_NO_ERROR);
+
+    uint32_t* counter = reinterpret_cast<uint32_t*>(m_CulledChunkCoordsReadbackBuffer.GetHeadContents());
+    *counter = 0;
 
     m_CulledChunkCoordsReadbackBuffer.BindHeadBuffer(1);
 
@@ -185,6 +188,7 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     unsigned int groupZ = (renderDistance + localZ - 1) / localZ;
 
     m_FrustumCullingShader.Dispatch(groupX, groupY, groupZ);
+    m_FrustumCullingShader.Wait(GL_SHADER_STORAGE_BARRIER_BIT);
 
     m_CulledChunkCoordsReadbackBuffer.AdvanceHead();
 }
@@ -242,6 +246,8 @@ template <typename ChunkType>
 void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 {
     PROFILE_FUNCTION();
+
+    if (m_CurrentIndirectCmdsCount == 0) return;
 
     m_VoxelShader.Use();
     m_VoxelShader.SetMat4("view", camera.GetViewMatrix());

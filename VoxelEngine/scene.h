@@ -21,27 +21,28 @@ class Scene
 {
 public:
 	Scene(Camera& camera, ChunkManager<ChunkType>& world, VoxelRenderer<ChunkType>& renderer); // add DI for models/character container in the future
-
+	
 	Scene(const Scene&) = delete;
 	Scene& operator=(const Scene&) = delete;
 
-	void Init();
+	void Init(unsigned int renderDistance);
 	void Update();
 	void Render();
 
-	void SetWorldUpdate(bool enabled) { m_WorldUpdateFlag = enabled; }
+	void SetWorldUpdate(bool enabled) { m_WorldUpdateFlag = enabled; throw std::runtime_error("Not Implemented"); }
 
 	inline void SwitchCamera(Camera& camera) { m_Camera = camera; }
 
 private:
-    inline void _UploadTerrain();
+    inline void _UploadLoadedTerrain();
 
 private:
 	Camera& m_Camera;
 	ChunkManager<ChunkType>& m_World;
 	VoxelRenderer<ChunkType>& m_Renderer;
 
-	bool m_DirtyFrame;
+	unsigned int m_RenderDist = 0;
+
 	bool m_WorldUpdateFlag;
 
 };

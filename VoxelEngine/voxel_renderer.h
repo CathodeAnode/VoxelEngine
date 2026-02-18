@@ -22,6 +22,8 @@
 #include "voxel_math.h"
 
 
+// TODO: refactor buffer bindings to use a const variable or macro to avoid using magic numbers
+
 template<typename ChunkType> 
 class VoxelMesher;
 

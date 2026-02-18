@@ -63,10 +63,6 @@ void main()
 {
     //TODO: use shared mem count to write results in batches
     //TODO: gpu indirect draw 
-    if (gl_GlobalInvocationID == uvec3(0)) 
-    {
-        count = 0;
-    }
 
     ivec3 chunkCoord = ivec3(gl_GlobalInvocationID) + u_CameraChunkPos;
 

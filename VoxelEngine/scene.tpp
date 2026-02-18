@@ -14,13 +14,16 @@ Scene<ChunkType>::Scene(Camera& camera, ChunkManager<ChunkType>& world, VoxelRen
 }
 
 template<typename ChunkType>
-void Scene<ChunkType>::Init()
+void Scene<ChunkType>::Init(unsigned int renderDistance)
 {
 	PROFILE_FUNCTION();
 
-	_UploadTerrain();
-	m_Renderer.NextFrame();
-	m_Renderer.Render(m_Camera);
+	m_RenderDist = renderDistance;
+
+	_UploadLoadedTerrain();
+	m_Renderer.DispatchFrustumCullPass(m_RenderDist, m_Camera);
+	//m_Renderer.NextFrame();
+	//m_Renderer.Render(m_Camera);
 }
 
 template<typename ChunkType>
@@ -29,32 +32,37 @@ void Scene<ChunkType>::Update()
 	PROFILE_FUNCTION();
 
     m_Camera.Update();
+	m_World.Update(m_Camera.pos);
 
-	if (m_WorldUpdateFlag)
-	{
-		m_DirtyFrame = m_World.Update(m_Camera.pos);
-	}
+	m_Renderer.DispatchFrustumCullPass(m_RenderDist, m_Camera);
 }
-
 
 template<typename ChunkType>
 void Scene<ChunkType>::Render()
 {
 	PROFILE_FUNCTION();
 
-	m_Renderer.DispatchFrustumCullPass(8, m_Camera);
-
-	if (m_DirtyFrame)
-	{
-		_UploadTerrain();
-	    m_Renderer.NextFrame();
-	}
 	std::span<const glm::ivec4> coords = m_Renderer.GetFrustumCulledChunkCoords();
+
+	const int chunkSize = ChunkType::Size;
+	for (const auto& chunkCoord : coords)
+	{
+		glm::ivec3 chunkWorldPos = chunkCoord * chunkSize;
+		std::shared_ptr<const ChunkType> chunk = m_World.GetChunk(chunkCoord);
+		const VoxelObjectID chunkUID = chunk->GetUID();
+		//if (!m_Renderer.IsCached(chunkUID))
+		//{
+		//	m_Renderer.Upload(m_World, chunkCoord);
+		//}
+		m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
+	}
+
+	m_Renderer.NextFrame();
 	m_Renderer.Render(m_Camera);
 }
 
 template<typename ChunkType>
-inline void Scene<ChunkType>::_UploadTerrain()
+inline void Scene<ChunkType>::_UploadLoadedTerrain()
 {
 	PROFILE_FUNCTION();
 
@@ -77,6 +85,19 @@ inline void Scene<ChunkType>::_UploadTerrain()
 
 
 				const VoxelObjectID chunkUID = chunk->GetUID();
+				if (chunkUID != NULL_CHUNK_ID)
+				{
+					m_Renderer.Upload(m_World, chunkCoords);
+				}
+
+			}
+		}
+	}
+}
+
+
+/*
+				const VoxelObjectID chunkUID = chunk->GetUID();
 				if (chunkUID != 0)
 				{
 					if (!m_Renderer.IsCached(chunkUID))
@@ -85,11 +106,6 @@ inline void Scene<ChunkType>::_UploadTerrain()
 					}
 					m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
 				}
-
-			}
-		}
-	}
-
-}
+*/
 
 #endif

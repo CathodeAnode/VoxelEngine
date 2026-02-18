@@ -71,7 +71,7 @@ bool Application<ChunkT>::Init()
     );
 
     m_World.InitializeStartingChunks();
-    m_Scene.Init();
+    m_Scene.Init(8);
 
     return true;
 }
