@@ -3,14 +3,9 @@
 
 #include <atomic>
 #include <glm/fwd.hpp>
-#include "types.h"
-
-
-#include <atomic>
 #include <cstdint>
 #include <cassert>
-
-#define NULL_VOXELOBJECTID 
+#include "types.h"
 
 /**
  * @brief Generates and manages unique identifiers for entities and chunks.
