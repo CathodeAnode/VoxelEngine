@@ -1,18 +1,5 @@
 #version 460
-
-
-// 256 threads => 8 wraps
-layout(local_size_x = 8, local_size_y = 8, local_size_z = 4) in;
-
-//struct Frustum
-//{
-//	glm::vec4 leftClipPlane;
-//	glm::vec4 rightClipPlane;
-//	glm::vec4 bottomClipPlane;
-//	glm::vec4 topClipPlane;
-//	glm::vec4 nearClipPlane;
-//	glm::vec4 farClipPlane;
-//};
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 4) in; // 256 threads => 8 wraps
 
 struct ChunkAABB
 {
@@ -20,17 +7,12 @@ struct ChunkAABB
     ivec3 max;
 };
 
-// --------------------
-// Inputs (Uniforms)
-// --------------------
 uniform vec4 u_FrustumPlanes[6];
+uniform uint u_RenderDistance;
 uniform uint u_ChunkSize;
 uniform ivec3 u_CameraChunkPos;
 
 
-// --------------------
-// Output
-// --------------------
 layout(std430, binding = 1) buffer ResultBuffer
 {
     uint  count;
@@ -56,15 +38,13 @@ bool test_AABB_against_frustum(ChunkAABB aabb)
     return true;
 }
 
-// --------------------
-// Main
-// --------------------
 void main()
 {
     //TODO: use shared mem count to write results in batches
     //TODO: gpu indirect draw 
 
-    ivec3 chunkCoord = ivec3(gl_GlobalInvocationID) + u_CameraChunkPos;
+    ivec3 offset = ivec3(gl_GlobalInvocationID) - ivec3(u_RenderDistance);
+    ivec3 chunkCoord = u_CameraChunkPos + offset;
 
     // Build AABB
     ChunkAABB chunkAABB;

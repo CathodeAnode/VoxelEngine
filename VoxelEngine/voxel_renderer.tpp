@@ -169,23 +169,23 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     m_FrustumCullingShader.Use();
     
     m_FrustumCullingShader.SetVec4Array("u_FrustumPlanes", reinterpret_cast<const glm::vec4*>(&camFrustum), 6);
+    m_FrustumCullingShader.SetUInt("u_RenderDistance", static_cast<unsigned int>(renderDistance / 2));
     m_FrustumCullingShader.SetUInt("u_ChunkSize", static_cast<unsigned int>(ChunkType::Size));
     m_FrustumCullingShader.SetIVec3("u_CameraChunkPos", WorldToChunk(glm::ivec3(camera.pos), static_cast<unsigned int>(ChunkType::Size)));
-    //assert(glGetError() == GL_NO_ERROR);
 
     uint32_t* counter = reinterpret_cast<uint32_t*>(m_CulledChunkCoordsReadbackBuffer.GetHeadContents());
     *counter = 0;
 
     m_CulledChunkCoordsReadbackBuffer.BindHeadBuffer(1);
 
-
     unsigned int localX = m_FrustumCullingShader.GetLocalSizeX();
     unsigned int localY = m_FrustumCullingShader.GetLocalSizeY();
     unsigned int localZ = m_FrustumCullingShader.GetLocalSizeZ();
 
-    unsigned int groupX = (renderDistance + localX - 1) / localX;
-    unsigned int groupY = (renderDistance + localY - 1) / localY;
-    unsigned int groupZ = (renderDistance + localZ - 1) / localZ;
+    unsigned int dimension = renderDistance * 2 + 1;
+    unsigned int groupX = (dimension + localX - 1) / localX;
+    unsigned int groupY = (dimension + localY - 1) / localY;
+    unsigned int groupZ = (dimension + localZ - 1) / localZ;
 
     m_FrustumCullingShader.Dispatch(groupX, groupY, groupZ);
     m_FrustumCullingShader.Wait(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -205,6 +205,11 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetFrustumCulledChunkCoord
     const std::byte* resultsPtr = rawDataPtr + sizeof(uint32_t);
 
     const glm::ivec4* results = reinterpret_cast<const glm::ivec4*>(resultsPtr);
+
+
+    LOG_DEBUG(EngineSystem::RENDERER,
+        "FrustumCull completed: {} chunks visible",
+        count);
 
     return std::span<const glm::ivec4>(results, count);
 }
