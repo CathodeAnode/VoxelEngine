@@ -71,7 +71,7 @@ bool Application<ChunkT>::Init()
     );
 
     m_World.InitializeStartingChunks();
-    m_Scene.Init(8);
+    m_Scene.Init(LOADED_CHUNK_DISTANCE);
 
     return true;
 }
@@ -164,12 +164,14 @@ void Application<ChunkT>::ProcessInput()
 template<typename ChunkT>
 void Application<ChunkT>::Update()
 {
+    PROFILE_FUNCTION();
     m_Scene.Update();
 }
 
 template<typename ChunkT>
 void Application<ChunkT>::Render()
 {
+    PROFILE_FUNCTION();
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
