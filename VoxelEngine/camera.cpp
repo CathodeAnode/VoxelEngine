@@ -115,10 +115,12 @@ void Camera::_UpdateCameraVectors() {
 
 void Camera::_UpdateFrustum()
 {
-	glm::vec4 row0 = glm::row(m_ViewMatrix, 0);
-	glm::vec4 row1 = glm::row(m_ViewMatrix, 1);
-	glm::vec4 row2 = glm::row(m_ViewMatrix, 2);
-	glm::vec4 row3 = glm::row(m_ViewMatrix, 3);
+	glm::mat4 vp = m_ProjectionMatrix * m_ViewMatrix;
+
+	glm::vec4 row0 = glm::row(vp, 0);
+	glm::vec4 row1 = glm::row(vp, 1);
+	glm::vec4 row2 = glm::row(vp, 2);
+	glm::vec4 row3 = glm::row(vp, 3);
 
 	m_CamFrustum.leftClipPlane = row3 + row0;
 	m_CamFrustum.rightClipPlane = row3 - row0;
