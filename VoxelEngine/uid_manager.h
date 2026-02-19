@@ -87,31 +87,14 @@ private:
     /// Maxiumium allowed coordinate value, based on VoxelObjectID uint type
     static constexpr int64_t k_MaxCoord = (int64_t(1) << (k_CoordBits - 1)) - 1;
 
-    static bool _IsValidCoord(int64_t v)
-    {
-        return v >= k_MinCoord && v <= k_MaxCoord;
-    }
-
-    // Convert signed coord to unsigned packed representation
-    static VoxelObjectID _EncodeCoord(int64_t v)
-    {
-        return VoxelObjectID(v) & k_CoordMask;
-    }
-
-    static int64_t _DecodeCoord(VoxelObjectID v)
-    {
-        // sign extend manually
-        const VoxelObjectID signBit = VoxelObjectID(1) << (k_CoordBits - 1);
-
-        if (v & signBit)
-            return int64_t(v | (~k_CoordMask)); // extend sign
-        else
-            return int64_t(v);
-    }
-
     static_assert(std::is_unsigned_v<VoxelObjectID>, "VoxelObjectID must be unsigned");
     static_assert(k_TotalBits >= 64, "VoxelObjectID too small");
     static_assert((k_TotalBits - k_TypeBits) % 3 == 0, "Bit layout must divide evenly across 3 coords");
+
+private:
+    static bool _IsValidCoord(int64_t v);
+    static VoxelObjectID _EncodeCoord(int64_t v);
+    static int64_t _DecodeCoord(VoxelObjectID v);
 
 private:
     static inline std::atomic<VoxelObjectID> s_EntityCounter{ 0 };
