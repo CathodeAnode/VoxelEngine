@@ -9,9 +9,7 @@
 
 using QuadMeshData = uint32_t; //TODO: use bitfields struct instead
 using RGBAColor = uint32_t;
-using VoxelObjectID = uint32_t;
-
-using Point = glm::ivec3;
+using VoxelObjectID = uint64_t;
 
 
 struct VoxelQuad
@@ -57,5 +55,7 @@ struct ChunkQuads {
   	}
 };
 
+
+static_assert(std::is_integral<VoxelObjectID>::value, "VoxelObjectID must be an integral type");
 
 #endif

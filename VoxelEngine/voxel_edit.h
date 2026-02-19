@@ -20,8 +20,8 @@ public:
 	void SetVoxel(const glm::ivec3& coords, RGBAColor color);
 	void RemoveVoxel(const glm::ivec3& coords);
 
-	void SetBoxVolume(const Point& A, const Point& B, RGBAColor color);
-	void RemoveBoxVolume(const Point& A, const Point& B);
+	void SetBoxVolume(const glm::ivec3& A, const glm::ivec3& B, RGBAColor color);
+	void RemoveBoxVolume(const glm::ivec3& A, const glm::ivec3& B);
 
 	void SetSphere(glm::ivec3 coords, uint16_t radius, RGBAColor color);
 	void RemoveSphere(glm::ivec3 coords, uint16_t radius);
