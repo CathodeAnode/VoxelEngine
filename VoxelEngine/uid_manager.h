@@ -11,9 +11,33 @@
 #include <cassert>
 
 
+/**
+ * @brief Generates and manages unique identifiers for entities and chunks.
+ *
+ * IDs use a structured bit layout to make them self-describing.
+ *
+ * Layout (64-bit architecture example):
+ * - 1 most significant bit (type flag)
+ *     - 1 => Entity ID
+ *     - 0 => Chunk ID
+ * - Remaining bits are evenly divided across X, Y, Z chunk coordinates.
+ *
+ * Example layout:
+ * @code
+ * [ MSB |     X     |     Y     |     Z     ]
+ * [ 1b  |  N bits   |  N bits   |  N bits   ]
+ * @endcode
+ *
+ * Coordinate bit count depends on the size of VoxelObjectID.
+ */
 class UIDManager
 {
 public:
+
+    /**
+     * @brief Generate a unique entity ID.
+     * @return Entity ID with type bit set.
+     */
     static VoxelObjectID Generate()
     {
         VoxelObjectID id = ++s_EntityCounter;
@@ -24,6 +48,12 @@ public:
         return k_TypeBitMask | id;
     }
 
+
+    /**
+     * @brief Generate a chunk ID from 3D coordinates.
+     * @param chunkCoord Chunk grid coordinate.
+     * @return Packed chunk ID (type bit cleared).
+     */
     static VoxelObjectID Generate(glm::ivec3 chunkCoord)
     {
         assert(_IsValidCoord(chunkCoord.x));
@@ -39,16 +69,28 @@ public:
             (uz);
     }
 
+    /**
+     * @brief Check if ID represents an entity.
+     */
     static bool IsEntity(VoxelObjectID id)
     {
         return (id & k_TypeBitMask) != 0;
     }
 
+    /**
+     * @brief Check if ID represents a chunk.
+     */
     static bool IsChunk(VoxelObjectID id)
     {
         return (id & k_TypeBitMask) == 0;
     }
 
+
+    /**
+     * @brief Decode a chunk ID into its 3D coordinate.
+     * @param id Chunk ID.
+     * @return Decoded chunk coordinate.
+     */
     static glm::ivec3 DecodeChunk(VoxelObjectID id)
     {
         assert(IsChunk(id));
@@ -63,15 +105,26 @@ public:
 private:
 
     // Layout constants
+
+    /// Total number of bits in VoxelObjectID.
     static constexpr int k_TotalBits = sizeof(VoxelObjectID) * 8;
-    static constexpr int k_TypeBits = 1; // Mask for MSB (entity flag)
-    static constexpr int k_CoordBits = (k_TotalBits - k_TypeBits) / 3; // 21 for 64bit
 
-    static constexpr VoxelObjectID k_TypeBitMask = VoxelObjectID(1) << (k_TotalBits - 1);
+    /// Mask for MSB (entity flag)
+    static constexpr int k_TypeBits = 1; 
 
+    /// Mask for one coordinate
+    static constexpr int k_CoordBits = (k_TotalBits - k_TypeBits) / 3; 
+
+    /// Mask for type bit (entity flag).
+    static constexpr VoxelObjectID k_TypeBitMask = VoxelObjectID(1) << (k_TotalBits - 1); 
+
+    /// Mask for extracting a single coordinate
     static constexpr VoxelObjectID k_CoordMask = (VoxelObjectID(1) << k_CoordBits) - 1;
 
+    /// Minimum allowed coordinate value, based on VoxelObjectID uint type
     static constexpr int64_t k_MinCoord = -(int64_t(1) << (k_CoordBits - 1));
+
+    /// Maxiumium allowed coordinate value, based on VoxelObjectID uint type
     static constexpr int64_t k_MaxCoord = (int64_t(1) << (k_CoordBits - 1)) - 1;
 
     static bool _IsValidCoord(int64_t v)
