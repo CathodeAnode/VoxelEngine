@@ -10,6 +10,7 @@
 #include <cstdint>
 #include <cassert>
 
+#define NULL_VOXELOBJECTID 
 
 /**
  * @brief Generates and manages unique identifiers for entities and chunks.
@@ -33,74 +34,38 @@
 class UIDManager
 {
 public:
+    /// Null / invalid ID (MSB set, rest 0)
+    static constexpr VoxelObjectID NullVoxelObjectID = VoxelObjectID(1) << (sizeof(VoxelObjectID) * 8 - 1);
 
     /**
      * @brief Generate a unique entity ID.
      * @return Entity ID with type bit set.
      */
-    static VoxelObjectID Generate()
-    {
-        VoxelObjectID id = ++s_EntityCounter;
-
-        // Ensure we don't overflow into MSB region accidentally
-        assert(id < k_TypeBitMask);
-
-        return k_TypeBitMask | id;
-    }
-
+    static VoxelObjectID Generate();
 
     /**
      * @brief Generate a chunk ID from 3D coordinates.
      * @param chunkCoord Chunk grid coordinate.
      * @return Packed chunk ID (type bit cleared).
      */
-    static VoxelObjectID Generate(glm::ivec3 chunkCoord)
-    {
-        assert(_IsValidCoord(chunkCoord.x));
-        assert(_IsValidCoord(chunkCoord.y));
-        assert(_IsValidCoord(chunkCoord.z));
-
-        VoxelObjectID ux = _EncodeCoord(chunkCoord.x);
-        VoxelObjectID uy = _EncodeCoord(chunkCoord.y);
-        VoxelObjectID uz = _EncodeCoord(chunkCoord.z);
-
-        return (ux << (k_CoordBits * 2)) |
-            (uy << (k_CoordBits)) |
-            (uz);
-    }
+    static VoxelObjectID Generate(glm::ivec3 chunkCoord);
 
     /**
      * @brief Check if ID represents an entity.
      */
-    static bool IsEntity(VoxelObjectID id)
-    {
-        return (id & k_TypeBitMask) != 0;
-    }
+    static bool IsEntity(VoxelObjectID id);
 
     /**
      * @brief Check if ID represents a chunk.
      */
-    static bool IsChunk(VoxelObjectID id)
-    {
-        return (id & k_TypeBitMask) == 0;
-    }
-
+    static bool IsChunk(VoxelObjectID id);
 
     /**
      * @brief Decode a chunk ID into its 3D coordinate.
      * @param id Chunk ID.
      * @return Decoded chunk coordinate.
      */
-    static glm::ivec3 DecodeChunk(VoxelObjectID id)
-    {
-        assert(IsChunk(id));
-
-        VoxelObjectID uz = id & k_CoordMask;
-        VoxelObjectID uy = (id >> k_CoordBits) & k_CoordMask;
-        VoxelObjectID ux = (id >> (k_CoordBits * 2)) & k_CoordMask;
-
-        return glm::ivec3( _DecodeCoord(ux), _DecodeCoord(uy), _DecodeCoord(uz));
-    }
+    static glm::ivec3 DecodeChunk(VoxelObjectID id);
 
 private:
 
