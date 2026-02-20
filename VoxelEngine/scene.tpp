@@ -48,8 +48,7 @@ void Scene<ChunkType>::Render()
 	for (const auto& chunkCoord : coords)
 	{
 		glm::ivec3 chunkWorldPos = chunkCoord * chunkSize;
-		std::shared_ptr<const ChunkType> chunk = m_World.GetChunk(chunkCoord);
-		const VoxelObjectID chunkUID = chunk->GetUID();
+		const VoxelObjectID chunkUID = UIDManager::Generate(chunkCoord);
 		//if (!m_Renderer.IsCached(chunkUID))
 		//{
 		//	m_Renderer.Upload(m_World, chunkCoord);
@@ -85,7 +84,7 @@ inline void Scene<ChunkType>::_UploadLoadedTerrain()
 
 
 				const VoxelObjectID chunkUID = chunk->GetUID();
-				if (chunkUID != NULL_CHUNK_ID)
+				if (chunkUID != UIDManager::NullVoxelObjectID)
 				{
 					m_Renderer.Upload(m_World, chunkCoords);
 				}

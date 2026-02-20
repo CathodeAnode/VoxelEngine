@@ -4,8 +4,8 @@
 #include "chunk.h"
 
 template<typename T, unsigned int ChunkSize>
-Chunk<T, ChunkSize>::Chunk()
-	: k_Uid(UIDManager::Generate())
+Chunk<T, ChunkSize>::Chunk(glm::ivec3 chunkCoords)
+	: k_Uid(UIDManager::Generate(chunkCoords))
 {
 	m_OpaqueData = new T[ChunkSize * ChunkSize];
 	m_ColorData = new RGBAColor[ChunkSize * ChunkSize * ChunkSize];

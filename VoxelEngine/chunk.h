@@ -6,13 +6,11 @@
 #include <unordered_map>
 #include <limits>
 #include <span>
+#include <glm/fwd.hpp>
 
 #include "types.h"
 #include "uid_manager.h"
 #include "chunk_provider_concept.h"
-
-
-#define NULL_CHUNK_ID 0
 
 // TODO algin data for SIMD instructions
 template<typename T, unsigned int ChunkSize>
@@ -21,7 +19,7 @@ public:
 	using ValueType = T;
 	static constexpr size_t Size = ChunkSize;
 
-	Chunk();
+	Chunk(glm::ivec3 chunkCoords);
 	~Chunk();
 
 	Chunk(const Chunk& other);
@@ -69,7 +67,7 @@ public:
 
 	T GetColumnRow(int x, int z) const override { return T(0); }
 	bool IsEmpty() const override { return true; }
-	VoxelObjectID GetUID() const override  { return 0; }
+	VoxelObjectID GetUID() const override  { return UIDManager::NullVoxelObjectID; }
 
 };
 

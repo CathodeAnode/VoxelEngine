@@ -167,7 +167,7 @@ std::shared_ptr<ChunkType> ChunkManager<ChunkType>::_LoadChunk(const glm::ivec3&
 	// steps:
 	// 1. if chunk exisits in world map file, load and return from file
 	// 2. otherwise, generate and return chunk
-	std::shared_ptr<ChunkType> ret = std::make_shared<ChunkType>();
+	std::shared_ptr<ChunkType> ret = std::make_shared<ChunkType>(chunkCoords);
 	m_ChunkGenerator->Generate(chunkCoords, ret);
 	return ret;
 }
