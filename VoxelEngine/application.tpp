@@ -198,9 +198,9 @@ void Application<ChunkT>::CalcFPSOnWindowTitle(int avgOverNFrames)
         // this is taking alot of cpu cycles
         std::string title = "VoxelEngine - FPS: " + std::to_string(m_SumFPS / m_CountFPS) +
             " | Pos(" +
-            std::to_string(m_Camera.x) + ", " +
-            std::to_string(m_Camera.y) + ", " +
-            std::to_string(m_Camera.z) + ")";
+            std::to_string(m_Camera.pos.x) + ", " +
+            std::to_string(m_Camera.pos.y) + ", " +
+            std::to_string(m_Camera.pos.z) + ")";
 
         m_Screen.setTitle(title.c_str());
         m_CountFPS = 0;
