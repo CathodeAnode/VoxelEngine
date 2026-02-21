@@ -21,7 +21,7 @@ void Scene<ChunkType>::Init(unsigned int renderDistance)
 	m_RenderDist = renderDistance;
 
 	_UploadLoadedTerrain();
-	m_Renderer.DispatchFrustumCullPass(m_RenderDist, m_Camera);
+	//m_Renderer.DispatchFrustumCullPass(m_RenderDist, m_Camera);
 	//m_Renderer.NextFrame();
 	//m_Renderer.Render(m_Camera);
 }

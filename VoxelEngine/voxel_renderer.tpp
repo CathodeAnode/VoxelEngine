@@ -196,16 +196,11 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
 template<typename ChunkType>
 std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetFrustumCulledChunkCoords()
 {
-    m_CulledChunkCoordsReadbackBuffer.AdvanceTail();
     std::byte* rawDataPtr = m_CulledChunkCoordsReadbackBuffer.GetTailContents();
     assert(rawDataPtr != nullptr);
 
     const uint32_t count = *reinterpret_cast<const uint32_t*>(rawDataPtr);
-
-    const std::byte* resultsPtr = rawDataPtr + sizeof(uint32_t);
-
-    const glm::ivec4* results = reinterpret_cast<const glm::ivec4*>(resultsPtr);
-
+    const glm::ivec4* results = reinterpret_cast<const glm::ivec4*>(rawDataPtr);
 
     {
         // NOTE: these calculations will get optimized out by compiler in O2/-O3 or /O2 
@@ -214,12 +209,16 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetFrustumCulledChunkCoord
         const size_t availableBytes = m_CulledChunkCoordsReadbackBuffer.GetSize() - headerSize;
 
         assert(requiredBytes <= availableBytes &&
-            "Frustum culling SSBO size is too small for the result chunk count");
+            "Frustum culling SSBO size is too small for the result chunk count. "
+            "Required bytes: {}, Available bytes: {}",
+            requiredBytes, availableBytes);
     }
 
     LOG_DEBUG(EngineSystem::RENDERER,
         "FrustumCull completed: {} chunks visible",
         count);
+
+    m_CulledChunkCoordsReadbackBuffer.AdvanceTail();
 
     return std::span<const glm::ivec4>(results, count);
 }
@@ -305,7 +304,7 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
     m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
 
     const size_t CulledHeaderSize = sizeof(uint32_t);
-    const size_t CulledCoordsSize = sizeof(glm::vec4) * indirectBufferSize * 3; // TEMP: sizing, later will give correct sizing for frustum culling SSBO
+    const size_t CulledCoordsSize = sizeof(glm::vec4) * indirectBufferSize * 5; // TEMP: sizing, later will give correct sizing for frustum culling SSBO
     const size_t CulledSSBOSize = CulledHeaderSize + CulledCoordsSize;
     m_CulledChunkCoordsReadbackBuffer.Create(GL_SHADER_STORAGE_BUFFER, CulledSSBOSize, k_TripleBuffer, BufferAccess::ReadWrite);
 
