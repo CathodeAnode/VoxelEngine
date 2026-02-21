@@ -142,7 +142,7 @@ private:
     size_t m_Head = 0;
 };
 
-template<typename Atom>
+template<typename Atom, IBufferLockManager LockManager = GPUBufferLockManager>
 class GPUOrphanBuffer
 {
 public:
@@ -172,7 +172,7 @@ public:
     inline GLuint GetName() const { return m_CircularBuffer.GetName(); }
 
 private:
-    GPUCircularBuffer<Atom, NullBufferLockManager> m_CircularBuffer;
+    GPUCircularBuffer<Atom, LockManager> m_CircularBuffer;
     size_t m_Tail = 0;
     uint32_t m_CountPerBuffer;
 };
