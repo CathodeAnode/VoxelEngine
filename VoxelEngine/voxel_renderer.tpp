@@ -125,7 +125,7 @@ void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm
 
     if (!m_DataCache.Has(objectID))
     {
-        //LOG_WARN(EngineSystem::RENDERER, "Attempted to draw uncached voxel object (VoxelObjectHandle={})", objectID);
+        LOG_WARN(EngineSystem::RENDERER, "Attempted to draw uncached voxel object (VoxelObjectHandle={})", objectID);
         return;
     }
     

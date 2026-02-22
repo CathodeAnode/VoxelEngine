@@ -29,8 +29,6 @@ public:
 	void Update();
 	void Render();
 
-	void SetWorldUpdate(bool enabled) { m_WorldUpdateFlag = enabled; throw std::runtime_error("Not Implemented"); }
-
 	inline void SwitchCamera(Camera& camera) { m_Camera = camera; }
 
 private:
@@ -42,8 +40,6 @@ private:
 	VoxelRenderer<ChunkType>& m_Renderer;
 
 	unsigned int m_RenderDist = 0;
-
-	bool m_WorldUpdateFlag;
 
 };
 

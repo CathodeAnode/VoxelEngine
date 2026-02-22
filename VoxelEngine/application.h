@@ -51,15 +51,12 @@ private:
     // Input / Camera
     Joystick m_MainJoystick;
     Camera   m_Camera;
-    Camera   m_NonUpdateCamera;
 
     // World / Rendering
     ChunkManagerT m_World;
     RendererT m_Renderer;
     VoxelEditT m_VoxelEdit;
     SceneT m_Scene;
-
-    bool m_FreezeWorld = false;
 };
 
 #include "application.tpp"

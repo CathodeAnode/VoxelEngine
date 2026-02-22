@@ -8,7 +8,6 @@ Scene<ChunkType>::Scene(Camera& camera, ChunkManager<ChunkType>& world, VoxelRen
     : m_Camera(camera)
     , m_World(world)
     , m_Renderer(renderer)
-	, m_WorldUpdateFlag(true)
 {
 
 }
@@ -32,14 +31,14 @@ void Scene<ChunkType>::Update()
 	PROFILE_FUNCTION();
 
     m_Camera.Update();
-	m_World.Update(m_Camera.pos);
 
+	m_World.Update(m_Camera.pos);
 	m_Renderer.DispatchFrustumCullPass(m_RenderDist, m_Camera);
 }
 
 template<typename ChunkType>
 void Scene<ChunkType>::Render()
-{
+{ 
 	PROFILE_FUNCTION();
 
 	std::span<const glm::ivec4> coords = m_Renderer.GetFrustumCulledChunkCoords();
@@ -53,7 +52,10 @@ void Scene<ChunkType>::Render()
 		//{
 		//	m_Renderer.Upload(m_World, chunkCoord);
 		//}
-		m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
+		if (m_Renderer.IsCached(chunkUID))
+		{
+			m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
+		}
 	}
 
 	m_Renderer.NextFrame();

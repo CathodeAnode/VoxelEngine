@@ -28,7 +28,6 @@ template<typename ChunkT>
 Application<ChunkT>::Application(unsigned int width, unsigned int height, const char* title)
     : m_MainJoystick(0)
     , m_Camera(glm::vec3(1.0f), width, height, 0.1f, 1000.0f)
-    , m_NonUpdateCamera(m_Camera)
     , m_Screen(width, height, title)
     , m_World(m_Camera.pos, LOADED_CHUNK_DISTANCE, std::make_unique<Simple3DPerlinNoiseGeneration<ChunkT>>())
     , m_Renderer(std::make_unique<MesherT>())
@@ -113,22 +112,6 @@ void Application<ChunkT>::ProcessInput()
     {
         auto& profiler = Profiler::GetInstance();
         profiler.SetEnabled(!profiler.IsEnabled());
-    }
-
-    if (Keyboard::keyUp(Key::F2))
-    {
-        m_FreezeWorld = !m_FreezeWorld;
-        m_Scene.SetWorldUpdate(!m_FreezeWorld);
-
-        if (m_FreezeWorld)
-        {
-            m_NonUpdateCamera.pos = m_Camera.pos;
-            m_Scene.SwitchCamera(m_NonUpdateCamera);
-        }
-        else
-        {
-            m_Scene.SwitchCamera(m_Camera);
-        }
     }
 
     if (Keyboard::key(Key::W)) m_Camera.UpdateCameraPos(CameraDirection::FORWARD, m_DeltaTime);
