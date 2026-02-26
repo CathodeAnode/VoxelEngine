@@ -21,6 +21,8 @@ public:
 
     void Init();
 
+    void Update(float deltaTime);
+
     void RenderOverlay();
 
     Camera& GetDebugCamera() { return m_DebugCamera; }
@@ -30,8 +32,12 @@ public:
     // Visualization toggles
     void SetFrustumOutline(bool enabled) { m_ShowFrustum = enabled; }
     void SetDrawMode(DrawMode mode) { m_DrawMode = mode; }
-    void SetChunkBounds();
-    void SetCameraGizmo();
+    void SetChunkBounds(bool enabled) { m_ShowChunkBounds = enabled; }
+    void SetCameraGizmo(bool enabled) { m_ShowCameraGizmo = enabled; }
+
+    void ToggleFrustumOutline() { m_ShowFrustum = !m_ShowFrustum; }
+    void ToggleChunkBounds() { m_ShowChunkBounds = !m_ShowChunkBounds; }
+    void ToggleCameraGizmo() { m_ShowCameraGizmo = !m_ShowCameraGizmo; }
 
 private:
     void _ApplyPolygonMode();
@@ -43,6 +49,8 @@ private:
 
     bool m_DebugViewEnabled = false;
     bool m_ShowFrustum = false;
+    bool m_ShowChunkBounds = false;
+    bool m_ShowCameraGizmo = false;
 
     DrawMode m_DrawMode = DrawMode::Fill;
 
