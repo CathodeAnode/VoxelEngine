@@ -189,7 +189,7 @@ void GPUCircularBuffer<Atom, LockManager>::Destroy()
 	PROFILE_FUNCTION();
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUCircularBuffer|{}] Destroyed",
-		m_Buffer.m_Name());
+		m_Buffer.GetName());
 	m_Buffer.Destroy();
 	m_Head = 0;
 }
@@ -313,7 +313,7 @@ void GPUOrphanBuffer<Atom, LockManager>::Destroy()
 
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUOrphanBuffer|{}] Destroyed",
-		m_CircularBuffer.m_Name());
+		m_CircularBuffer.GetName());
 
 	m_CountPerBuffer = 0;
 	m_Tail = 0;
