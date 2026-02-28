@@ -31,10 +31,10 @@
 #include "application.h"
 
 // current TODOs:
+// - size frustum culling buffer correctly either on another param in init func or based on render distance
+// - implement a feature to be able to view frustum culling from another camera
 // - implement multi-threading class (thread pool) to handle chunk generation, chunk meshing & chunk uploading to gpu
-// - implement queue system for chunk loading to distrubite loading chunks over multiple frames (consumer-producer)
 // - make gpu buffers thread-safe & implment multi-thread architecture
-// - implement gpu frustum culling
 // - gpu frustum culling to directly write into indirect buffer from gpu-side if mesh is cached
 // - gpu frustum culling shared varaibles optimizations
 // - configure opengl face culling

@@ -61,7 +61,6 @@ public:
 
 	inline bool IsCached(VoxelObjectID objectID) { return m_DataCache.Has(objectID); }
 
-	void ToggleDrawLines();
 private:
 
 	GPUPagedLRUCache<VoxelQuad, VoxelObjectID> m_DataCache;
@@ -87,8 +86,6 @@ private:
 		1.0f,  0.0f, 0.0f,    0.0f, 0.0f, // Bottom Right
 		1.0f,  1.0f, 0.0f,    1.0f, 0.0f  // Top Right
 	};
-
-	bool m_DrawLines;
 
 	const int k_TripleBuffer = 3;
 

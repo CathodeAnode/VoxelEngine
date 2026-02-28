@@ -114,12 +114,35 @@ void Application<ChunkT>::ProcessInput()
         profiler.SetEnabled(!profiler.IsEnabled());
     }
 
-    if (Keyboard::key(Key::W)) m_Camera.UpdateCameraPos(CameraDirection::FORWARD, m_DeltaTime);
-    if (Keyboard::key(Key::S)) m_Camera.UpdateCameraPos(CameraDirection::BACKWARD, m_DeltaTime);
-    if (Keyboard::key(Key::A)) m_Camera.UpdateCameraPos(CameraDirection::LEFT, m_DeltaTime);
-    if (Keyboard::key(Key::D)) m_Camera.UpdateCameraPos(CameraDirection::RIGHT, m_DeltaTime);
-    if (Keyboard::key(Key::Space)) m_Camera.UpdateCameraPos(CameraDirection::UP, m_DeltaTime);
-    if (Keyboard::key(Key::LeftShift)) m_Camera.UpdateCameraPos(CameraDirection::DOWN, m_DeltaTime);
+    if (Keyboard::key(Key::W)) 
+    {
+        m_Camera.UpdateCameraPos(CameraDirection::FORWARD, m_DeltaTime);
+    }
+
+    if (Keyboard::key(Key::S)) 
+    {
+        m_Camera.UpdateCameraPos(CameraDirection::BACKWARD, m_DeltaTime);
+    }
+
+    if (Keyboard::key(Key::A)) 
+    {
+        m_Camera.UpdateCameraPos(CameraDirection::LEFT, m_DeltaTime);
+    }
+
+    if (Keyboard::key(Key::D)) 
+    {
+        m_Camera.UpdateCameraPos(CameraDirection::RIGHT, m_DeltaTime);
+    }
+
+    if (Keyboard::key(Key::Space)) 
+    {
+        m_Camera.UpdateCameraPos(CameraDirection::UP, m_DeltaTime);
+    }
+
+    if (Keyboard::key(Key::LeftShift)) 
+    {
+        m_Camera.UpdateCameraPos(CameraDirection::DOWN, m_DeltaTime);
+    }
 
     double dx = Mouse::getDX();
     double dy = Mouse::getDY();
@@ -158,6 +181,7 @@ void Application<ChunkT>::Render()
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    m_DebuggingRenderer.RenderOverlay();
     m_Scene.Render();
 }
 

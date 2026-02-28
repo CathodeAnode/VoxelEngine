@@ -10,6 +10,7 @@
 #include "scene.h"
 #include "chunk_manager.h"
 #include "voxel_renderer.h"
+#include "debugging_renderer.h"
 #include "voxel_edit.h"
 
 template<typename ChunkT>
@@ -53,10 +54,11 @@ private:
     Camera   m_Camera;
 
     // World / Rendering
-    ChunkManagerT m_World;
-    RendererT m_Renderer;
-    VoxelEditT m_VoxelEdit;
-    SceneT m_Scene;
+    ChunkManagerT     m_World;
+    RendererT         m_Renderer;
+    DebuggingRenderer m_DebuggingRenderer;
+    VoxelEditT        m_VoxelEdit;
+    SceneT            m_Scene;
 };
 
 #include "application.tpp"

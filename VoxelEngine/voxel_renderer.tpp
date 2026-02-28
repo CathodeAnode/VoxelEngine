@@ -8,7 +8,6 @@ VoxelRenderer<ChunkType>::VoxelRenderer(std::unique_ptr<VoxelMesher<ChunkType>> 
     , m_IndirectCommandBuffer(true)
     , m_PositionSSBO(true)
     , m_CulledChunkCoordsReadbackBuffer(true)
-    , m_DrawLines(false)
     , m_Mesher(std::move(mesher))
 {
     PROFILE_FUNCTION();
@@ -247,16 +246,6 @@ void VoxelRenderer<ChunkType>::NextFrame()
 }
 
 template <typename ChunkType>
-void VoxelRenderer<ChunkType>::ToggleDrawLines()
-{
-    m_DrawLines = !m_DrawLines;
-
-    LOG_INFO(EngineSystem::RENDERER,
-        "VoxelRenderer draw mode set to {}",
-        m_DrawLines ? "WIREFRAME" : "FILL");
-}
-
-template <typename ChunkType>
 void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 {
     PROFILE_FUNCTION();
@@ -272,17 +261,8 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 
     //assert(glGetError() == GL_NO_ERROR);
 
-
-    if (m_DrawLines) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-    }
-
     glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, m_IndirectCommandBuffer.GetTailOffset(), m_CurrentIndirectCmdsCount, 0);
     //assert(glGetError() == GL_NO_ERROR);
-
-    if (m_DrawLines) {
-        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-    }
 
     glBindVertexArray(0);
 

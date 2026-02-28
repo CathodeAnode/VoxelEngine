@@ -5,6 +5,7 @@
 #include<glm/fwd.hpp>
 
 #include "camera.h"
+#include "shader.h"
 
 //TODO: make this not compile in distribution mode
 
@@ -21,42 +22,38 @@ public:
 
     void Init();
 
-    void Update(float deltaTime);
-
     void RenderOverlay();
 
     Camera& GetDebugCamera() { return m_DebugCamera; }
-    bool IsDebugViewEnabled() const { return m_DebugViewEnabled; }
-    void EnableDebugView(bool enabled) { m_DebugViewEnabled = enabled; }
 
     // Visualization toggles
-    void SetFrustumOutline(bool enabled) { m_ShowFrustum = enabled; }
+    void SetFrustumOutline(bool enabled) { m_DrawCameraFrustum = enabled; }
     void SetDrawMode(DrawMode mode) { m_DrawMode = mode; }
-    void SetChunkBounds(bool enabled) { m_ShowChunkBounds = enabled; }
-    void SetCameraGizmo(bool enabled) { m_ShowCameraGizmo = enabled; }
+    void SetChunkBounds(bool enabled) { m_DrawChunkBounds = enabled; }
+    void SetCameraGizmo(bool enabled) { m_DrawCameraGizmo = enabled; }
 
-    void ToggleFrustumOutline() { m_ShowFrustum = !m_ShowFrustum; }
-    void ToggleChunkBounds() { m_ShowChunkBounds = !m_ShowChunkBounds; }
-    void ToggleCameraGizmo() { m_ShowCameraGizmo = !m_ShowCameraGizmo; }
+    void ToggleFrustumOutline() { m_DrawCameraFrustum = !m_DrawCameraFrustum; }
+    void ToggleChunkBounds() { m_DrawChunkBounds = !m_DrawChunkBounds; }
+    void ToggleCameraGizmo() { m_DrawCameraGizmo = !m_DrawCameraGizmo; }
 
 private:
     void _ApplyPolygonMode();
     void _RenderFrustum();
+    void _RenderCameraGizmo();
+    void _RenderChunkBounds();
 
 private:
     Camera& m_MainCamera;
     Camera  m_DebugCamera;
 
-    bool m_DebugViewEnabled = false;
-    bool m_ShowFrustum = false;
-    bool m_ShowChunkBounds = false;
-    bool m_ShowCameraGizmo = false;
+    Shader m_FrustumOutlineShader;
+    unsigned int m_LineVAO;
+    unsigned int m_LineVBO;
 
-    DrawMode m_DrawMode = DrawMode::Fill;
-
-    // Debug geometry buffers
-    unsigned int m_LineVAO = 0;
-    unsigned int m_LineVBO = 0;
+    DrawMode m_DrawMode;
+    bool m_DrawCameraFrustum;
+    bool m_DrawChunkBounds;
+    bool m_DrawCameraGizmo;
 };
 
 
