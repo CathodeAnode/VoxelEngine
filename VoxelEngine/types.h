@@ -18,6 +18,14 @@ struct VoxelQuad
 	RGBAColor color;
 };
 
+struct DrawArraysIndirectCommand
+{
+	unsigned int count;
+	unsigned int instanceCount;
+	unsigned int first;
+	unsigned int baseInstance;
+};
+
 /**
  * Encodes all voxel quad data into a 32-bit unsigned integer (uint32_t, from LSB to MSB),
  * stored in a vector 

@@ -20,21 +20,13 @@
 #include "shader.h"
 #include "camera.h"
 #include "voxel_math.h"
+#include "types.h"
 
 
 // TODO: refactor buffer bindings to use a const variable or macro to avoid using magic numbers
 
 template<typename ChunkType> 
 class VoxelMesher;
-
-struct DrawArraysIndirectCommand 
-{
-	unsigned int count = 4;
-	unsigned int instanceCount;
-	unsigned int first = 0;
-	unsigned int baseInstance;
-};
-
 
 template<typename ChunkType>
 class VoxelRenderer 
