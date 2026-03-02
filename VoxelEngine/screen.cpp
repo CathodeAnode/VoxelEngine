@@ -9,7 +9,6 @@ Screen::Screen(unsigned int _width, unsigned int _height, const char* _title) no
 	Screen::m_Height = _height;
 	m_Title = _title;
 	m_CursorEnabled = true;
-	LOG_INFO(EngineSystem::CORE,"Screen created ({}x{}) with title '{}'", _width, _height, _title);
 }
 
 Screen::~Screen() {
@@ -23,7 +22,7 @@ Screen::~Screen() {
 }
 
 bool Screen::init() {
-	LOG_INFO(EngineSystem::CORE, "Initializing Screen");
+	LOG_INFO(EngineSystem::CORE, "Screen created ({}x{}) with title '{}'", m_Width, m_Height, m_Title);
 
 	if (!glfwInit()) {
 		LOG_ERROR(EngineSystem::CORE, "Failed to initialize GLFW");

@@ -178,7 +178,7 @@ private:
 };
 
 template<typename Atom>
-class [[deprecated("Sht way too inefficient man")]] GPUPagedBuffer
+class [[deprecated("Unmaintained")]] GPUPagedBuffer
 {
 public:
     GPUPagedBuffer();

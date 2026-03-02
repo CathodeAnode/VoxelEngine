@@ -38,9 +38,9 @@ public:
 
 private:
     void _ApplyPolygonMode();
-    void _RenderFrustum();
-    void _RenderCameraGizmo();
-    void _RenderChunkBounds();
+    void _RenderFrustum() {};
+    void _RenderCameraGizmo() {};
+    void _RenderChunkBounds() {};
 
 private:
     Camera& m_MainCamera;

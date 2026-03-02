@@ -137,6 +137,8 @@
     <ClCompile Include="application.tpp" />
     <ClCompile Include="camera.cpp" />
     <ClCompile Include="compute_shader.cpp" />
+    <ClCompile Include="debugging_renderer.cpp" />
+    <ClCompile Include="gizmos.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="gpu_buffer_lock.cpp" />
     <ClCompile Include="joystick.cpp" />
@@ -156,6 +158,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="chunk.tpp" />
+    <None Include="gizmos.frag" />
+    <None Include="gizmos.vert" />
     <None Include="scene.tpp" />
     <None Include="terrian_culling_shader.comp.glsl" />
     <None Include="voxel_mesher.tpp" />
@@ -173,6 +177,8 @@
     <ClInclude Include="chunk.h" />
     <ClInclude Include="chunk_generator_strategy.h" />
     <ClInclude Include="compute_shader.h" />
+    <ClInclude Include="debugging_renderer.h" />
+    <ClInclude Include="gizmos.h" />
     <ClInclude Include="gpu_buffer_allocator.h" />
     <ClInclude Include="gpu_buffer_lock.h" />
     <ClInclude Include="helpers.h" />

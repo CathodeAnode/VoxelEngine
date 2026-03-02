@@ -247,7 +247,6 @@ Atom* GPUCircularBuffer<Atom, LockManager>::ReserveRange(size_t start, size_t co
 template<typename Atom, IBufferLockManager LockManager>
 void GPUCircularBuffer<Atom, LockManager>::OnUsageComplete(size_t _count)
 {
-	assert(_count > 0);
 	assert(_count <= m_Buffer.GetSize());
 	m_Buffer.LockRange(m_Head, _count);
 	m_Head = (m_Head + _count) % m_Buffer.GetSize();

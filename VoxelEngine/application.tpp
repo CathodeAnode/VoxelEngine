@@ -1,5 +1,5 @@
-#ifndef VE_APPLICATION_TPP
-#define VE_APPLICATION_TPP
+#ifndef VOXA_APPLICATION_TPP
+#define VOXA_APPLICATION_TPP
 
 #include "application.h"
 
@@ -14,6 +14,7 @@
 #include "voxel_ray_cast.h"
 #include "chunk_generator_strategy.h"
 #include "voxel_mesher.h"
+#include "gizmos.h"
 
 // Cache configuration
 #define CACHE_PAGE_SIZE 50
@@ -68,6 +69,8 @@ bool Application<ChunkT>::Init()
         CACHE_PAGE_SIZE,
         static_cast<size_t>(AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(LOADED_CHUNK_DISTANCE, 3))
     );
+
+    Gizmos::Init();
 
     m_World.InitializeStartingChunks();
     m_Scene.Init(LOADED_CHUNK_DISTANCE);
@@ -181,8 +184,9 @@ void Application<ChunkT>::Render()
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    m_DebuggingRenderer.RenderOverlay();
+    Gizmos::Begin(m_Camera);
     m_Scene.Render();
+    Gizmos::End();
 }
 
 template<typename ChunkT>
@@ -192,6 +196,7 @@ void Application<ChunkT>::Shutdown()
     while ((err = glGetError()) != GL_NO_ERROR)
         std::cerr << "GL ERROR: " << std::hex << err << std::endl;
 
+    Gizmos::Shutdown();
     glfwTerminate();
 }
 

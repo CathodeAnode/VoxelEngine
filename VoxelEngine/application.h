@@ -10,7 +10,7 @@
 #include "scene.h"
 #include "chunk_manager.h"
 #include "voxel_renderer.h"
-#include "debugging_renderer.h"
+//#include "debugging_renderer.h"
 #include "voxel_edit.h"
 
 template<typename ChunkT>
@@ -29,12 +29,12 @@ public:
 
     bool Init();
     void Run();
+    void Shutdown();
 
 private:
     void ProcessInput();
     void Update();
     void Render();
-    void Shutdown();
     void CalcFPSOnWindowTitle(int avgOverNFrames);
 
 private:
@@ -56,7 +56,7 @@ private:
     // World / Rendering
     ChunkManagerT     m_World;
     RendererT         m_Renderer;
-    DebuggingRenderer m_DebuggingRenderer;
+    //DebuggingRenderer m_DebuggingRenderer;
     VoxelEditT        m_VoxelEdit;
     SceneT            m_Scene;
 };
