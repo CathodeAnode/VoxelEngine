@@ -77,6 +77,8 @@ bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLui
 		"[GPUPersistentlyMappedBuffer|{}] Created (target={}, atomCount={}, atomSize={}, access={})",
 		m_Name, GPUAllocatorsUtils::ToString(_target), _count, sizeof(Atom), GPUAllocatorsUtils::ToString(access));
 
+	glBindBuffer(m_Target, 0);
+
 	return true;
 }
 

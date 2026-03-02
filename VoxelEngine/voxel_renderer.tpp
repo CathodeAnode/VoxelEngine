@@ -257,6 +257,7 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
     m_VoxelShader.SetMat4("projection", camera.GetProjMatrix());
 
     glBindVertexArray(m_VAO);
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_IndirectCommandBuffer.GetName());
     m_PositionSSBO.BindTailBufferRange(0, m_CurrentIndirectCmdsCount);
 
     //assert(glGetError() == GL_NO_ERROR);
@@ -265,7 +266,7 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
     //assert(glGetError() == GL_NO_ERROR);
 
     glBindVertexArray(0);
-
+    glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
 }
 
 template <typename ChunkType>
