@@ -20,22 +20,19 @@ template<typename ChunkType>
 class Scene
 {
 public:
-	Scene(Camera& camera, ChunkManager<ChunkType>& world, VoxelRenderer<ChunkType>& renderer); // add DI for models/character container in the future
+	Scene(ChunkManager<ChunkType>& world, VoxelRenderer<ChunkType>& renderer); // add DI for models/character container in the future
 	
 	Scene(const Scene&) = delete;
 	Scene& operator=(const Scene&) = delete;
 
-	void Init(unsigned int renderDistance);
-	void Update();
-	void Render();
-
-	inline void SwitchCamera(Camera& camera) { m_Camera = camera; }
+	void Init(unsigned int renderDistance, const glm::vec3& startingCameraPos);
+	void Update(const glm::vec3& cameraPos);
+	void Render(const Camera& camera);
 
 private:
-    inline void _UploadLoadedTerrain();
+    inline void _UploadLoadedTerrain(const glm::vec3& cameraPos);
 
 private:
-	Camera& m_Camera;
 	ChunkManager<ChunkType>& m_World;
 	VoxelRenderer<ChunkType>& m_Renderer;
 

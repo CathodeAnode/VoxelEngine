@@ -73,7 +73,7 @@ bool Application<ChunkT>::Init()
     Gizmos::Init();
 
     m_World.InitializeStartingChunks();
-    m_Scene.Init(LOADED_CHUNK_DISTANCE);
+    m_Scene.Init(LOADED_CHUNK_DISTANCE, m_Camera.pos);
 
     return true;
 }
@@ -174,7 +174,8 @@ template<typename ChunkT>
 void Application<ChunkT>::Update()
 {
     PROFILE_FUNCTION();
-    m_Scene.Update();
+    m_Camera.Update();
+    m_Scene.Update(m_Camera.pos);
 }
 
 template<typename ChunkT>
@@ -185,7 +186,7 @@ void Application<ChunkT>::Render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     Gizmos::Begin(m_Camera);
-    m_Scene.Render();
+    m_Scene.Render(m_Camera);
     Gizmos::End();
 }
 

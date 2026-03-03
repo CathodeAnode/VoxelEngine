@@ -4,44 +4,40 @@
 #include "scene.h"
 
 template<typename ChunkType>
-Scene<ChunkType>::Scene(Camera& camera, ChunkManager<ChunkType>& world, VoxelRenderer<ChunkType>& renderer)
-    : m_Camera(camera)
-    , m_World(world)
+Scene<ChunkType>::Scene(ChunkManager<ChunkType>& world, VoxelRenderer<ChunkType>& renderer)
+    : m_World(world)
     , m_Renderer(renderer)
 {
 
 }
 
 template<typename ChunkType>
-void Scene<ChunkType>::Init(unsigned int renderDistance)
+void Scene<ChunkType>::Init(unsigned int renderDistance, const glm::vec3& startingCameraPos)
 {
 	PROFILE_FUNCTION();
 
 	m_RenderDist = renderDistance;
 
-	_UploadLoadedTerrain();
+	_UploadLoadedTerrain(startingCameraPos);
 	//m_Renderer.DispatchFrustumCullPass(m_RenderDist, m_Camera);
 	//m_Renderer.NextFrame();
 	//m_Renderer.Render(m_Camera);
 }
 
 template<typename ChunkType>
-void Scene<ChunkType>::Update()
+void Scene<ChunkType>::Update(const glm::vec3& cameraPos)
 {
 	PROFILE_FUNCTION();
 
-    m_Camera.Update();
-
-	m_World.Update(m_Camera.pos);
-	m_Renderer.DispatchFrustumCullPass(m_RenderDist, m_Camera);
+	m_World.Update(cameraPos);
 }
 
 template<typename ChunkType>
-void Scene<ChunkType>::Render()
+void Scene<ChunkType>::Render(const Camera& camera)
 { 
 	PROFILE_FUNCTION();
 
-	std::span<const glm::ivec4> coords = m_Renderer.GetFrustumCulledChunkCoords();
+	std::span<const glm::ivec4> coords = m_Renderer.GetFrustumCulledChunkCoords(); // get frustum culling results from preivous frame (frame n-1)
 
 	const int chunkSize = ChunkType::Size;
 	for (const auto& chunkCoord : coords)
@@ -58,18 +54,20 @@ void Scene<ChunkType>::Render()
 		}
 	}
 
+	m_Renderer.DispatchFrustumCullPass(m_RenderDist, camera); // compute frustum cullign results for this frame (frame n)
+
 	m_Renderer.NextFrame();
-	m_Renderer.Render(m_Camera);
+	m_Renderer.Render(camera);
 }
 
 template<typename ChunkType>
-inline void Scene<ChunkType>::_UploadLoadedTerrain()
+inline void Scene<ChunkType>::_UploadLoadedTerrain(const glm::vec3& cameraPos)
 {
 	PROFILE_FUNCTION();
 
 	const int halfLoadedDist = m_World.GetLoadedChunksDistance() / 2;
 	const int chunkSize = ChunkType::Size;
-	const glm::ivec3 cameraChunkCoords = WorldToChunk(m_Camera.pos, chunkSize);
+	const glm::ivec3 cameraChunkCoords = WorldToChunk(cameraPos, chunkSize);
 
 	for (int x = -halfLoadedDist; x <= halfLoadedDist; x++)
 	{
@@ -81,7 +79,7 @@ inline void Scene<ChunkType>::_UploadLoadedTerrain()
 				glm::ivec3 chunkCoords = cameraChunkCoords + glm::ivec3(x, y, z);
 				std::shared_ptr<ChunkType const> chunk = m_World.GetChunk(chunkCoords);
 
-				if (chunk->IsEmpty()) continue;
+				if (!chunk || chunk->IsEmpty()) continue;
 				glm::ivec3 chunkWorldPos = chunkCoords * chunkSize;
 
 
