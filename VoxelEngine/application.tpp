@@ -140,6 +140,13 @@ void Application<ChunkT>::ProcessInput()
         profiler.SetEnabled(!profiler.IsEnabled());
     }
 
+    if (Keyboard::keyDown(Key::F2))
+    {
+        DrawMode newDrawMode = m_DebuggingRenderer.GetDrawMode() == DrawMode::Fill ? DrawMode::Wireframe : DrawMode::Fill;
+        std::cout << (int)newDrawMode << std::endl;
+        m_DebuggingRenderer.SetDrawMode(newDrawMode);
+    }
+
     if (Keyboard::keyDown(Key::Tab))
     {
         if (&m_CameraManager.GetActiveCamera() == &m_CameraManager.GetCamera(m_MainCameraID))

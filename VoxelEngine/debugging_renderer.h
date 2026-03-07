@@ -30,6 +30,8 @@ public:
     void ToggleFrustumOutline() { m_DrawCameraFrustum = !m_DrawCameraFrustum; }
     void ToggleChunkBounds() { m_DrawChunkBounds = !m_DrawChunkBounds; }
 
+    DrawMode GetDrawMode() const { return m_DrawMode; }
+
 private:
     void _ApplyPolygonMode();
     void _RenderCameraFrustum(const Camera& mainCamera);
