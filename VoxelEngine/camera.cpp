@@ -86,6 +86,21 @@ void Camera::Update()
 	_UpdateFrustum();
 }
 
+void Camera::LookAt(const glm::vec3 target)
+{
+	// Direction from camera to target
+	glm::vec3 dir = glm::normalize(target - pos);
+
+	front = dir;
+
+	// Convert direction vector to yaw/pitch
+	pitch = glm::degrees(glm::asin(dir.y));
+	yaw = glm::degrees(glm::atan(dir.z, dir.x));
+
+	// Recalculate right/up
+	_UpdateCameraVectors();
+}
+
 glm::mat4 Camera::GetViewMatrix() const
 {
 	return m_ViewMatrix;

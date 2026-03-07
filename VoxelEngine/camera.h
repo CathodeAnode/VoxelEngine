@@ -116,6 +116,7 @@ public:
 	void UpdateCameraPos(CameraDirection dir, float dt);
 	void UpdateCameraZoom(double dy);
 	void Update();
+	void LookAt(const glm::vec3 pos);
 
 	glm::mat4 GetViewMatrix() const;
 	glm::mat4 GetProjMatrix() const;
