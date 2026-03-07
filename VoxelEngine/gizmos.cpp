@@ -188,9 +188,8 @@ void Gizmos::DrawCube(const glm::vec3& center, const glm::vec3& size)
 
 void Gizmos::DrawFrustum(const Camera& camera)
 {
-    glm::mat4 vp = camera.GetProjMatrix() * camera.GetViewMatrix();
-
-    _SubmitFrustum(vp);
+    glm::mat4 invVP = glm::inverse(camera.GetProjMatrix() * camera.GetViewMatrix());
+    _SubmitFrustum(invVP);
 }
 
 void Gizmos::_SubmitLine(const glm::mat4& model)
