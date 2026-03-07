@@ -164,17 +164,32 @@ void Gizmos::SetColor(const glm::vec4& color)
     s_Color = color;
 }
 
-void Gizmos::DrawLine(const glm::vec3& p0,
-    const glm::vec3& p1)
+void Gizmos::DrawLine(const glm::vec3& p0, const glm::vec3& p1)
 {
     glm::vec3 dir = p1 - p0;
     float len = glm::length(dir);
+    if (len <= 0.00001f) return;
 
-    glm::mat4 model(1.f);
+    glm::vec3 n = glm::normalize(dir);
+
+    glm::vec3 base = glm::vec3(1, 0, 0);
+
+    float cosTheta = glm::dot(base, n);
+    glm::vec3 axis = glm::cross(base, n);
+
+    glm::mat4 model(1.0f);
     model = glm::translate(model, p0);
-    model = glm::scale(model, { len,1,1 });
 
-   _SubmitLine(model);
+    if (glm::length(axis) > 0.00001f)
+    {
+        axis = glm::normalize(axis);
+        float angle = acos(cosTheta);
+        model = glm::rotate(model, angle, axis);
+    }
+
+    model = glm::scale(model, glm::vec3(len, 1, 1));
+
+    _SubmitLine(model);
 }
 
 void Gizmos::DrawCube(const glm::vec3& center, const glm::vec3& size)
