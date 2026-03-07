@@ -17,7 +17,8 @@ public:
 
 	CameraId RegisterCamera(std::unique_ptr<Camera> cam);
 	void SetActiveCamera(CameraId camID);
-	const Camera& GetActiveCamera();
+	Camera& GetActiveCamera();
+	const Camera& GetActiveCamera() const;
 	void Update();
 
 private:

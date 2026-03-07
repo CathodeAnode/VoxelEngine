@@ -30,10 +30,15 @@ void CameraManager::SetActiveCamera(CameraId camID)
     m_ActiveCameraID = camID;
 }
 
-const Camera& CameraManager::GetActiveCamera()
+Camera& CameraManager::GetActiveCamera()
 {
-    if (m_ActiveCameraID >= m_Cameras.size())
-        LOG_ERROR(EngineSystem::CORE, "No active camera");
+    assert(m_ActiveCameraID < m_Cameras.size() && "Invalid active camera ID");
+    return *m_Cameras[m_ActiveCameraID];
+}
+
+const Camera& CameraManager::GetActiveCamera() const
+{
+    assert(m_ActiveCameraID < m_Cameras.size() && "Invalid active camera ID");
 
     return *m_Cameras[m_ActiveCameraID];
 }
