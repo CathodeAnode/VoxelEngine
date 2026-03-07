@@ -18,7 +18,7 @@ enum class DrawMode : std::uint8_t
 class DebuggingRenderer
 {
 public:
-    explicit DebuggingRenderer();
+    explicit DebuggingRenderer(unsigned int chunkSize);
 
     void RenderOverlay(const Camera& camera);
 
@@ -41,6 +41,8 @@ private:
     DrawMode m_DrawMode;
     bool m_DrawCameraFrustum;
     bool m_DrawChunkBounds;
+
+    const unsigned int k_ChunkSize;
 };
 
 

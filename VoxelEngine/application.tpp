@@ -33,6 +33,7 @@ Application<ChunkT>::Application(unsigned int width, unsigned int height, const 
     , m_Renderer(std::make_unique<MesherT>())
     , m_VoxelEdit(m_World, m_Renderer)
     , m_Scene(m_World, m_Renderer)
+    , m_DebuggingRenderer(ChunkT::Size)
 {
     const float camNear = 0.1f;
     const float camFar = 1000.0f;
@@ -143,8 +144,12 @@ void Application<ChunkT>::ProcessInput()
     if (Keyboard::keyDown(Key::F2))
     {
         DrawMode newDrawMode = m_DebuggingRenderer.GetDrawMode() == DrawMode::Fill ? DrawMode::Wireframe : DrawMode::Fill;
-        std::cout << (int)newDrawMode << std::endl;
         m_DebuggingRenderer.SetDrawMode(newDrawMode);
+    }
+
+    if (Keyboard::keyDown(Key::F3))
+    {
+        m_DebuggingRenderer.ToggleChunkBounds();
     }
 
     if (Keyboard::keyDown(Key::Tab))
