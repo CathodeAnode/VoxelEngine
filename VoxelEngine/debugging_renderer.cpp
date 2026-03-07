@@ -1,5 +1,7 @@
 #include "debugging_renderer.h"
 
+#include "gizmos.h"
+
 DebuggingRenderer::DebuggingRenderer()
 	: m_DrawCameraFrustum(false)
 	, m_DrawChunkBounds(false)
@@ -27,7 +29,7 @@ void DebuggingRenderer::_ApplyPolygonMode()
 
 void DebuggingRenderer::_RenderCameraFrustum(const Camera& mainCamera)
 {
-
+	Gizmos::DrawFrustum(mainCamera);
 }
 
 void DebuggingRenderer::_RenderChunkBounds(const Camera& mainCamera)

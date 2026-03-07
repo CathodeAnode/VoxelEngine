@@ -35,14 +35,14 @@ Application<ChunkT>::Application(unsigned int width, unsigned int height, const 
     , m_Scene(m_World, m_Renderer)
 {
     const float camNear = 0.1f;
-    const float camFar = 2000.0f;
+    const float camFar = 1000.0f;
 
     std::unique_ptr<Camera> mainCamera = std::make_unique<Camera>(startingWorldPos, width, height, camNear, camFar);
 
     float renderRadius = LOADED_CHUNK_DISTANCE * ChunkT::Size;
 
     // distance needed to see the whole cube of chunks
-    const float debugDistance = renderRadius * 2.0f;
+    const float debugDistance = renderRadius * 1.5f;
 
     glm::vec3 isoDir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
     glm::vec3 debugPos = mainCamera->pos + isoDir * debugDistance;
@@ -143,9 +143,13 @@ void Application<ChunkT>::ProcessInput()
     if (Keyboard::keyDown(Key::Tab))
     {
         if (&m_CameraManager.GetActiveCamera() == &m_CameraManager.GetCamera(m_MainCameraID))
+        {
             m_CameraManager.SetActiveCamera(m_DebugCameraID);
+        }
         else
             m_CameraManager.SetActiveCamera(m_MainCameraID);
+
+        m_DebuggingRenderer.ToggleFrustumOutline();
     }
 
     if (Keyboard::key(Key::W)) 
@@ -225,7 +229,8 @@ void Application<ChunkT>::Render()
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    Gizmos::Begin(mainCamera);
+    Gizmos::Begin(activeCamera);
+    m_DebuggingRenderer.RenderOverlay(mainCamera);
     m_Scene.Render(activeCamera, mainCamera);
     Gizmos::End();
 }
