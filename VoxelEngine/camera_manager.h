@@ -19,7 +19,18 @@ public:
 	void SetActiveCamera(CameraId camID);
 	Camera& GetActiveCamera();
 	const Camera& GetActiveCamera() const;
+
+	Camera& GetCamera(CameraId camID);
+	const Camera& GetCamera(CameraId camID) const;
+
 	void Update();
+
+	// expose container iterators
+	auto begin() { return m_Cameras.begin(); }
+	auto end() { return m_Cameras.end(); }
+
+	auto begin() const { return m_Cameras.begin(); }
+	auto end() const { return m_Cameras.end(); }
 
 private:
 	std::vector<std::unique_ptr<Camera>> m_Cameras;

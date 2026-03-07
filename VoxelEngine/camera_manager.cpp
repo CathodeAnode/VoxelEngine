@@ -43,6 +43,20 @@ const Camera& CameraManager::GetActiveCamera() const
     return *m_Cameras[m_ActiveCameraID];
 }
 
+Camera& CameraManager::GetCamera(CameraId camID)
+{
+    assert(m_ActiveCameraID < m_Cameras.size() && "Invalid active camera ID");
+
+    return *m_Cameras[camID];
+}
+
+const Camera& CameraManager::GetCamera(CameraId camID) const
+{
+    assert(m_ActiveCameraID < m_Cameras.size() && "Invalid active camera ID");
+
+    return *m_Cameras[camID];
+}
+
 void CameraManager::Update()
 {
     m_Cameras[m_ActiveCameraID]->Update();
