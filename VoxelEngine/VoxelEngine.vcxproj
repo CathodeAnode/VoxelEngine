@@ -136,6 +136,7 @@
   <ItemGroup>
     <ClCompile Include="application.tpp" />
     <ClCompile Include="camera.cpp" />
+    <ClCompile Include="camera_manager.cpp" />
     <ClCompile Include="compute_shader.cpp" />
     <ClCompile Include="debugging_renderer.cpp" />
     <ClCompile Include="gizmos.cpp" />
@@ -174,6 +175,7 @@
     <ClInclude Include="3d_ring_buffer.h" />
     <ClInclude Include="application.h" />
     <ClInclude Include="camera.h" />
+    <ClInclude Include="camera_manager.h" />
     <ClInclude Include="chunk.h" />
     <ClInclude Include="chunk_generator_strategy.h" />
     <ClInclude Include="compute_shader.h" />

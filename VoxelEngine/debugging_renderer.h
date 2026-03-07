@@ -4,10 +4,10 @@
 #include<glad/glad.h>
 #include<glm/fwd.hpp>
 
-#include "camera.h"
-#include "shader.h"
-
 //TODO: make this not compile in distribution mode
+
+class Camera;
+class CameraManager;
 
 enum class DrawMode : std::uint8_t
 {
@@ -18,42 +18,27 @@ enum class DrawMode : std::uint8_t
 class DebuggingRenderer
 {
 public:
-    explicit DebuggingRenderer(Camera& mainCamera);
+    explicit DebuggingRenderer();
 
-    void Init();
-
-    void RenderOverlay();
-
-    Camera& GetDebugCamera() { return m_DebugCamera; }
+    void RenderOverlay(const Camera& camera);
 
     // Visualization toggles
     void SetFrustumOutline(bool enabled) { m_DrawCameraFrustum = enabled; }
     void SetDrawMode(DrawMode mode) { m_DrawMode = mode; }
     void SetChunkBounds(bool enabled) { m_DrawChunkBounds = enabled; }
-    void SetCameraGizmo(bool enabled) { m_DrawCameraGizmo = enabled; }
 
     void ToggleFrustumOutline() { m_DrawCameraFrustum = !m_DrawCameraFrustum; }
     void ToggleChunkBounds() { m_DrawChunkBounds = !m_DrawChunkBounds; }
-    void ToggleCameraGizmo() { m_DrawCameraGizmo = !m_DrawCameraGizmo; }
 
 private:
     void _ApplyPolygonMode();
-    void _RenderFrustum() {};
-    void _RenderCameraGizmo() {};
-    void _RenderChunkBounds() {};
+    void _RenderCameraFrustum(const Camera& mainCamera);
+    void _RenderChunkBounds(const Camera& mainCamera);
 
 private:
-    Camera& m_MainCamera;
-    Camera  m_DebugCamera;
-
-    Shader m_FrustumOutlineShader;
-    unsigned int m_LineVAO;
-    unsigned int m_LineVBO;
-
     DrawMode m_DrawMode;
     bool m_DrawCameraFrustum;
     bool m_DrawChunkBounds;
-    bool m_DrawCameraGizmo;
 };
 
 

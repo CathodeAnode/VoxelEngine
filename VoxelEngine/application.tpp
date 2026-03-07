@@ -129,7 +129,7 @@ void Application<ChunkT>::ProcessInput()
 {
     PROFILE_FUNCTION();
 
-    Camera& camera = m_CameraManager.GetActiveCamera();
+    Camera& camera = m_CameraManager.GetCamera(m_MainCameraID);
 
     if (Keyboard::key(Key::Escape))
         m_Screen.close();
@@ -138,6 +138,14 @@ void Application<ChunkT>::ProcessInput()
     {
         auto& profiler = Profiler::GetInstance();
         profiler.SetEnabled(!profiler.IsEnabled());
+    }
+
+    if (Keyboard::keyDown(Key::Tab))
+    {
+        if (&m_CameraManager.GetActiveCamera() == &m_CameraManager.GetCamera(m_MainCameraID))
+            m_CameraManager.SetActiveCamera(m_DebugCameraID);
+        else
+            m_CameraManager.SetActiveCamera(m_MainCameraID);
     }
 
     if (Keyboard::key(Key::W)) 
@@ -190,7 +198,6 @@ void Application<ChunkT>::ProcessInput()
     }
 
     m_MainJoystick.Update();
-
 }
 
 template<typename ChunkT>
@@ -198,10 +205,13 @@ void Application<ChunkT>::Update()
 {
     PROFILE_FUNCTION();
 
-    Camera& camera = m_CameraManager.GetActiveCamera();
+    Camera& mainCamera = m_CameraManager.GetCamera(m_MainCameraID);
 
-    m_CameraManager.Update();
-    m_Scene.Update(camera.pos);
+    for (auto& camera : m_CameraManager)
+    {
+        camera->Update();
+    }
+    m_Scene.Update(mainCamera.pos);
 }
 
 template<typename ChunkT>
@@ -209,13 +219,14 @@ void Application<ChunkT>::Render()
 {
     PROFILE_FUNCTION();
 
-    const Camera& camera = m_CameraManager.GetActiveCamera();
+    const Camera& mainCamera = m_CameraManager.GetCamera(m_MainCameraID);
+    const Camera& activeCamera = m_CameraManager.GetActiveCamera();
 
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    Gizmos::Begin(camera);
-    m_Scene.Render(camera);
+    Gizmos::Begin(mainCamera);
+    m_Scene.Render(activeCamera, mainCamera);
     Gizmos::End();
 }
 

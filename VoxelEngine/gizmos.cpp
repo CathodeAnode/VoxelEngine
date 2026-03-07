@@ -10,6 +10,7 @@ Shader Gizmos::s_Shader;
 
 uint32_t Gizmos::s_LineOffset = 0;
 uint32_t Gizmos::s_CubeOffset = 0;
+uint32_t Gizmos::s_FrustumOffset = 0;
 
 Gizmos::InstanceBuffer Gizmos::s_InstanceBuffer;
 Gizmos::IndirectBuffer Gizmos::s_IndirectBuffer;
@@ -39,6 +40,7 @@ void Gizmos::Init(uint32_t maxInstances)
 
     // Wire Cube (12 edges)
     s_CubeOffset = verts.size();
+    std::cout << s_CubeOffset << std::endl;
 
     glm::vec3 c[8] =
     {
@@ -61,6 +63,32 @@ void Gizmos::Init(uint32_t maxInstances)
 
     for (int i = 0; i < 24; i++)
         verts.push_back(c[edges[i]]);
+
+    // Frustum (12 edges)
+    s_FrustumOffset = verts.size();
+
+    glm::vec3 f[8] =
+    {
+        {-1,-1,-1},
+        { 1,-1,-1},
+        { 1, 1,-1},
+        {-1, 1,-1},
+
+        {-1,-1, 1},
+        { 1,-1, 1},
+        { 1, 1, 1},
+        {-1, 1, 1},
+    };
+
+    int fedges[24] =
+    {
+        0,1, 1,2, 2,3, 3,0, // near
+        4,5, 5,6, 6,7, 7,4, // far
+        0,4, 1,5, 2,6, 3,7  // sides
+    };
+
+    for (int i = 0; i < 24; i++)
+        verts.push_back(f[fedges[i]]);
 
     glGenBuffers(1, &s_StaticVBO);
     glBindBuffer(GL_ARRAY_BUFFER, s_StaticVBO);
@@ -158,6 +186,13 @@ void Gizmos::DrawCube(const glm::vec3& center, const glm::vec3& size)
     _SubmitCube(model);
 }
 
+void Gizmos::DrawFrustum(const Camera& camera)
+{
+    glm::mat4 vp = camera.GetProjMatrix() * camera.GetViewMatrix();
+
+    _SubmitFrustum(vp);
+}
+
 void Gizmos::_SubmitLine(const glm::mat4& model)
 {
     GizmoInstance* instances = s_InstanceBuffer.GetHeadContents();
@@ -186,6 +221,24 @@ void Gizmos::_SubmitCube(const glm::mat4& model)
     commands[s_CommandCount].count = 24; // 12 edges
     commands[s_CommandCount].instanceCount = 1;
     commands[s_CommandCount].first = s_CubeOffset;
+    commands[s_CommandCount].baseInstance = s_InstanceCount;
+
+    s_InstanceCount++;
+    s_CommandCount++;
+}
+
+void Gizmos::_SubmitFrustum(const glm::mat4& model)
+{
+    GizmoInstance* instances = s_InstanceBuffer.GetHeadContents();
+    instances[s_InstanceCount].Model = model;
+    instances[s_InstanceCount].Color = s_Color;
+
+    DrawArraysIndirectCommand* commands =
+        s_IndirectBuffer.GetHeadContents();
+
+    commands[s_CommandCount].count = 24;
+    commands[s_CommandCount].instanceCount = 1;
+    commands[s_CommandCount].first = s_FrustumOffset;
     commands[s_CommandCount].baseInstance = s_InstanceCount;
 
     s_InstanceCount++;

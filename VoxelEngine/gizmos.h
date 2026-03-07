@@ -30,11 +30,14 @@ public:
 
     static void DrawCube(const glm::vec3& center, const glm::vec3& size);
 
+    static void DrawFrustum(const Camera& camera);
+
     static void DrawTransform(const glm::mat4& transform);
 
 private:
     static void _SubmitLine(const glm::mat4& model);
     static void _SubmitCube(const glm::mat4& model);
+    static void _SubmitFrustum(const glm::mat4& model);
 
     static void _Flush();
 
@@ -48,6 +51,7 @@ private:
 
     static uint32_t s_LineOffset;
     static uint32_t s_CubeOffset;
+    static uint32_t s_FrustumOffset;
 
     using InstanceBuffer = GPUOrphanBuffer<GizmoInstance>;
     using IndirectBuffer = GPUOrphanBuffer<DrawArraysIndirectCommand>;

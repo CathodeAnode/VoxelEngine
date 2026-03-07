@@ -33,7 +33,7 @@ void Scene<ChunkType>::Update(const glm::vec3& cameraPos)
 }
 
 template<typename ChunkType>
-void Scene<ChunkType>::Render(const Camera& camera)
+void Scene<ChunkType>::Render(const Camera& viewCamera, const Camera& cullCamera)
 { 
 	PROFILE_FUNCTION();
 
@@ -54,10 +54,10 @@ void Scene<ChunkType>::Render(const Camera& camera)
 		}
 	}
 
-	m_Renderer.DispatchFrustumCullPass(m_RenderDist, camera); // compute frustum cullign results for this frame (frame n)
+	m_Renderer.DispatchFrustumCullPass(m_RenderDist, cullCamera); // compute frustum cullign results for this frame (frame n)
 
 	m_Renderer.NextFrame();
-	m_Renderer.Render(camera);
+	m_Renderer.Render(viewCamera);
 }
 
 template<typename ChunkType>

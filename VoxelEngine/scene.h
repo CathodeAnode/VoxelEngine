@@ -27,7 +27,7 @@ public:
 
 	void Init(unsigned int renderDistance, const glm::vec3& startingCameraPos);
 	void Update(const glm::vec3& cameraPos);
-	void Render(const Camera& camera);
+	void Render(const Camera& viewCamera, const Camera& cullCamera);
 
 private:
     inline void _UploadLoadedTerrain(const glm::vec3& cameraPos);
