@@ -26,15 +26,36 @@
 
 // TODO make loadedChunkDistance & terrian generation strargy user defiend
 template<typename ChunkT>
-Application<ChunkT>::Application(unsigned int width, unsigned int height, const char* title)
+Application<ChunkT>::Application(unsigned int width, unsigned int height, const char* title, const glm::vec3& startingWorldPos)
     : m_MainJoystick(0)
-    , m_Camera(glm::vec3(1.0f), width, height, 0.1f, 1000.0f)
     , m_Screen(width, height, title)
-    , m_World(m_Camera.pos, LOADED_CHUNK_DISTANCE, std::make_unique<Simple3DPerlinNoiseGeneration<ChunkT>>())
+    , m_World(startingWorldPos, LOADED_CHUNK_DISTANCE, std::make_unique<Simple3DPerlinNoiseGeneration<ChunkT>>())
     , m_Renderer(std::make_unique<MesherT>())
     , m_VoxelEdit(m_World, m_Renderer)
-    , m_Scene(m_Camera, m_World, m_Renderer)
-{}
+    , m_Scene(m_World, m_Renderer)
+{
+    const float camNear = 0.1f;
+    const float camFar = 2000.0f;
+
+    std::unique_ptr<Camera> mainCamera = std::make_unique<Camera>(startingWorldPos, width, height, camNear, camFar);
+
+    float renderRadius = LOADED_CHUNK_DISTANCE * ChunkT::Size;
+
+    // distance needed to see the whole cube of chunks
+    const float debugDistance = renderRadius * 2.0f;
+
+    glm::vec3 isoDir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
+    glm::vec3 debugPos = mainCamera->pos + isoDir * debugDistance;
+
+    std::unique_ptr<Camera> debugCamera = std::make_unique<Camera>(debugPos, width, height, 0.1f, debugDistance * 4.0f);
+
+    debugCamera->LookAt(mainCamera->pos);
+
+   m_MainCameraID = m_CameraManager.RegisterCamera(std::move(mainCamera));
+   m_DebugCameraID = m_CameraManager.RegisterCamera(std::move(debugCamera));
+
+    m_CameraManager.SetActiveCamera(m_MainCameraID);
+}
 
 template<typename ChunkT>
 Application<ChunkT>::~Application()
@@ -73,7 +94,7 @@ bool Application<ChunkT>::Init()
     Gizmos::Init();
 
     m_World.InitializeStartingChunks();
-    m_Scene.Init(LOADED_CHUNK_DISTANCE, m_Camera.pos);
+    m_Scene.Init(LOADED_CHUNK_DISTANCE, m_CameraManager.GetActiveCamera().pos);
 
     return true;
 }
@@ -108,6 +129,8 @@ void Application<ChunkT>::ProcessInput()
 {
     PROFILE_FUNCTION();
 
+    Camera& camera = m_CameraManager.GetActiveCamera();
+
     if (Keyboard::key(Key::Escape))
         m_Screen.close();
 
@@ -119,47 +142,47 @@ void Application<ChunkT>::ProcessInput()
 
     if (Keyboard::key(Key::W)) 
     {
-        m_Camera.UpdateCameraPos(CameraDirection::FORWARD, m_DeltaTime);
+        camera.UpdateCameraPos(CameraDirection::FORWARD, m_DeltaTime);
     }
 
     if (Keyboard::key(Key::S)) 
     {
-        m_Camera.UpdateCameraPos(CameraDirection::BACKWARD, m_DeltaTime);
+        camera.UpdateCameraPos(CameraDirection::BACKWARD, m_DeltaTime);
     }
 
     if (Keyboard::key(Key::A)) 
     {
-        m_Camera.UpdateCameraPos(CameraDirection::LEFT, m_DeltaTime);
+        camera.UpdateCameraPos(CameraDirection::LEFT, m_DeltaTime);
     }
 
     if (Keyboard::key(Key::D)) 
     {
-        m_Camera.UpdateCameraPos(CameraDirection::RIGHT, m_DeltaTime);
+        camera.UpdateCameraPos(CameraDirection::RIGHT, m_DeltaTime);
     }
 
     if (Keyboard::key(Key::Space)) 
     {
-        m_Camera.UpdateCameraPos(CameraDirection::UP, m_DeltaTime);
+        camera.UpdateCameraPos(CameraDirection::UP, m_DeltaTime);
     }
 
     if (Keyboard::key(Key::LeftShift)) 
     {
-        m_Camera.UpdateCameraPos(CameraDirection::DOWN, m_DeltaTime);
+        camera.UpdateCameraPos(CameraDirection::DOWN, m_DeltaTime);
     }
 
     double dx = Mouse::getDX();
     double dy = Mouse::getDY();
     if (dx != 0.0 || dy != 0.0)
-        m_Camera.UpdateCameraDirection(dx, dy);
+        camera.UpdateCameraDirection(dx, dy);
 
     double scroll = Mouse::getScrollDY();
     if (scroll != 0.0)
-        m_Camera.UpdateCameraZoom(scroll);
+        camera.UpdateCameraZoom(scroll);
 
     if (Mouse::buttonUp(MouseKey::ButtonLeft))
     {
         glm::ivec3 voxelCoords;
-        bool didHit = VoxelRayCast<ChunkT>::cast(Ray(m_Camera.pos, m_Camera.front, 10), m_World, voxelCoords);
+        bool didHit = VoxelRayCast<ChunkT>::cast(Ray(camera.pos, camera.front, 10), m_World, voxelCoords);
         if (didHit)
         {
             m_VoxelEdit.RemoveVoxel(voxelCoords);
@@ -174,19 +197,25 @@ template<typename ChunkT>
 void Application<ChunkT>::Update()
 {
     PROFILE_FUNCTION();
-    m_Camera.Update();
-    m_Scene.Update(m_Camera.pos);
+
+    Camera& camera = m_CameraManager.GetActiveCamera();
+
+    m_CameraManager.Update();
+    m_Scene.Update(camera.pos);
 }
 
 template<typename ChunkT>
 void Application<ChunkT>::Render()
 {
     PROFILE_FUNCTION();
+
+    const Camera& camera = m_CameraManager.GetActiveCamera();
+
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    Gizmos::Begin(m_Camera);
-    m_Scene.Render(m_Camera);
+    Gizmos::Begin(camera);
+    m_Scene.Render(camera);
     Gizmos::End();
 }
 
@@ -206,14 +235,16 @@ void Application<ChunkT>::CalcFPSOnWindowTitle(int avgOverNFrames)
 {
     PROFILE_FUNCTION();
 
+    const Camera& camera = m_CameraManager.GetActiveCamera();
+
     if (m_CountFPS > avgOverNFrames)
     {
         // this is taking alot of cpu cycles
         std::string title = "VoxelEngine - FPS: " + std::to_string(m_SumFPS / m_CountFPS) +
             " | Pos(" +
-            std::to_string(m_Camera.pos.x) + ", " +
-            std::to_string(m_Camera.pos.y) + ", " +
-            std::to_string(m_Camera.pos.z) + ")";
+            std::to_string(camera.pos.x) + ", " +
+            std::to_string(camera.pos.y) + ", " +
+            std::to_string(camera.pos.z) + ")";
 
         m_Screen.setTitle(title.c_str());
         m_CountFPS = 0;

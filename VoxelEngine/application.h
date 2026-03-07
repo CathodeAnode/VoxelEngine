@@ -6,6 +6,7 @@
 
 #include "screen.h"
 #include "camera.h"
+#include "camera_manager.h"
 #include "joystick.h"
 #include "scene.h"
 #include "chunk_manager.h"
@@ -24,7 +25,7 @@ public:
     using SceneT = Scene<ChunkT>;
 
 public:
-    Application(unsigned int width, unsigned int height, const char* title);
+    Application(unsigned int width, unsigned int height, const char* title, const glm::vec3& startingWorldPos=glm::vec3(1));
     ~Application();
 
     bool Init();
@@ -51,7 +52,9 @@ private:
 
     // Input / Camera
     Joystick m_MainJoystick;
-    Camera   m_Camera;
+    CameraManager m_CameraManager;
+    CameraManager::CameraId m_MainCameraID;
+    CameraManager::CameraId m_DebugCameraID;
 
     // World / Rendering
     ChunkManagerT     m_World;
