@@ -62,6 +62,10 @@ private:
     DebuggingRenderer m_DebuggingRenderer;
     VoxelEditT        m_VoxelEdit;
     SceneT            m_Scene;
+
+    // Application variables
+    glm::ivec3 m_VoxelAimedAt;
+    bool m_AimedRaycastHit;
 };
 
 #include "application.tpp"

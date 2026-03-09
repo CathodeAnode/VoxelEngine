@@ -206,10 +206,9 @@ void Application<ChunkT>::ProcessInput()
     if (Mouse::buttonUp(MouseKey::ButtonLeft))
     {
         glm::ivec3 voxelCoords;
-        bool didHit = VoxelRayCast<ChunkT>::cast(Ray(camera.pos, camera.front, 10), m_World, voxelCoords);
-        if (didHit)
+        if (m_AimedRaycastHit)
         {
-            m_VoxelEdit.RemoveVoxel(voxelCoords);
+            m_VoxelEdit.RemoveVoxel(m_VoxelAimedAt);
         }
     }
 
@@ -228,6 +227,8 @@ void Application<ChunkT>::Update()
         camera->Update();
     }
     m_Scene.Update(mainCamera.pos);
+
+    m_AimedRaycastHit = VoxelRayCast<ChunkT>::cast(Ray(mainCamera.pos, mainCamera.front, 10), m_World, m_VoxelAimedAt);
 }
 
 template<typename ChunkT>
@@ -242,6 +243,7 @@ void Application<ChunkT>::Render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     Gizmos::Begin(activeCamera);
+    Gizmos::DrawCube(glm::vec3(m_VoxelAimedAt) + 0.5f, glm::vec3(1));
     m_DebuggingRenderer.RenderOverlay(mainCamera);
     m_Scene.Render(activeCamera, mainCamera);
     Gizmos::End();
