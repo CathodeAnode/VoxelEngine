@@ -494,21 +494,21 @@ void GPUPagedBuffer<Atom>::move(size_t srcIndex, size_t dstIndex, size_t length)
 }
 
 // ------------------------------------------------------------------------------------------------------------------
-template<typename Atom, typename ObjectID>
-GPUPagedLRUCache<Atom, ObjectID>::GPUPagedLRUCache(bool cpuUpdates)
+template<typename ObjectID, typename Atom>
+GPUPagedLRUCache<ObjectID, Atom>::GPUPagedLRUCache(bool cpuUpdates)
 	: m_Buffer(cpuUpdates)
 {
 	PROFILE_FUNCTION();
 }
 
-template<typename Atom, typename ObjectID>
-GPUPagedLRUCache<Atom, ObjectID>::~GPUPagedLRUCache()
+template<typename ObjectID, typename Atom>
+GPUPagedLRUCache<ObjectID, Atom>::~GPUPagedLRUCache()
 {
 	Destroy();
 }
 
-template<typename Atom, typename ObjectID>
-bool GPUPagedLRUCache<Atom, ObjectID>::Create(GLenum target, size_t pageSize, size_t pageCount) noexcept
+template<typename ObjectID, typename Atom>
+bool GPUPagedLRUCache<ObjectID, Atom>::Create(GLenum target, size_t pageSize, size_t pageCount) noexcept
 {
     PROFILE_FUNCTION();
 
@@ -544,8 +544,8 @@ bool GPUPagedLRUCache<Atom, ObjectID>::Create(GLenum target, size_t pageSize, si
     return result;
 }
 
-template<typename Atom, typename ObjectID>
-void GPUPagedLRUCache<Atom, ObjectID>::Destroy() noexcept
+template<typename ObjectID, typename Atom>
+void GPUPagedLRUCache<ObjectID, Atom>::Destroy() noexcept
 {
 	PROFILE_FUNCTION();
 
@@ -561,8 +561,8 @@ void GPUPagedLRUCache<Atom, ObjectID>::Destroy() noexcept
 	m_Buffer.Destroy();
 }
 
-template<typename Atom, typename ObjectID>
-void GPUPagedLRUCache<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsigned int pages)
+template<typename ObjectID, typename Atom>
+void GPUPagedLRUCache<ObjectID, Atom>::AllocatePages(const ObjectID& obj, unsigned int pages)
 {
 	assert(pages > 0 && m_FreePages != nullptr);
 
@@ -606,8 +606,8 @@ void GPUPagedLRUCache<Atom, ObjectID>::AllocatePages(const ObjectID& obj, unsign
 	}
 }
 
-template<typename Atom, typename ObjectID>
-void GPUPagedLRUCache<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, const Atom& data)
+template<typename ObjectID, typename Atom>
+void GPUPagedLRUCache<ObjectID, Atom>::PushBackToObject(const ObjectID& obj, const Atom& data)
 {
 	// Check if object has any pages
 	if (!m_ObjectMapping.contains(obj))
@@ -639,8 +639,8 @@ void GPUPagedLRUCache<Atom, ObjectID>::PushBackToObject(const ObjectID& obj, con
 	_MarkRecentlyUsed(obj);
 }
 
-template<typename Atom, typename ObjectID>
-void GPUPagedLRUCache<Atom, ObjectID>::MoveObject(const ObjectID& src, const ObjectID& dst)
+template<typename ObjectID, typename Atom>
+void GPUPagedLRUCache<ObjectID, Atom>::MoveObject(const ObjectID& src, const ObjectID& dst)
 {
 	_FreePages(m_ObjectMapping[src].pages);
 	m_ObjectMapping[dst] = std::move(m_ObjectMapping[src]);
@@ -649,16 +649,16 @@ void GPUPagedLRUCache<Atom, ObjectID>::MoveObject(const ObjectID& src, const Obj
 	_MarkRecentlyUsed(dst);
 }
 
-template<typename Atom, typename ObjectID>
-void GPUPagedLRUCache<Atom, ObjectID>::Swap(const ObjectID& obj1, const ObjectID& obj2)
+template<typename ObjectID, typename Atom>
+void GPUPagedLRUCache<ObjectID, Atom>::Swap(const ObjectID& obj1, const ObjectID& obj2)
 {
 	std::swap(m_ObjectMapping[obj1], m_ObjectMapping[obj2]);
 	_MarkRecentlyUsed(obj1);
 	_MarkRecentlyUsed(obj2);
 }
 
-template<typename Atom, typename ObjectID>
-void GPUPagedLRUCache<Atom, ObjectID>::DeallocateObject(const ObjectID& obj)
+template<typename ObjectID, typename Atom>
+void GPUPagedLRUCache<ObjectID, Atom>::DeallocateObject(const ObjectID& obj)
 {
 	if (!m_ObjectMapping.contains(obj))
 		return;
@@ -670,8 +670,8 @@ void GPUPagedLRUCache<Atom, ObjectID>::DeallocateObject(const ObjectID& obj)
 	m_ObjectMapping.erase(obj);
 }
 
-template<typename Atom, typename ObjectID>
-void GPUPagedLRUCache<Atom, ObjectID>::ClearObject(const ObjectID& obj)
+template<typename ObjectID, typename Atom>
+void GPUPagedLRUCache<ObjectID, Atom>::ClearObject(const ObjectID& obj)
 {
 	if (!m_ObjectMapping.contains(obj))
 		return;
@@ -682,8 +682,8 @@ void GPUPagedLRUCache<Atom, ObjectID>::ClearObject(const ObjectID& obj)
 	// LRU policy is not updated for object
 }
 
-template<typename Atom, typename ObjectID>
-std::vector<GPUBufferRange> GPUPagedLRUCache<Atom, ObjectID>::GetObjectBufferRanges(const ObjectID& obj)
+template<typename ObjectID, typename Atom>
+std::vector<GPUBufferRange> GPUPagedLRUCache<ObjectID, Atom>::GetObjectBufferRanges(const ObjectID& obj)
 {
 	assert(m_ObjectMapping.contains(obj));
 	std::vector<GPUBufferRange> result;

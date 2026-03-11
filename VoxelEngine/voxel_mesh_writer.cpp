@@ -11,7 +11,7 @@ void CPUVoxelMeshWriter::Write(QuadMeshData quadData, RGBAColor quadColor)
 
 // ------------------------------------------------------------------------------------------------------------------
 
-GPUVoxelMeshCacheWriter::GPUVoxelMeshCacheWriter(GPUPagedLRUCache<VoxelQuad, VoxelObjectID>& cache)
+GPUVoxelMeshCacheWriter::GPUVoxelMeshCacheWriter(GPUPagedLRUCache<VoxelObjectID, VoxelQuad>& cache)
 	: m_Cache(cache)
 	, m_TargetObjectID(0)
 {}

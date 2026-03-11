@@ -210,7 +210,7 @@ private:
     void move(size_t srcIndex, size_t dstIndex, size_t length);
 };
 
-template<typename Atom, typename ObjectID>
+template<typename ObjectID, typename Atom>
 class GPUPagedLRUCache
 {
 public:

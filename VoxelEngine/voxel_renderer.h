@@ -37,6 +37,7 @@ public:
 
 	void Init(size_t cachePages, size_t cachePageSize, size_t renderBufferSize);
 
+	//TODO: fix updating chunk object logic (broke bcuz new uid chunk encoding)
 	template <ChunkProvider<ChunkType> ChunkContainer>
 	void Upload(const ChunkContainer& chunkContainer, const glm::ivec3& chunkCoords);
 	template <ChunkProvider<ChunkType> ChunkContainer>
@@ -55,7 +56,7 @@ public:
 
 private:
 
-	GPUPagedLRUCache<VoxelQuad, VoxelObjectID> m_DataCache;
+	GPUPagedLRUCache<VoxelObjectID, VoxelQuad> m_DataCache;
 	GPUOrphanBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
 	GPUOrphanBuffer<glm::vec4> m_PositionSSBO;
 	GPUOrphanBuffer<std::byte> m_CulledChunkCoordsReadbackBuffer; // TODO figure out sizing
