@@ -103,6 +103,7 @@ public:
     void BindBufferRange(GLuint _index, size_t _head, size_t _count);
 
     inline Atom* GetContents() { return m_BufferContents; }
+    inline const Atom* GetContents() const { return m_BufferContents; }
     inline size_t GetSize() const { return m_CountAtoms; }
     inline GLuint GetName() const { return m_Name; }
 

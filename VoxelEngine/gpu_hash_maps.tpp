@@ -70,7 +70,7 @@ bool GPULockFreeHashMap<K, V>::Insert(const K& key, const V& value)
 template<LockFreeKey K, LockFreeValue V>
 bool GPULockFreeHashMap<K, V>::Find(const K& key, V& out) const
 {
-    Entry* table = m_Table.GetContents();
+    const Entry* table = m_Table.GetContents();
     size_t cap = m_Table.GetSize();
 
     size_t start = _Hash(key);
