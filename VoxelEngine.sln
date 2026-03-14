@@ -5,6 +5,11 @@ VisualStudioVersion = 17.11.35303.130
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "VoxelEngine", "VoxelEngine\VoxelEngine.vcxproj", "{FA83F63E-3E3E-4DB3-B340-DAA795A0D07B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Tests", "Tests\Tests.vcxproj", "{3DED1D1F-35A8-4BFF-B68C-0625A66412CD}"
+	ProjectSection(ProjectDependencies) = postProject
+		{FA83F63E-3E3E-4DB3-B340-DAA795A0D07B} = {FA83F63E-3E3E-4DB3-B340-DAA795A0D07B}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -21,6 +26,14 @@ Global
 		{FA83F63E-3E3E-4DB3-B340-DAA795A0D07B}.Release|x64.Build.0 = Release|x64
 		{FA83F63E-3E3E-4DB3-B340-DAA795A0D07B}.Release|x86.ActiveCfg = Release|Win32
 		{FA83F63E-3E3E-4DB3-B340-DAA795A0D07B}.Release|x86.Build.0 = Release|Win32
+		{3DED1D1F-35A8-4BFF-B68C-0625A66412CD}.Debug|x64.ActiveCfg = Debug|x64
+		{3DED1D1F-35A8-4BFF-B68C-0625A66412CD}.Debug|x64.Build.0 = Debug|x64
+		{3DED1D1F-35A8-4BFF-B68C-0625A66412CD}.Debug|x86.ActiveCfg = Debug|Win32
+		{3DED1D1F-35A8-4BFF-B68C-0625A66412CD}.Debug|x86.Build.0 = Debug|Win32
+		{3DED1D1F-35A8-4BFF-B68C-0625A66412CD}.Release|x64.ActiveCfg = Release|x64
+		{3DED1D1F-35A8-4BFF-B68C-0625A66412CD}.Release|x64.Build.0 = Release|x64
+		{3DED1D1F-35A8-4BFF-B68C-0625A66412CD}.Release|x86.ActiveCfg = Release|Win32
+		{3DED1D1F-35A8-4BFF-B68C-0625A66412CD}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

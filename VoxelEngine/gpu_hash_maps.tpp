@@ -1,3 +1,6 @@
+#ifndef GPU_HASH_MAPS_TPP
+#define GPU_HASH_MAPS_TPP
+
 #include "gpu_hash_maps.h"
 
 template<LockFreeKey K, LockFreeValue V>
@@ -132,3 +135,5 @@ bool GPULockFreeHashMap<K, V>::Erase(const K& key)
 
     return false;
 }
+
+#endif
