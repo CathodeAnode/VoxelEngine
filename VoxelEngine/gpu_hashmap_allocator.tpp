@@ -1,7 +1,7 @@
-#ifndef GPU_HASH_MAPS_TPP
-#define GPU_HASH_MAPS_TPP
+#ifndef GPU_HASHMAP_ALLOCATOR_TPP
+#define GPU_HASHMAP_ALLOCATOR_TPP
 
-#include "gpu_hash_maps.h"
+#include "gpu_hashmap_allocator.h"
 
 template<LockFreeKey K, LockFreeValue V>
 GPULockFreeHashMap<K, V>::GPULockFreeHashMap()

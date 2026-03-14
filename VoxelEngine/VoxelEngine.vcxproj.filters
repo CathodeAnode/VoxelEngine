@@ -87,7 +87,7 @@
     <ClCompile Include="camera_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="gpu_hash_maps.tpp">
+    <ClCompile Include="gpu_hashmap_allocator.tpp">
       <Filter>Template Files</Filter>
     </ClCompile>
     <ClCompile Include="gpu_cache_allocator.tpp">
@@ -241,7 +241,7 @@
     <ClInclude Include="camera_manager.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="gpu_hash_maps.h">
+    <ClInclude Include="gpu_hashmap_allocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="gpu_cache_allocator.h">

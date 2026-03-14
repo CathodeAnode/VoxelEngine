@@ -1,5 +1,5 @@
-#ifndef GPU_HASH_MAPS_H
-#define GPU_HASH_MAPS_H
+#ifndef GPU_HASHMAP_ALLOCATOR_H
+#define GPU_HASHMAP_ALLOCATOR_H
 
 #include <atomic>
 #include <concepts>
@@ -58,7 +58,7 @@ private:
 
 };
 
-#include "gpu_hash_maps.tpp"
+#include "gpu_hashmap_allocator.tpp"
 
 #endif
 
