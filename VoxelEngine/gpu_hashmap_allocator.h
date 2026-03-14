@@ -12,17 +12,12 @@ template<typename T>
 concept AtomicCompatible = std::is_trivially_copyable_v<T>;
 
 template<typename T>
-concept Hashable = requires(T a) {
-        { std::hash<T>{}(a) } -> std::convertible_to<size_t>;
-};
-
-template<typename T>
 concept EqualityComparable = requires(T a, T b) {
         { a == b } -> std::convertible_to<bool>;
 };
 
 template<typename K>
-concept LockFreeKey = AtomicCompatible<K> && Hashable<K> && EqualityComparable<K>;
+concept LockFreeKey = AtomicCompatible<K> && EqualityComparable<K> && std::integral<K>;
 
 template<typename V>
 concept LockFreeValue = AtomicCompatible<V>;
@@ -52,8 +47,20 @@ private:
     static constexpr K EMPTY_KEY = K();
     static constexpr K TOMBSTONE_KEY = K(-1);
 
-    size_t _Hash(const K& key) const {
-        return std::hash<K>{}(key) % m_Table.GetSize();
+    static inline uint64_t Hash64(uint64_t x)
+    {
+        x ^= x >> 33;
+        x *= 0xff51afd7ed558ccdULL;
+        x ^= x >> 33;
+        x *= 0xc4ceb9fe1a85ec53ULL;
+        x ^= x >> 33;
+        return x;
+    }
+
+    size_t _Hash(const K& key) const
+    {
+        uint64_t h = Hash64(static_cast<uint64_t>(key));
+        return h & (m_Table.GetSize() - 1);
     }
 
 };
