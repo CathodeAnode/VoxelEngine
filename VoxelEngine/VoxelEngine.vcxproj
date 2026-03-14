@@ -142,6 +142,7 @@
     <ClCompile Include="gizmos.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="gpu_buffer_lock.cpp" />
+    <ClCompile Include="gpu_cache_allocator.tpp" />
     <ClCompile Include="gpu_hash_maps.tpp" />
     <ClCompile Include="joystick.cpp" />
     <ClCompile Include="keyboard.cpp" />
@@ -184,6 +185,7 @@
     <ClInclude Include="gizmos.h" />
     <ClInclude Include="gpu_buffer_allocator.h" />
     <ClInclude Include="gpu_buffer_lock.h" />
+    <ClInclude Include="gpu_cache_allocator.h" />
     <ClInclude Include="gpu_hash_maps.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="chunk_provider_concept.h" />

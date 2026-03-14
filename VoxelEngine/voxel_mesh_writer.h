@@ -2,7 +2,7 @@
 #define VOXEL_MESH_WRITER_H
 
 #include "types.h"
-#include "gpu_buffer_allocator.h"
+#include "gpu_cache_allocator.h"
 
 template<typename T>
 concept VoxelMeshWriter = requires(T t, QuadMeshData data, RGBAColor type)

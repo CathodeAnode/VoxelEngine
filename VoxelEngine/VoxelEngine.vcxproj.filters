@@ -90,6 +90,9 @@
     <ClCompile Include="gpu_hash_maps.tpp">
       <Filter>Template Files</Filter>
     </ClCompile>
+    <ClCompile Include="gpu_cache_allocator.tpp">
+      <Filter>Template Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="voxel_shader.vert.glsl">
@@ -239,6 +242,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="gpu_hash_maps.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="gpu_cache_allocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

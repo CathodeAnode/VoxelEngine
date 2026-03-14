@@ -16,6 +16,7 @@
 #include "types.h"
 #include "voxel_mesh_writer.h"
 #include "gpu_buffer_allocator.h"
+#include "gpu_cache_allocator.h"
 #include "chunk_provider_concept.h"
 #include "shader.h"
 #include "camera.h"
