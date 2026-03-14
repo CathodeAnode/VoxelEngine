@@ -1,0 +1,134 @@
+#include "gpu_hash_maps.h"
+
+template<LockFreeKey K, LockFreeValue V>
+GPULockFreeHashMap<K, V>::GPULockFreeHashMap()
+	: m_Table(true)
+{
+}
+
+template<LockFreeKey K, LockFreeValue V>
+bool GPULockFreeHashMap<K, V>::Create(size_t cap)
+{
+    if (!m_Table.Create(GL_SHADER_STORAGE_BUFFER, cap, BufferAccess::ReadWrite))
+        return false;
+
+    Entry* table = m_Table.GetContents();
+
+    for (size_t i = 0; i < cap; ++i)
+    {
+        table[i].key = EMPTY_KEY;
+    }
+
+    return true;
+}
+
+template<LockFreeKey K, LockFreeValue V>
+bool GPULockFreeHashMap<K, V>::Insert(const K& key, const V& value)
+{
+    Entry* table = m_Table.GetContents();
+    size_t cap = m_Table.GetSize();
+
+    size_t start = _Hash(key);
+
+    for (size_t probe = 0; probe < cap; ++probe)
+    {
+        Entry& entry = table[(start + probe) % cap];
+
+        std::atomic_ref<K> atomicKey(entry.key);
+
+        K current = atomicKey.load(std::memory_order_acquire);
+
+        // Empty slot => try to claim
+        if (current == EMPTY_KEY || current == TOMBSTONE_KEY)
+        {
+            K expected = current;
+
+            if (atomicKey.compare_exchange_strong(
+                expected,
+                key,
+                std::memory_order_acq_rel))
+            {
+                entry.value = value;
+                return true;
+            }
+        }
+
+        // Update existing key
+        if (current == key)
+        {
+            entry.value = value;
+            return true;
+        }
+    }
+
+    return false; // table full
+}
+
+template<LockFreeKey K, LockFreeValue V>
+bool GPULockFreeHashMap<K, V>::Find(const K& key, V& out) const
+{
+    Entry* table = m_Table.GetContents();
+    size_t cap = m_Table.GetSize();
+
+    size_t start = _Hash(key);
+
+    for (size_t probe = 0; probe < cap; ++probe)
+    {
+        const Entry& entry = table[(start + probe) % cap];
+
+        std::atomic_ref<const K> atomicKey(entry.key);
+
+        K current = atomicKey.load(std::memory_order_acquire);
+
+        if (current == EMPTY_KEY)
+            return false;
+
+        if (current == key)
+        {
+            out = entry.value;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+template<LockFreeKey K, LockFreeValue V>
+bool GPULockFreeHashMap<K, V>::Contains(const K& key) const
+{
+    V tmp;
+    return Find(key, tmp);
+}
+
+template<LockFreeKey K, LockFreeValue V>
+bool GPULockFreeHashMap<K, V>::Erase(const K& key)
+{
+    Entry* table = m_Table.GetContents();
+    size_t cap = m_Table.GetSize();
+
+    size_t start = _Hash(key);
+
+    for (size_t probe = 0; probe < cap; ++probe)
+    {
+        Entry& entry = table[(start + probe) % cap];
+
+        std::atomic_ref<K> atomicKey(entry.key);
+
+        K current = atomicKey.load(std::memory_order_acquire);
+
+        if (current == EMPTY_KEY)
+            return false;
+
+        if (current == key)
+        {
+            K expected = key;
+
+            return atomicKey.compare_exchange_strong(
+                expected,
+                TOMBSTONE_KEY,
+                std::memory_order_acq_rel);
+        }
+    }
+
+    return false;
+}
