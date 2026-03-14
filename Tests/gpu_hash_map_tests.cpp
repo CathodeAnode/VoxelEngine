@@ -3,7 +3,7 @@
 #include <random>
 
 #include "screen.h"
-#include "gpu_hash_maps.h"
+#include "gpu_hashmap_allocator.h"
 
 class GPULockFreeHashMapTest : public ::testing::Test 
 {
