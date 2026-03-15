@@ -247,5 +247,8 @@
     <ClInclude Include="gpu_cache_allocator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="gpu_cache_policy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

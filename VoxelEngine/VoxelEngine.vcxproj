@@ -186,6 +186,7 @@
     <ClInclude Include="gpu_buffer_allocator.h" />
     <ClInclude Include="gpu_buffer_lock.h" />
     <ClInclude Include="gpu_cache_allocator.h" />
+    <ClInclude Include="gpu_cache_policy.h" />
     <ClInclude Include="gpu_hashmap_allocator.h" />
     <ClInclude Include="helpers.h" />
     <ClInclude Include="chunk_provider_concept.h" />

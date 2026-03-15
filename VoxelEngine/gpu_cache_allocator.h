@@ -8,6 +8,7 @@
 #include <cassert>
 
 #include "gpu_buffer_allocator.h"
+#include "gpu_hashmap_allocator.h"
 #include "gpu_buffer_lock.h"
 
 template<typename ObjectID, typename Atom>
@@ -66,30 +67,33 @@ private:
 
         ObjectID objToEvict = m_ObjectAccessHistory.back();
         m_ObjectAccessHistory.pop_back();
-        ObjectAllocationData& objData = m_ObjectMapping[objToEvict];
 
-        for (const auto& page : objData.pages)
-        {
-            m_PagedBuffer.FreePage(page);
-        }
+        auto it = m_ObjectMapping.find(objToEvict);
+        assert(it != m_ObjectMapping.end());
 
-        const int pagesToFree = objData.GetSize() - n;
+        ObjectAllocationData& objData = it->second;
+
         size_t numPagesToMove = std::min(static_cast<size_t>(n), objData.pages.size());
 
         LOG_DEBUG(EngineSystem::GPU_BUFFER,
-            "[GPUPagedLRUCache|{}] Evicting object {} from cache (pages_freed={}, pages_reserved={})"
-            , m_PagedBuffer.GetName()
-            , objToEvict
-            , objData.GetSize()
-            , numPagesToMove);
+            "[GPUPagedLRUCache|{}] Evicting object {} from cache (pages_freed={}, pages_reserved={})",
+            m_PagedBuffer.GetName(),
+            objToEvict,
+            objData.pages.size() - numPagesToMove,
+            numPagesToMove);
 
         reservedPages.insert(reservedPages.end(),
-            std::make_move_iterator(objData.pages.begin()),
-            std::make_move_iterator(objData.pages.begin() + numPagesToMove));
+            objData.pages.begin(),
+            objData.pages.begin() + numPagesToMove);
 
-        m_ObjectMapping.erase(objToEvict);
+        for (size_t i = numPagesToMove; i < objData.pages.size(); ++i)
+        {
+            m_PagedBuffer.FreePage(objData.pages[i]);
+        }
 
-        return pagesToFree < 0;
+        m_ObjectMapping.erase(it);
+
+        return numPagesToMove < n;
     }
 
     inline void _MarkRecentlyUsed(const ObjectID& obj)
