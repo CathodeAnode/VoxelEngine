@@ -35,10 +35,6 @@ public:
     inline GLuint GetName() const { return m_PagedBuffer.GetName(); }
 
 private:
-    using ByteType = uint8_t;
-    inline static constexpr size_t BYTE_BITS = 8;
-    inline static constexpr unsigned int BYTE_TYPE_SIZE = BYTE_BITS * sizeof(ByteType);
-
     struct ObjectAllocationData
     {
         std::vector<unsigned int> pages;
@@ -59,7 +55,7 @@ private:
     };
 
 private:
-    GPUPagedBuffer<Atom> m_PagedBuffer;
+    GPUPagedBuffer<Atom, ThreadMode::SingleThreaded> m_PagedBuffer;
     std::list<ObjectID> m_ObjectAccessHistory;
     std::unordered_map<ObjectID, ObjectAllocationData> m_ObjectMapping; // map obj id => allocated pages, count of elements
 

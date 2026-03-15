@@ -493,36 +493,36 @@ void GPUOrphanBuffer<Atom, LockManager>::BindTailBufferRange(GLuint index, size_
 //	}
 //}
 
-template<typename Atom>
-GPUPagedBuffer<Atom>::GPUPagedBuffer(bool cpuUpdates)
+template<typename Atom, ThreadMode Mode>
+GPUPagedBuffer<Atom, Mode>::GPUPagedBuffer(bool cpuUpdates)
 	: m_RawBuffer(cpuUpdates)
 {
 }
 
-template<typename Atom>
-GPUPagedBuffer<Atom>::~GPUPagedBuffer()
+template<typename Atom, ThreadMode Mode>
+GPUPagedBuffer<Atom, Mode>::~GPUPagedBuffer()
 {
 	Destroy();
 }
 
-template<typename Atom>
-inline Atom* GPUPagedBuffer<Atom>::operator[](Page pageNum)
+template<typename Atom, ThreadMode Mode>
+inline Atom* GPUPagedBuffer<Atom, Mode>::operator[](Page pageNum)
 {
 	assert(pageNum < GetPageCount());
 	assert(_IsPageReserved(pageNum));
 	return m_RawBuffer.GetContents() + pageNum * m_PageSize;
 }
 
-template<typename Atom>
-const Atom* GPUPagedBuffer<Atom>::operator[](Page pageNum) const
+template<typename Atom, ThreadMode Mode>
+const Atom* GPUPagedBuffer<Atom, Mode>::operator[](Page pageNum) const
 {
 	assert(pageNum < GetPageCount());
 	assert(_IsPageReserved(pageNum));
 	return m_RawBuffer.GetContents() + pageNum * m_PageSize;
 }
 
-template<typename Atom>
-bool GPUPagedBuffer<Atom>::Create(GLenum target, size_t pageSize, size_t pageCount) noexcept
+template<typename Atom, ThreadMode Mode>
+bool GPUPagedBuffer<Atom, Mode>::Create(GLenum target, size_t pageSize, size_t pageCount) noexcept
 {
 	PROFILE_FUNCTION();
 
@@ -539,8 +539,8 @@ bool GPUPagedBuffer<Atom>::Create(GLenum target, size_t pageSize, size_t pageCou
 	}
 
 	LOG_INFO(EngineSystem::GPU_BUFFER,
-		"[GPUPagedBuffer|{}] Created (pages={}, countPerPage={})",
-		m_RawBuffer.GetName(), pageSize, pageCount);
+		"[GPUPagedBuffer|{}] Created (pages={}, countPerPage={}, Mode={})",
+		m_RawBuffer.GetName(), pageSize, pageCount, GPUAllocatorsUtils::ToString(Mode));
 
 	LOG_DEBUG(EngineSystem::GPU_BUFFER,
 		"[GPUPagedBuffer|{}] reserved {:.2f} Mb",
@@ -552,22 +552,42 @@ bool GPUPagedBuffer<Atom>::Create(GLenum target, size_t pageSize, size_t pageCou
 	// calculate the number of elements needed for m_FreePages
 	const size_t arrSize = (pageCount + WORD_BITS - 1) / WORD_BITS;
 
-	m_FreePages = new uint64_t[arrSize];
-	std::fill(m_FreePages, m_FreePages + arrSize, std::numeric_limits<uint64_t>::max());
-
-	// reserve ghost pages in data struct
-	if (pageCount % WORD_BITS > 0)
+	if constexpr (Mode == ThreadMode::SingleThreaded)
 	{
-		const uint64_t lastElemUsedPages = pageCount % WORD_BITS;
-		const uint64_t ghostPagesMask = ~((1ULL << lastElemUsedPages) - 1);
-		m_FreePages[arrSize - 1] &= ~ghostPagesMask;
+		m_FreePages = new uint64_t[arrSize];
+		std::fill(m_FreePages, m_FreePages + arrSize, std::numeric_limits<uint64_t>::max());
+
+		// reserve ghost pages in data struct
+		if (pageCount % WORD_BITS > 0)
+		{
+			const uint64_t lastElemUsedPages = pageCount % WORD_BITS;
+			const uint64_t ghostPagesMask = ~((1ULL << lastElemUsedPages) - 1);
+			m_FreePages[arrSize - 1] &= ~ghostPagesMask;
+		}
+	}
+	else if constexpr (Mode == ThreadMode::LockFree)
+	{
+		m_FreePages = new std::atomic<uint64_t>[arrSize];
+
+		for (size_t i = 0; i < arrSize; ++i)
+			m_FreePages[i].store(std::numeric_limits<uint64_t>::max(), std::memory_order_relaxed);
+
+		if (pageCount % WORD_BITS > 0)
+		{
+			const uint64_t lastElemUsedPages = pageCount % WORD_BITS;
+			const uint64_t ghostPagesMask = ~((1ULL << lastElemUsedPages) - 1);
+
+			uint64_t value = m_FreePages[arrSize - 1].load(std::memory_order_relaxed);
+			value &= ~ghostPagesMask;
+			m_FreePages[arrSize - 1].store(value, std::memory_order_relaxed);
+		}
 	}
 
 	return success;
 }
 
-template<typename Atom>
-void GPUPagedBuffer<Atom>::Destroy() noexcept
+template<typename Atom, ThreadMode Mode>
+void GPUPagedBuffer<Atom, Mode>::Destroy() noexcept
 {
 	PROFILE_FUNCTION();
 
@@ -581,8 +601,8 @@ void GPUPagedBuffer<Atom>::Destroy() noexcept
 	m_RawBuffer.Destroy();
 }
 
-template<typename Atom>
-void GPUPagedBuffer<Atom>::ReservePage(Page pageNum)
+template<typename Atom, ThreadMode Mode>
+void GPUPagedBuffer<Atom, Mode>::ReservePage(Page pageNum)
 {
 	assert(m_FreePages != nullptr);
 	assert(pageNum < GetPageCount());
@@ -590,13 +610,38 @@ void GPUPagedBuffer<Atom>::ReservePage(Page pageNum)
 	const size_t byteIdx = pageNum / WORD_BITS;
 	const size_t bitIdx = pageNum % WORD_BITS;
 
-	assert(m_FreePages[byteIdx] & (1ULL << bitIdx) && "Cannot reserve a reserved page");
 
-	m_FreePages[byteIdx] &= ~(1ULL << bitIdx); // Set bit to 0 => reserved
+	if constexpr (Mode == ThreadMode::SingleThreaded)
+	{
+		assert((m_FreePages[byteIdx] & (1ULL << bitIdx)) && "Cannot reserve a reserved page");
+		m_FreePages[byteIdx] &= ~(1ULL << bitIdx); // Set bit to 0 => reserved
+	}
+	else if constexpr (Mode == ThreadMode::LockFree)
+	{
+		uint64_t mask = (1ULL << bitIdx);
+
+		auto& atom = m_FreePages[byteIdx];
+
+		uint64_t old = atom.load(std::memory_order_relaxed);
+
+		while (true)
+		{
+			assert(old & mask && "Cannot reserve a reserved page");
+
+			uint64_t desired = old & ~mask;
+
+			if (atom.compare_exchange_weak(
+				old,
+				desired,
+				std::memory_order_acquire,
+				std::memory_order_relaxed))
+				return;
+		}
+	}
 }
 
-template<typename Atom>
-void GPUPagedBuffer<Atom>::FreePage(Page pageNum)
+template<typename Atom, ThreadMode Mode>
+void GPUPagedBuffer<Atom, Mode>::FreePage(Page pageNum)
 {
 	assert(m_FreePages != nullptr);
 	assert(pageNum < GetPageCount());
@@ -604,59 +649,139 @@ void GPUPagedBuffer<Atom>::FreePage(Page pageNum)
 	const size_t byteIdx = pageNum / WORD_BITS;
 	const size_t bitIdx = pageNum % WORD_BITS;
 
-	assert((m_FreePages[byteIdx] & (1 << bitIdx)) == 0 && "Cannot free a freed page");
 
-	m_FreePages[byteIdx] |= (1ULL << bitIdx); // Set bit to 1 => free
+	if constexpr (Mode == ThreadMode::SingleThreaded)
+	{
+		assert((m_FreePages[byteIdx] & (1 << bitIdx)) == 0 && "Cannot free a freed page");
+		m_FreePages[byteIdx] |= (1ULL << bitIdx); // Set bit to 1 => free
+	}
+	else if constexpr (Mode == ThreadMode::LockFree)
+	{
+		uint64_t mask = (1ULL << bitIdx);
+
+		auto& atom = m_FreePages[byteIdx];
+
+		uint64_t old = atom.load(std::memory_order_relaxed);
+
+		while (true)
+		{
+			assert((old & mask) == 0 && "Cannot free a freed page");
+
+			uint64_t desired = old | mask;
+
+			if (atom.compare_exchange_weak(
+				old,
+				desired,
+				std::memory_order_release,
+				std::memory_order_relaxed))
+				return;
+		}
+	}
 }
 
-template<typename Atom>
-bool GPUPagedBuffer<Atom>::ReserveFirstAvaliblePages(unsigned int n, std::vector<unsigned int>& outPages)
+template<typename Atom, ThreadMode Mode>
+bool GPUPagedBuffer<Atom, Mode>::ReserveFirstAvaliblePages(unsigned int n, std::vector<unsigned int>& outPages)
 {
 	assert(m_FreePages != nullptr);
-
 	const size_t pageCount = m_RawBuffer.GetSize() / m_PageSize;
 	const size_t freePagesArrSize = (pageCount + WORD_BITS - 1) / WORD_BITS;
 
-	for (size_t index = 0; index < freePagesArrSize; index++)
+	if constexpr (Mode == ThreadMode::SingleThreaded)
 	{
-		uint64_t pagesStatus = m_FreePages[index];
-		size_t bitOffset = 0;
-
-		while (pagesStatus != 0)
+		for (size_t index = 0; index < freePagesArrSize; index++)
 		{
-			unsigned long reserved = GetTrailingZeros(pagesStatus);
-			pagesStatus >>= reserved;
-			bitOffset += reserved;
+			uint64_t pagesStatus = m_FreePages[index];
+			size_t bitOffset = 0;
 
-			unsigned long free = GetTrailingOnes(pagesStatus);
-			unsigned long consume = std::min((unsigned long)n, free);
-
-			uint64_t mask = ((1ULL << consume) - 1ULL) << bitOffset;
-			m_FreePages[index] &= ~mask;
-
-			for (unsigned long i = 0; i < consume; i++)
+			while (pagesStatus != 0)
 			{
-				outPages.push_back(index * WORD_BITS + bitOffset + i);
+				unsigned long reserved = GetTrailingZeros(pagesStatus);
+				pagesStatus >>= reserved;
+				bitOffset += reserved;
+
+				unsigned long free = GetTrailingOnes(pagesStatus);
+				unsigned long consume = std::min((unsigned long)n, free);
+
+				uint64_t mask = ((1ULL << consume) - 1ULL) << bitOffset;
+				m_FreePages[index] &= ~mask;
+
+				for (unsigned long i = 0; i < consume; i++)
+				{
+					outPages.push_back(index * WORD_BITS + bitOffset + i);
+				}
+
+				n -= consume;
+
+				if (n == 0)
+					return true;
+
+				pagesStatus >>= consume;
+				bitOffset += consume;
 			}
+		}
+	}
+	else if constexpr (Mode == ThreadMode::LockFree)
+	{
+		for (size_t i = 0; i < freePagesArrSize && n > 0; i++)
+		{
+			auto& word = m_FreePages[i];
 
-			n -= consume;
-			if (n == 0)
-				return true;
+			while (true)
+			{
+				uint64_t old = word.load(std::memory_order_relaxed);
 
-			pagesStatus >>= consume;
-			bitOffset += consume;
+				if (old == 0)
+					break;
+
+				uint64_t freeMask = old;
+
+				unsigned long tz = GetTrailingZeros(freeMask);
+				freeMask >>= tz;
+
+				unsigned long ones = GetTrailingOnes(freeMask);
+				unsigned long consume = std::min((unsigned long)n, ones);
+
+				uint64_t mask = ((1ULL << consume) - 1ULL) << tz;
+
+				uint64_t desired = old & ~mask;
+
+				if (word.compare_exchange_weak(
+					old,
+					desired,
+					std::memory_order_acquire,
+					std::memory_order_relaxed))
+				{
+					for (unsigned long j = 0; j < consume; j++)
+					{
+						outPages.push_back(i * WORD_BITS + tz + j);
+					}
+
+					n -= consume;
+					break;
+				}
+			}
 		}
 	}
 
-	return false;
+	return  n == 0;
 }
 
-template<typename Atom>
-bool GPUPagedBuffer<Atom>::_IsPageReserved(Page pageNum) const noexcept
+template<typename Atom, ThreadMode Mode>
+bool GPUPagedBuffer<Atom, Mode>::_IsPageReserved(Page pageNum) const noexcept
 {
 	const size_t byteIdx = pageNum / WORD_BITS;
 	const size_t bitIdx = pageNum % WORD_BITS;
 
-	// bit == 0 -> reserved
-	return (m_FreePages[byteIdx] & (1ULL << bitIdx)) == 0;
+	if constexpr (Mode == ThreadMode::SingleThreaded)
+	{
+		// bit == 0 -> reserved
+		return (m_FreePages[byteIdx] & (1ULL << bitIdx)) == 0;
+	}
+	else if constexpr (Mode == ThreadMode::LockFree)
+	{
+		const size_t word = pageNum / WORD_BITS;
+		const size_t bit = pageNum % WORD_BITS;
+
+		return (m_FreePages[word].load(std::memory_order_relaxed) & (1ULL << bit)) == 0;
+	}
 }

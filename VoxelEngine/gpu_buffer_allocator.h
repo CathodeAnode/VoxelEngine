@@ -13,10 +13,17 @@
 #include "logger.h"
 #include "profiler.h"
 
-enum class BufferAccess : uint8_t {
+enum class BufferAccess : uint8_t 
+{
     WriteOnly,
     ReadWrite,
     ReadOnly
+};
+
+enum class ThreadMode : uint8_t
+{
+    SingleThreaded,
+    LockFree
 };
 
 namespace GPUAllocatorsUtils
@@ -28,6 +35,16 @@ namespace GPUAllocatorsUtils
         case BufferAccess::WriteOnly: return "WriteOnly";
         case BufferAccess::ReadWrite: return "ReadWrite";
         case BufferAccess::ReadOnly:  return "ReadOnly";
+        }
+        return "Unknown";
+    }
+
+    constexpr const char* ToString(ThreadMode mode) noexcept
+    {
+        switch (mode)
+        {
+        case ThreadMode::SingleThreaded: return "SingleThreaded";
+        case ThreadMode::LockFree: return "LockFree";
         }
         return "Unknown";
     }
@@ -198,7 +215,7 @@ private:
 //    void move(size_t srcIndex, size_t dstIndex, size_t length);
 //};
 
-template<typename Atom>
+template<typename Atom, ThreadMode Mode>
 class GPUPagedBuffer
 {
 public:
@@ -222,8 +239,12 @@ public:
     inline GLuint GetName() const { return m_RawBuffer.GetName(); }
 
 private:
+    using WordType = std::conditional_t<Mode == ThreadMode::LockFree, std::atomic<uint64_t>, uint64_t>;
+
+private:
+
     GPUPersistentlyMappedBuffer<Atom, NullBufferLockManager> m_RawBuffer;
-    uint64_t* m_FreePages;
+    WordType* m_FreePages;
     size_t m_PageSize;
 
     inline static constexpr size_t WORD_BITS = 64;
