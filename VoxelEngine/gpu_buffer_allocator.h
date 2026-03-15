@@ -13,16 +13,6 @@
 #include "logger.h"
 #include "profiler.h"
 
-struct Page 
-{
-    size_t index;
-    size_t size;
-
-    bool IsNull() {
-        return index == 0 && size == 0;
-    }
-};
-
 enum class BufferAccess : uint8_t {
     WriteOnly,
     ReadWrite,
@@ -175,37 +165,71 @@ private:
     uint32_t m_CountPerBuffer;
 };
 
+//template<typename Atom>
+//class [[deprecated("Unmaintained")]] GPUPagedBuffer
+//{
+//public:
+//    GPUPagedBuffer();
+//    ~GPUPagedBuffer();
+//
+//    bool Create(GLenum _target, GLuint _count) noexcept;
+//    void Destroy() noexcept;
+//
+//    size_t UploadPageData(const std::vector<Atom>& data) noexcept;
+//    bool UpdatePage(const size_t& pageId, const std::vector<Atom>& data) noexcept;
+//
+//    Page GetPageOffset(const size_t& pageId) noexcept;
+//    size_t GetCurrentSize() const { return m_AtomCount; }
+//    size_t GetMaxSize() const { return m_MaxAtomCount; }
+//    size_t GetPageSize() const { return m_PageTable.size(); }
+//    GLuint GetName() const { return m_Name; }
+//
+//
+//private:
+//    const int m_KInitialPageTableCapacity = 1000;
+//    std::vector<Page> m_PageTable;
+//
+//    GLuint m_Name;
+//    GLenum m_Target;
+//
+//    size_t m_AtomCount;
+//    size_t m_MaxAtomCount;
+//
+//    void move(size_t srcIndex, size_t dstIndex, size_t length);
+//};
+
 template<typename Atom>
-class [[deprecated("Unmaintained")]] GPUPagedBuffer
+class GPUPagedBuffer
 {
 public:
-    GPUPagedBuffer();
+    using Page = size_t;
+
+    GPUPagedBuffer(bool cpuUpdates = true);
     ~GPUPagedBuffer();
 
-    bool Create(GLenum _target, GLuint _count) noexcept;
+    Atom* operator[](Page pageNum);
+    const Atom* operator[](Page pageNum) const;
+
+    bool Create(GLenum target, size_t pageSize, size_t pageCount) noexcept;
     void Destroy() noexcept;
 
-    size_t UploadPageData(const std::vector<Atom>& data) noexcept;
-    bool UpdatePage(const size_t& pageId, const std::vector<Atom>& data) noexcept;
+    void ReservePage(Page pageNum);
+    void FreePage(Page pageNum);
+    [[nodiscard]] bool ReserveFirstAvaliblePages(unsigned int n, std::vector<unsigned int>& outPages);
 
-    Page GetPageOffset(const size_t& pageId) noexcept;
-    size_t GetCurrentSize() const { return m_AtomCount; }
-    size_t GetMaxSize() const { return m_MaxAtomCount; }
-    size_t GetPageSize() const { return m_PageTable.size(); }
-    GLuint GetName() const { return m_Name; }
-
+    size_t GetPageSize() const noexcept { return m_PageSize; }
+    size_t GetPageCount() const noexcept { return m_RawBuffer.GetSize() / m_PageSize; }
+    inline GLuint GetName() const { return m_RawBuffer.GetName(); }
 
 private:
-    const int m_KInitialPageTableCapacity = 1000;
-    std::vector<Page> m_PageTable;
+    GPUPersistentlyMappedBuffer<Atom, NullBufferLockManager> m_RawBuffer;
+    uint64_t* m_FreePages;
+    size_t m_PageSize;
 
-    GLuint m_Name;
-    GLenum m_Target;
+    inline static constexpr size_t WORD_BITS = 64;
 
-    size_t m_AtomCount;
-    size_t m_MaxAtomCount;
-
-    void move(size_t srcIndex, size_t dstIndex, size_t length);
+private:
+    bool _IsPageReserved(Page pageNum) const noexcept;
 };
 
 #include "gpu_buffer_allocator.tpp"

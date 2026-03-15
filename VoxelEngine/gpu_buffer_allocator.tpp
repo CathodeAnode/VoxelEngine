@@ -359,13 +359,144 @@ void GPUOrphanBuffer<Atom, LockManager>::BindTailBufferRange(GLuint index, size_
 
 // ------------------------------------------------------------------------------------------------------------------
 
+//template<typename Atom>
+//GPUPagedBuffer<Atom>::GPUPagedBuffer()
+//	: m_AtomCount(0)
+//	, m_MaxAtomCount(0)
+//	, m_Name(0)
+//{
+//	m_PageTable.reserve(m_KInitialPageTableCapacity);
+//}
+//
+//template<typename Atom>
+//GPUPagedBuffer<Atom>::~GPUPagedBuffer()
+//{
+//	Destroy();
+//}
+//
+//template<typename Atom>
+//bool GPUPagedBuffer<Atom>::Create(GLenum _target, GLuint _count) noexcept
+//{
+//	m_Target = _target;
+//	m_MaxAtomCount = _count;
+//	
+//	if (m_Name != 0) return false;
+//
+//	glGenBuffers(1, &m_Name);
+//	glBindBuffer(_target, m_Name);
+//	glBufferData(_target, _count * sizeof(Atom), nullptr, GL_DYNAMIC_DRAW);
+//	glBindBuffer(_target, 0);
+//
+//	return true;
+//}
+//
+//template<typename Atom>
+//void GPUPagedBuffer<Atom>::Destroy() noexcept
+//{
+//	glDeleteBuffers(1, &m_Name);
+//}
+//
+//template<typename Atom>
+//size_t GPUPagedBuffer<Atom>::UploadPageData(const std::vector<Atom>& data) noexcept
+//{
+//	const unsigned int count = data.size();
+//	glBindBuffer(m_Target, m_Name);
+//	glBufferSubData(m_Target, m_AtomCount * sizeof(Atom), count * sizeof(Atom), data.data());
+//	glBindBuffer(m_Target, 0);
+//
+//	m_PageTable.push_back({m_AtomCount, count });
+//	m_AtomCount += count;
+//	return m_PageTable.size() - 1;
+//}
+//
+//template<typename Atom>
+//bool GPUPagedBuffer<Atom>::UpdatePage(const size_t& pageId, const std::vector<Atom>& data) noexcept
+//{
+//	const size_t newPageCount = data.size();
+//
+//	//get page offsets
+//	Page page = GetPageOffset(pageId);
+//	if (page.IsNull()) {
+//		return false;
+//	}
+//
+//	// shift subsequent pages according to new page update
+//	const size_t oldNextPageIndex = page.index + page.size;
+//	const size_t newNextPageIndex = page.index + newPageCount;
+//	const size_t subsequentPagesAtomCount = (m_AtomCount - page.index) + page.size;
+//	move(oldNextPageIndex, newNextPageIndex, subsequentPagesAtomCount);
+//
+//	// update page data on gpu
+//	glBindBuffer(m_Target, m_Name);
+//	glBufferSubData(m_Target, page.index * sizeof(Atom), newPageCount * sizeof(Atom), data.data());
+//	glBindBuffer(m_Target, 0);
+//
+//	// update m_Buffer state in data structure
+//	m_PageTable[pageId].size = newPageCount;
+//	const size_t countDelta = newPageCount - page.size;
+//	for (int i = pageId + 1; i < m_PageTable.size(); i++)
+//	{
+//		m_PageTable[i].index += countDelta;
+//	}
+//
+//	m_AtomCount += countDelta;
+//	
+//	return true;
+//}
+//
+//template<typename Atom>
+//Page GPUPagedBuffer<Atom>::GetPageOffset(const size_t& pageId) noexcept
+//{
+//	// page does not exisit
+//	if (pageId >= m_PageTable.size()) {
+//		return Page(0, 0);
+//	}
+//
+//	return m_PageTable[pageId];
+//}
+//
+//template<typename Atom>
+//void GPUPagedBuffer<Atom>::move(size_t srcIndex, size_t dstIndex, size_t length)
+//{
+//	// if intervials overlap
+//	if (srcIndex < (dstIndex + length)
+//		&& dstIndex < (srcIndex + length)) {
+//
+//		// create temp m_Buffer to copy current data into
+//		unsigned int copyBuffer;
+//		glGenBuffers(1, &copyBuffer);
+//		glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
+//		glBufferData(GL_COPY_WRITE_BUFFER, length * sizeof(Atom), nullptr, GL_DYNAMIC_COPY);
+//		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+//
+//		// copy data into temp copy m_Buffer
+//		glBindBuffer(GL_COPY_READ_BUFFER, m_Name);
+//		glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
+//		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, srcIndex * sizeof(Atom), 0, length * sizeof(Atom));
+//
+//		// copy from temp m_Buffer to move location
+//		glBindBuffer(GL_COPY_READ_BUFFER, copyBuffer);
+//		glBindBuffer(GL_COPY_WRITE_BUFFER, m_Name);
+//		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, dstIndex * sizeof(Atom), length * sizeof(Atom));
+//		glBindBuffer(GL_COPY_READ_BUFFER, 0);
+//		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+//
+//		// delete temp copy m_Buffer
+//		glDeleteBuffers(1, &copyBuffer);
+//	}
+//	else {
+//		glBindBuffer(GL_COPY_READ_BUFFER, m_Name);
+//		glBindBuffer(GL_COPY_WRITE_BUFFER, m_Name);
+//		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, srcIndex * sizeof(Atom), dstIndex * sizeof(Atom), sizeof(Atom) * length);
+//		glBindBuffer(GL_COPY_READ_BUFFER, 0);
+//		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
+//	}
+//}
+
 template<typename Atom>
-GPUPagedBuffer<Atom>::GPUPagedBuffer()
-	: m_AtomCount(0)
-	, m_MaxAtomCount(0)
-	, m_Name(0)
+GPUPagedBuffer<Atom>::GPUPagedBuffer(bool cpuUpdates)
+	: m_RawBuffer(cpuUpdates)
 {
-	m_PageTable.reserve(m_KInitialPageTableCapacity);
 }
 
 template<typename Atom>
@@ -375,120 +506,157 @@ GPUPagedBuffer<Atom>::~GPUPagedBuffer()
 }
 
 template<typename Atom>
-bool GPUPagedBuffer<Atom>::Create(GLenum _target, GLuint _count) noexcept
+inline Atom* GPUPagedBuffer<Atom>::operator[](Page pageNum)
 {
-	m_Target = _target;
-	m_MaxAtomCount = _count;
-	
-	if (m_Name != 0) return false;
+	assert(pageNum < GetPageCount());
+	assert(_IsPageReserved(pageNum));
+	return m_RawBuffer.GetContents() + pageNum * m_PageSize;
+}
 
-	glGenBuffers(1, &m_Name);
-	glBindBuffer(_target, m_Name);
-	glBufferData(_target, _count * sizeof(Atom), nullptr, GL_DYNAMIC_DRAW);
-	glBindBuffer(_target, 0);
+template<typename Atom>
+const Atom* GPUPagedBuffer<Atom>::operator[](Page pageNum) const
+{
+	assert(pageNum < GetPageCount());
+	assert(_IsPageReserved(pageNum));
+	return m_RawBuffer.GetContents() + pageNum * m_PageSize;
+}
 
-	return true;
+template<typename Atom>
+bool GPUPagedBuffer<Atom>::Create(GLenum target, size_t pageSize, size_t pageCount) noexcept
+{
+	PROFILE_FUNCTION();
+
+	assert(pageSize > 0 && pageCount > 0);
+
+	bool success = m_RawBuffer.Create(target, pageSize * pageCount);
+
+	if (!success)
+	{
+		LOG_CRITICAL(EngineSystem::GPU_BUFFER,
+			"[GPUPagedBuffer|{}] Failed to create raw buffer",
+			m_RawBuffer.GetName());
+		return success;
+	}
+
+	LOG_INFO(EngineSystem::GPU_BUFFER,
+		"[GPUPagedBuffer|{}] Created (pages={}, countPerPage={})",
+		m_RawBuffer.GetName(), pageSize, pageCount);
+
+	LOG_DEBUG(EngineSystem::GPU_BUFFER,
+		"[GPUPagedBuffer|{}] reserved {:.2f} Mb",
+		m_RawBuffer.GetName(),
+		((sizeof(Atom) * pageCount * pageSize) / 1000000.0f));
+
+	m_PageSize = pageSize;
+
+	// calculate the number of elements needed for m_FreePages
+	const size_t arrSize = (pageCount + WORD_BITS - 1) / WORD_BITS;
+
+	m_FreePages = new uint64_t[arrSize];
+	std::fill(m_FreePages, m_FreePages + arrSize, std::numeric_limits<uint64_t>::max());
+
+	// reserve ghost pages in data struct
+	if (pageCount % WORD_BITS > 0)
+	{
+		const uint64_t lastElemUsedPages = pageCount % WORD_BITS;
+		const uint64_t ghostPagesMask = ~((1ULL << lastElemUsedPages) - 1);
+		m_FreePages[arrSize - 1] &= ~ghostPagesMask;
+	}
+
+	return success;
 }
 
 template<typename Atom>
 void GPUPagedBuffer<Atom>::Destroy() noexcept
 {
-	glDeleteBuffers(1, &m_Name);
+	PROFILE_FUNCTION();
+
+	LOG_INFO(EngineSystem::GPU_BUFFER,
+		"[GPUPagedBuffer|{}] Destroyed",
+		m_RawBuffer.GetName());
+
+	m_PageSize = 0;
+	delete[] m_FreePages;
+
+	m_RawBuffer.Destroy();
 }
 
 template<typename Atom>
-size_t GPUPagedBuffer<Atom>::UploadPageData(const std::vector<Atom>& data) noexcept
+void GPUPagedBuffer<Atom>::ReservePage(Page pageNum)
 {
-	const unsigned int count = data.size();
-	glBindBuffer(m_Target, m_Name);
-	glBufferSubData(m_Target, m_AtomCount * sizeof(Atom), count * sizeof(Atom), data.data());
-	glBindBuffer(m_Target, 0);
+	assert(m_FreePages != nullptr);
+	assert(pageNum < GetPageCount());
 
-	m_PageTable.push_back({m_AtomCount, count });
-	m_AtomCount += count;
-	return m_PageTable.size() - 1;
+	const size_t byteIdx = pageNum / WORD_BITS;
+	const size_t bitIdx = pageNum % WORD_BITS;
+
+	assert(m_FreePages[byteIdx] & (1ULL << bitIdx) && "Cannot reserve a reserved page");
+
+	m_FreePages[byteIdx] &= ~(1ULL << bitIdx); // Set bit to 0 => reserved
 }
 
 template<typename Atom>
-bool GPUPagedBuffer<Atom>::UpdatePage(const size_t& pageId, const std::vector<Atom>& data) noexcept
+void GPUPagedBuffer<Atom>::FreePage(Page pageNum)
 {
-	const size_t newPageCount = data.size();
+	assert(m_FreePages != nullptr);
+	assert(pageNum < GetPageCount());
 
-	//get page offsets
-	Page page = GetPageOffset(pageId);
-	if (page.IsNull()) {
-		return false;
-	}
+	const size_t byteIdx = pageNum / WORD_BITS;
+	const size_t bitIdx = pageNum % WORD_BITS;
 
-	// shift subsequent pages according to new page update
-	const size_t oldNextPageIndex = page.index + page.size;
-	const size_t newNextPageIndex = page.index + newPageCount;
-	const size_t subsequentPagesAtomCount = (m_AtomCount - page.index) + page.size;
-	move(oldNextPageIndex, newNextPageIndex, subsequentPagesAtomCount);
+	assert((m_FreePages[byteIdx] & (1 << bitIdx)) == 0 && "Cannot free a freed page");
 
-	// update page data on gpu
-	glBindBuffer(m_Target, m_Name);
-	glBufferSubData(m_Target, page.index * sizeof(Atom), newPageCount * sizeof(Atom), data.data());
-	glBindBuffer(m_Target, 0);
+	m_FreePages[byteIdx] |= (1ULL << bitIdx); // Set bit to 1 => free
+}
 
-	// update m_Buffer state in data structure
-	m_PageTable[pageId].size = newPageCount;
-	const size_t countDelta = newPageCount - page.size;
-	for (int i = pageId + 1; i < m_PageTable.size(); i++)
+template<typename Atom>
+bool GPUPagedBuffer<Atom>::ReserveFirstAvaliblePages(unsigned int n, std::vector<unsigned int>& outPages)
+{
+	assert(m_FreePages != nullptr);
+
+	const size_t pageCount = m_RawBuffer.GetSize() / m_PageSize;
+	const size_t freePagesArrSize = (pageCount + WORD_BITS - 1) / WORD_BITS;
+
+	for (size_t index = 0; index < freePagesArrSize; index++)
 	{
-		m_PageTable[i].index += countDelta;
+		uint64_t pagesStatus = m_FreePages[index];
+		size_t bitOffset = 0;
+
+		while (pagesStatus != 0)
+		{
+			unsigned long reserved = GetTrailingZeros(pagesStatus);
+			pagesStatus >>= reserved;
+			bitOffset += reserved;
+
+			unsigned long free = GetTrailingOnes(pagesStatus);
+			unsigned long consume = std::min((unsigned long)n, free);
+
+			uint64_t mask = ((1ULL << consume) - 1ULL) << bitOffset;
+			m_FreePages[index] &= ~mask;
+
+			for (unsigned long i = 0; i < consume; i++)
+			{
+				outPages.push_back(index * WORD_BITS + bitOffset + i);
+			}
+
+			n -= consume;
+			if (n == 0)
+				return true;
+
+			pagesStatus >>= consume;
+			bitOffset += consume;
+		}
 	}
 
-	m_AtomCount += countDelta;
-	
-	return true;
+	return false;
 }
 
 template<typename Atom>
-Page GPUPagedBuffer<Atom>::GetPageOffset(const size_t& pageId) noexcept
+bool GPUPagedBuffer<Atom>::_IsPageReserved(Page pageNum) const noexcept
 {
-	// page does not exisit
-	if (pageId >= m_PageTable.size()) {
-		return Page(0, 0);
-	}
+	const size_t byteIdx = pageNum / WORD_BITS;
+	const size_t bitIdx = pageNum % WORD_BITS;
 
-	return m_PageTable[pageId];
-}
-
-template<typename Atom>
-void GPUPagedBuffer<Atom>::move(size_t srcIndex, size_t dstIndex, size_t length)
-{
-	// if intervials overlap
-	if (srcIndex < (dstIndex + length)
-		&& dstIndex < (srcIndex + length)) {
-
-		// create temp m_Buffer to copy current data into
-		unsigned int copyBuffer;
-		glGenBuffers(1, &copyBuffer);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
-		glBufferData(GL_COPY_WRITE_BUFFER, length * sizeof(Atom), nullptr, GL_DYNAMIC_COPY);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-
-		// copy data into temp copy m_Buffer
-		glBindBuffer(GL_COPY_READ_BUFFER, m_Name);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, copyBuffer);
-		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, srcIndex * sizeof(Atom), 0, length * sizeof(Atom));
-
-		// copy from temp m_Buffer to move location
-		glBindBuffer(GL_COPY_READ_BUFFER, copyBuffer);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, m_Name);
-		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, 0, dstIndex * sizeof(Atom), length * sizeof(Atom));
-		glBindBuffer(GL_COPY_READ_BUFFER, 0);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-
-		// delete temp copy m_Buffer
-		glDeleteBuffers(1, &copyBuffer);
-	}
-	else {
-		glBindBuffer(GL_COPY_READ_BUFFER, m_Name);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, m_Name);
-		glCopyBufferSubData(GL_COPY_READ_BUFFER, GL_COPY_WRITE_BUFFER, srcIndex * sizeof(Atom), dstIndex * sizeof(Atom), sizeof(Atom) * length);
-		glBindBuffer(GL_COPY_READ_BUFFER, 0);
-		glBindBuffer(GL_COPY_WRITE_BUFFER, 0);
-	}
+	// bit == 0 -> reserved
+	return (m_FreePages[byteIdx] & (1ULL << bitIdx)) == 0;
 }

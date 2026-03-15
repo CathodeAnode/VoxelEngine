@@ -5,7 +5,7 @@
 
 template<typename ObjectID, typename Atom>
 GPUPagedLRUCache<ObjectID, Atom>::GPUPagedLRUCache(bool cpuUpdates)
-	: m_Buffer(cpuUpdates)
+	: m_PagedBuffer(cpuUpdates)
 {
 	PROFILE_FUNCTION();
 }
@@ -21,34 +21,16 @@ bool GPUPagedLRUCache<ObjectID, Atom>::Create(GLenum target, size_t pageSize, si
 {
 	PROFILE_FUNCTION();
 
-	assert(pageSize > 0 && pageCount > 0);
-
-	bool result = m_Buffer.Create(target, pageSize * pageCount);
+	bool result = m_PagedBuffer.Create(target, pageSize, pageCount);
 
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUPagedLRUCache|{}] Created (pages={}, countPerPage={})",
-		m_Buffer.GetName(), pageSize, pageCount);
+		m_PagedBuffer.GetName(), pageSize, pageCount);
 
 	LOG_DEBUG(EngineSystem::GPU_BUFFER,
 		"[GPUPagedLRUCache|{}] reserved {:.2f} Mb",
-		m_Buffer.GetName(),
+		m_PagedBuffer.GetName(),
 		((sizeof(Atom) * pageCount * pageSize) / 1000000.0f));
-
-	m_PageSize = pageSize;
-
-	// calculate the number of elements needed for m_FreePages
-	const size_t arrSize = std::ceil(static_cast<double>(pageCount) / BYTE_TYPE_SIZE);
-
-	m_FreePages = new ByteType[arrSize];
-	std::fill(m_FreePages, m_FreePages + arrSize, std::numeric_limits<ByteType>::max());
-
-	// reserve ghost pages in data struct
-	if (pageCount % BYTE_TYPE_SIZE > 0)
-	{
-		const uint8_t lastElemUsedPages = pageCount % BYTE_TYPE_SIZE;
-		const ByteType ghostPagesMask = ~((1u << lastElemUsedPages) - 1);
-		m_FreePages[arrSize - 1] ^= ghostPagesMask;
-	}
 
 	return result;
 }
@@ -60,27 +42,23 @@ void GPUPagedLRUCache<ObjectID, Atom>::Destroy() noexcept
 
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUPagedLRUCache|{}] Destroyed",
-		m_Buffer.GetName());
+		m_PagedBuffer.GetName());
 
-	m_PageSize = 0;
-	delete[] m_FreePages;
 	m_ObjectMapping.clear();
 	m_ObjectAccessHistory.clear();
 
-	m_Buffer.Destroy();
+	m_PagedBuffer.Destroy();
 }
 
 template<typename ObjectID, typename Atom>
 void GPUPagedLRUCache<ObjectID, Atom>::AllocatePages(const ObjectID& obj, unsigned int pages)
 {
-	assert(pages > 0 && m_FreePages != nullptr);
-
 	std::vector<unsigned int> allocatedPages;
 	allocatedPages.reserve(pages);
 
 
 	// Not enough free pages found
-	bool sufficientPagesFound = _ReserveFirstFreePages(pages, allocatedPages);
+	bool sufficientPagesFound = m_PagedBuffer.ReserveFirstAvaliblePages(pages, allocatedPages);
 	while (!sufficientPagesFound)
 	{
 		sufficientPagesFound = _EvictLRUAndReserve(pages - allocatedPages.size(), allocatedPages);
@@ -91,7 +69,7 @@ void GPUPagedLRUCache<ObjectID, Atom>::AllocatePages(const ObjectID& obj, unsign
 	{
 		LOG_DEBUG(EngineSystem::GPU_BUFFER,
 			"[GPUPagedLRUCache|{}] allocating {} pages for exisiting object {}",
-			m_Buffer.GetName(),
+			m_PagedBuffer.GetName(),
 			pages,
 			obj);
 
@@ -103,7 +81,7 @@ void GPUPagedLRUCache<ObjectID, Atom>::AllocatePages(const ObjectID& obj, unsign
 	{
 		LOG_DEBUG(EngineSystem::GPU_BUFFER,
 			"[GPUPagedLRUCache|{}] allocating {} pages for new object {}",
-			m_Buffer.GetName(),
+			m_PagedBuffer.GetName(),
 			pages,
 			obj);
 
@@ -127,23 +105,22 @@ void GPUPagedLRUCache<ObjectID, Atom>::PushBackToObject(const ObjectID& obj, con
 	ObjectAllocationData& objAlloc = m_ObjectMapping[obj];
 
 	// Calculate the current page index for next insertion
-	const unsigned int pageIndex = objAlloc.count / m_PageSize;
-	const unsigned int pageElemOffset = objAlloc.count % m_PageSize;
+	const unsigned int pageIndex = objAlloc.count / m_PagedBuffer.GetPageSize();
+	const unsigned int pageElemOffset = objAlloc.count % m_PagedBuffer.GetPageSize();
 
 	// Allocate new page if needed
 	if (pageIndex >= objAlloc.GetSize())
 	{
 		LOG_DEBUG(EngineSystem::GPU_BUFFER,
 			"[GPUPagedLRUCache|{}] Push back overflow. Allocating page for object {}.",
-			m_Buffer.GetName(),
+			m_PagedBuffer.GetName(),
 			obj);
 		AllocatePages(obj, 1);
 	}
 
-	Atom* bufferHead = m_Buffer.GetContents();
 	const unsigned int targetPage = objAlloc.pages[pageIndex];
 
-	bufferHead[targetPage * m_PageSize + pageElemOffset] = data;
+	m_PagedBuffer[targetPage][pageElemOffset] = data;
 	objAlloc.count++;
 	_MarkRecentlyUsed(obj);
 }
@@ -151,7 +128,10 @@ void GPUPagedLRUCache<ObjectID, Atom>::PushBackToObject(const ObjectID& obj, con
 template<typename ObjectID, typename Atom>
 void GPUPagedLRUCache<ObjectID, Atom>::MoveObject(const ObjectID& src, const ObjectID& dst)
 {
-	_FreePages(m_ObjectMapping[src].pages);
+	for (const auto& page : m_ObjectMapping[src].pages)
+	{
+		m_PagedBuffer.FreePage(page);
+	}
 	m_ObjectMapping[dst] = std::move(m_ObjectMapping[src]);
 	m_ObjectMapping.erase(src);
 	m_ObjectAccessHistory.erase(src);
@@ -174,7 +154,10 @@ void GPUPagedLRUCache<ObjectID, Atom>::DeallocateObject(const ObjectID& obj)
 
 	ObjectAllocationData& alloc = m_ObjectMapping[obj];
 
-	_FreePages(alloc.pages);
+	for (const auto& page : alloc.pages)
+	{
+		m_PagedBuffer.FreePage(page);
+	}
 	m_ObjectAccessHistory.erase(alloc.lruIterator);
 	m_ObjectMapping.erase(obj);
 }
@@ -198,7 +181,7 @@ std::vector<GPUBufferRange> GPUPagedLRUCache<ObjectID, Atom>::GetObjectBufferRan
 	std::vector<GPUBufferRange> result;
 
 	const ObjectAllocationData& alloc = m_ObjectMapping.at(obj);
-	const unsigned int writePageIdx = (alloc.count - 1) / m_PageSize;
+	const unsigned int writePageIdx = (alloc.count - 1) / m_PagedBuffer.GetPageSize();
 	const unsigned int writePage = alloc.pages[writePageIdx];
 
 	std::unordered_set<unsigned int> pagesSet;
@@ -217,11 +200,11 @@ std::vector<GPUBufferRange> GPUPagedLRUCache<ObjectID, Atom>::GetObjectBufferRan
 
 
 			size_t pagesRange = (endPage - startPage);
-			size_t usedInLastPage = alloc.count % m_PageSize;
-			usedInLastPage = (usedInLastPage == 0 ? m_PageSize : usedInLastPage);
+			size_t usedInLastPage = alloc.count % m_PagedBuffer.GetPageSize();
+			usedInLastPage = (usedInLastPage == 0 ? m_PagedBuffer.GetPageSize() : usedInLastPage);
 
-			size_t length = pagesRange * m_PageSize + usedInLastPage;
-			result.emplace_back(startPage * m_PageSize, length);
+			size_t length = pagesRange * m_PagedBuffer.GetPageSize() + usedInLastPage;
+			result.emplace_back(startPage * m_PagedBuffer.GetPageSize(), length);
 
 		}
 	}

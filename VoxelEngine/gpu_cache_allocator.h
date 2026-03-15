@@ -32,7 +32,7 @@ public:
     std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj);
 
     inline bool Has(ObjectID obj) const { return m_ObjectMapping.contains(obj); }
-    inline GLuint GetName() const { return m_Buffer.GetName(); }
+    inline GLuint GetName() const { return m_PagedBuffer.GetName(); }
 
 private:
     using ByteType = uint8_t;
@@ -59,94 +59,11 @@ private:
     };
 
 private:
-    GPUPersistentlyMappedBuffer<Atom, NullBufferLockManager> m_Buffer;
-    ByteType* m_FreePages;
+    GPUPagedBuffer<Atom> m_PagedBuffer;
     std::list<ObjectID> m_ObjectAccessHistory;
     std::unordered_map<ObjectID, ObjectAllocationData> m_ObjectMapping; // map obj id => allocated pages, count of elements
 
-    size_t m_PageSize;
-
 private:
-    [[nodiscard]] inline bool _ReserveFirstFreePages(unsigned int n, std::vector<unsigned int>& pagesReserved)
-    {
-        assert(m_FreePages != nullptr);
-
-        const size_t pageCount = m_Buffer.GetSize() / m_PageSize;
-        const size_t freePagesArrSize = ceil(static_cast<double>(pageCount) / BYTE_TYPE_SIZE);
-
-        for (size_t index = 0; index < freePagesArrSize; index++)
-        {
-            ByteType pagesStatus = m_FreePages[index];
-
-            while (pagesStatus != 0)
-            {
-                unsigned long consecutiveReservedPages = GetTrailingZeros(pagesStatus);
-                pagesStatus >>= consecutiveReservedPages;
-                unsigned long consecutiveFreePages = GetTrailingOnes(pagesStatus);
-                unsigned long pagesToConsume = std::min(static_cast<unsigned long>(n), consecutiveFreePages);
-
-                ByteType consumeMask = ~((1 << pagesToConsume) - 1) << consecutiveReservedPages;
-                m_FreePages[index] &= consumeMask;
-                n -= pagesToConsume;
-
-                for (unsigned long i = 0; i < pagesToConsume; i++)
-                {
-                    unsigned long pageID = index * BYTE_TYPE_SIZE + consecutiveReservedPages + i;
-                    pagesReserved.push_back(pageID);
-                }
-
-                if (n == 0)
-                    return true;
-            }
-
-        }
-
-        if (n < 0)
-        {
-            LOG_ERROR(EngineSystem::GPU_BUFFER, "[GPUPagedLRUCache|{}] Something went wrong: Allocated more pages than needed"
-                , m_Buffer.GetName());
-        }
-
-        return false;
-    }
-
-    inline void _ReservePages(const std::vector<unsigned int>& pages)
-    {
-        assert(m_FreePages != nullptr);
-
-        for (const auto& page : pages)
-        {
-            const size_t byteIdx = page / BYTE_TYPE_SIZE;
-            const size_t bitIdx = page % BYTE_TYPE_SIZE;
-            m_FreePages[byteIdx] &= ~(1 << bitIdx); // Set bit to 0 => reserved
-        }
-    }
-
-    inline void _FreePages(const std::vector<unsigned int>& pages)
-    {
-        assert(m_FreePages != nullptr);
-#ifndef NDEBUG
-        const size_t pageCount = m_Buffer.GetSize() / m_PageSize;
-        const size_t arrSize = ceil(static_cast<double>(pageCount) / BYTE_TYPE_SIZE);
-        if (pageCount % BYTE_TYPE_SIZE > 0)
-        {
-            const uint8_t ghostPages = BYTE_TYPE_SIZE - pageCount % BYTE_TYPE_SIZE;
-            for (const auto& page : pages)
-            {
-                assert(page < (arrSize * BYTE_TYPE_SIZE) - ghostPages, "Not allowed to free ghost pages.");
-            }
-        }
-#endif
-
-        for (const auto& page : pages)
-        {
-            const size_t byteIdx = page / BYTE_TYPE_SIZE;
-            const size_t bitIdx = page % BYTE_TYPE_SIZE;
-            m_FreePages[byteIdx] |= (1 << bitIdx); // Set bit to 1 => free
-        }
-
-    }
-
     [[nodiscard]] inline bool _EvictLRUAndReserve(unsigned int n, std::vector<unsigned int>& reservedPages)
     {
         assert(!m_ObjectAccessHistory.empty());
@@ -155,14 +72,17 @@ private:
         m_ObjectAccessHistory.pop_back();
         ObjectAllocationData& objData = m_ObjectMapping[objToEvict];
 
-        _FreePages(objData.pages);
+        for (const auto& page : objData.pages)
+        {
+            m_PagedBuffer.FreePage(page);
+        }
 
         const int pagesToFree = objData.GetSize() - n;
         size_t numPagesToMove = std::min(static_cast<size_t>(n), objData.pages.size());
 
         LOG_DEBUG(EngineSystem::GPU_BUFFER,
             "[GPUPagedLRUCache|{}] Evicting object {} from cache (pages_freed={}, pages_reserved={})"
-            , m_Buffer.GetName()
+            , m_PagedBuffer.GetName()
             , objToEvict
             , objData.GetSize()
             , numPagesToMove);
