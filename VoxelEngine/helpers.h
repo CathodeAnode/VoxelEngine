@@ -21,7 +21,7 @@ inline unsigned long GetTrailingZeros(unsigned long long val)
 
 inline unsigned long GetTrailingOnes(unsigned long long val)
 {
-    if (val == 0) return 0;
+    if (val == ~0ULL) return BITS_IN_ULL;
 
     unsigned long ret;
 #ifdef _MSC_VER
