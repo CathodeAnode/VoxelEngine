@@ -10,13 +10,14 @@
 #include "gpu_buffer_allocator.h"
 #include "gpu_hashmap_allocator.h"
 #include "gpu_buffer_lock.h"
+#include "gpu_cache_policy.h"
 
-template<typename ObjectID, typename Atom>
-class GPUPagedLRUCache
+template<typename ObjectID, typename Atom, EvictionPolicy<ObjectID> Policy>
+class GPUPagedCache
 {
 public:
-    GPUPagedLRUCache(bool cpuUpdates = true);
-    ~GPUPagedLRUCache();
+    GPUPagedCache(bool cpuUpdates = true);
+    ~GPUPagedCache();
 
     bool Create(GLenum target, size_t pageSize, size_t pageCount) noexcept;
     void Destroy() noexcept;
@@ -36,11 +37,10 @@ public:
     inline GLuint GetName() const { return m_PagedBuffer.GetName(); }
 
 private:
-    struct ObjectAllocationData
+    struct ObjectAllocation
     {
-        std::vector<unsigned int> pages;
-        std::list<ObjectID>::iterator lruIterator;
-        size_t count;
+        std::vector<unsigned int> pages; // TODO: change to fix array and make constructor of GPUPagedCache determine max size
+        size_t elementCount;
 
         inline unsigned int GetSize() const noexcept
         {
@@ -55,10 +55,9 @@ private:
         }
     };
 
-private:
-    GPUPagedBuffer<Atom, ThreadMode::SingleThreaded> m_PagedBuffer;
-    std::list<ObjectID> m_ObjectAccessHistory;
-    std::unordered_map<ObjectID, ObjectAllocationData> m_ObjectMapping; // map obj id => allocated pages, count of elements
+    Policy m_Policy;
+    GPUPagedBuffer <Atom, ThreadMode::LockFree> m_PagedBuffer;
+    GPULockFreeHashMap<ObjectID, ObjectAllocation> m_ObjectPages; // TODO rename class to GPUHashMap and choose thread mode through template param
 
 private:
     [[nodiscard]] inline bool _EvictLRUAndReserve(unsigned int n, std::vector<unsigned int>& reservedPages)
