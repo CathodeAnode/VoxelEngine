@@ -10,7 +10,7 @@
 // debug for internal logic such as evictions, wrap around in ring buffer
 // info for creation & destruction
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 GPUPersistentlyMappedBuffer<Atom, LockManager>::GPUPersistentlyMappedBuffer(bool _cpuUpdates)
 	: m_LockManager(_cpuUpdates)
 	, m_BufferContents()
@@ -20,14 +20,14 @@ GPUPersistentlyMappedBuffer<Atom, LockManager>::GPUPersistentlyMappedBuffer(bool
 	PROFILE_FUNCTION();
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 GPUPersistentlyMappedBuffer<Atom, LockManager>::~GPUPersistentlyMappedBuffer()
 {
 	LOG_INFO(EngineSystem::GPU_BUFFER, "[GPUPersistentlyMappedBuffer|ID={}] Destroyed", m_Name);
 	Destroy();
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count, BufferAccess access)
 {
 	PROFILE_FUNCTION();
@@ -82,7 +82,7 @@ bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLui
 	return true;
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::Destroy()
 {
 	PROFILE_FUNCTION();
@@ -104,7 +104,7 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::Destroy()
 	m_Name = 0;
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::WaitForLockedRange(size_t _lockBegin, size_t _lockLength)
 {
 	LOG_TRACE(EngineSystem::GPU_BUFFER,
@@ -118,7 +118,7 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::WaitForLockedRange(size_t _
 	m_LockManager.WaitForLockedRange(_lockBegin * sizeof(Atom), _lockLength * sizeof(Atom));
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::LockRange(size_t _lockBegin, size_t _lockLength)
 {
 	LOG_TRACE(EngineSystem::GPU_BUFFER,
@@ -132,14 +132,14 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::LockRange(size_t _lockBegin
 	m_LockManager.LockRange(_lockBegin * sizeof(Atom), _lockLength * sizeof(Atom));
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBuffer()
 {
 	LOG_TRACE(EngineSystem::GPU_BUFFER, "Binding buffer (ID={}, target={})", m_Name, GPUAllocatorsUtils::ToString(m_Target));
 	glBindBuffer(m_Target, m_Name);
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferBase(GLuint _index)
 {
 	LOG_TRACE(EngineSystem::GPU_BUFFER,
@@ -148,7 +148,7 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferBase(GLuint _inde
 	glBindBufferBase(m_Target, _index, m_Name);
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferRange(GLuint _index, size_t _head, size_t _count)
 {
 	LOG_TRACE(EngineSystem::GPU_BUFFER,
@@ -166,14 +166,14 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferRange(GLuint _ind
 
 // ------------------------------------------------------------------------------------------------------------------
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 GPUCircularBuffer<Atom, LockManager>::GPUCircularBuffer(bool _cpuUpdates)
 	: m_Buffer(_cpuUpdates)
 {
 	PROFILE_FUNCTION();
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 bool GPUCircularBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count, BufferAccess access)
 {
 	PROFILE_FUNCTION();
@@ -185,7 +185,7 @@ bool GPUCircularBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count,
 	return result;
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUCircularBuffer<Atom, LockManager>::Destroy()
 {
 	PROFILE_FUNCTION();
@@ -196,7 +196,7 @@ void GPUCircularBuffer<Atom, LockManager>::Destroy()
 	m_Head = 0;
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 Atom* GPUCircularBuffer<Atom, LockManager>::Reserve(size_t _count)
 {
 	if (_count > m_Buffer.GetSize()) {
@@ -221,7 +221,7 @@ Atom* GPUCircularBuffer<Atom, LockManager>::Reserve(size_t _count)
 	return &m_Buffer.GetContents()[lockStart];
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 Atom* GPUCircularBuffer<Atom, LockManager>::ReserveRange(size_t start, size_t count)
 {
 	if (count > m_Buffer.GetSize()) {
@@ -244,7 +244,7 @@ Atom* GPUCircularBuffer<Atom, LockManager>::ReserveRange(size_t start, size_t co
 	return &m_Buffer.GetContents()[start];
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUCircularBuffer<Atom, LockManager>::OnUsageComplete(size_t _count)
 {
 	assert(_count <= m_Buffer.GetSize());
@@ -252,27 +252,27 @@ void GPUCircularBuffer<Atom, LockManager>::OnUsageComplete(size_t _count)
 	m_Head = (m_Head + _count) % m_Buffer.GetSize();
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUCircularBuffer<Atom, LockManager>::BindBuffer()
 {
 	m_Buffer.BindBuffer();
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUCircularBuffer<Atom, LockManager>::BindBufferBase(GLuint _index)
 {
 	m_Buffer.BindBufferBase(_index);
 }
 
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUCircularBuffer<Atom, LockManager>::BindBufferHeadRange(GLuint _index, size_t _count)
 {
 	assert(m_Head + _count <= m_Buffer.GetSize());
 	m_Buffer.BindBufferRange(_index, m_Head, _count);
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUCircularBuffer<Atom, LockManager>::BindBufferRange(GLuint _index, size_t _offset, size_t _count)
 {
 	m_Buffer.BindBufferRange(_index, _offset, _count);
@@ -280,14 +280,14 @@ void GPUCircularBuffer<Atom, LockManager>::BindBufferRange(GLuint _index, size_t
 
 // ------------------------------------------------------------------------------------------------------------------
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 inline GPUOrphanBuffer<Atom, LockManager>::GPUOrphanBuffer(bool _cpuUpdates)
 	: m_CircularBuffer(_cpuUpdates)
 {
 	PROFILE_FUNCTION();
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 bool GPUOrphanBuffer<Atom, LockManager>::Create(GLenum target, GLuint countPerBuffer, uint8_t numOfBuffers, BufferAccess access)
 {
 	assert(numOfBuffers > 0);
@@ -307,7 +307,7 @@ bool GPUOrphanBuffer<Atom, LockManager>::Create(GLenum target, GLuint countPerBu
 	return result;
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUOrphanBuffer<Atom, LockManager>::Destroy()
 {
 	PROFILE_FUNCTION();
@@ -321,37 +321,37 @@ void GPUOrphanBuffer<Atom, LockManager>::Destroy()
 	m_CircularBuffer.Destroy();
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUOrphanBuffer<Atom, LockManager>::AdvanceHead()
 {
 	m_CircularBuffer.OnUsageComplete(m_CountPerBuffer);
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUOrphanBuffer<Atom, LockManager>::AdvanceTail()
 {
 	m_Tail = (m_Tail + m_CountPerBuffer) % m_CircularBuffer.GetSize();
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUOrphanBuffer<Atom, LockManager>::BindHeadBuffer(GLuint index)
 {
 	m_CircularBuffer.BindBufferHeadRange(index, m_CountPerBuffer);
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUOrphanBuffer<Atom, LockManager>::BindHeadBufferRange(GLuint index, size_t count)
 {
 	m_CircularBuffer.BindBufferHeadRange(index, count);
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUOrphanBuffer<Atom, LockManager>::BindTailBuffer(GLuint index)
 {
 	m_CircularBuffer.BindBufferRange(index, m_Tail, m_CountPerBuffer);
 }
 
-template<typename Atom, IBufferLockManager LockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 void GPUOrphanBuffer<Atom, LockManager>::BindTailBufferRange(GLuint index, size_t count)
 {
 	m_CircularBuffer.BindBufferRange(index, m_Tail, count);
@@ -359,7 +359,7 @@ void GPUOrphanBuffer<Atom, LockManager>::BindTailBufferRange(GLuint index, size_
 
 // ------------------------------------------------------------------------------------------------------------------
 
-//template<typename Atom>
+//template<GPUSafeStruct Atom>
 //GPUPagedBuffer<Atom>::GPUPagedBuffer()
 //	: m_AtomCount(0)
 //	, m_MaxAtomCount(0)
@@ -368,13 +368,13 @@ void GPUOrphanBuffer<Atom, LockManager>::BindTailBufferRange(GLuint index, size_
 //	m_PageTable.reserve(m_KInitialPageTableCapacity);
 //}
 //
-//template<typename Atom>
+//template<GPUSafeStruct Atom>
 //GPUPagedBuffer<Atom>::~GPUPagedBuffer()
 //{
 //	Destroy();
 //}
 //
-//template<typename Atom>
+//template<GPUSafeStruct Atom>
 //bool GPUPagedBuffer<Atom>::Create(GLenum _target, GLuint _count) noexcept
 //{
 //	m_Target = _target;
@@ -390,13 +390,13 @@ void GPUOrphanBuffer<Atom, LockManager>::BindTailBufferRange(GLuint index, size_
 //	return true;
 //}
 //
-//template<typename Atom>
+//template<GPUSafeStruct Atom>
 //void GPUPagedBuffer<Atom>::Destroy() noexcept
 //{
 //	glDeleteBuffers(1, &m_Name);
 //}
 //
-//template<typename Atom>
+//template<GPUSafeStruct Atom>
 //size_t GPUPagedBuffer<Atom>::UploadPageData(const std::vector<Atom>& data) noexcept
 //{
 //	const unsigned int count = data.size();
@@ -409,7 +409,7 @@ void GPUOrphanBuffer<Atom, LockManager>::BindTailBufferRange(GLuint index, size_
 //	return m_PageTable.size() - 1;
 //}
 //
-//template<typename Atom>
+//template<GPUSafeStruct Atom>
 //bool GPUPagedBuffer<Atom>::UpdatePage(const size_t& pageId, const std::vector<Atom>& data) noexcept
 //{
 //	const size_t newPageCount = data.size();
@@ -444,7 +444,7 @@ void GPUOrphanBuffer<Atom, LockManager>::BindTailBufferRange(GLuint index, size_
 //	return true;
 //}
 //
-//template<typename Atom>
+//template<GPUSafeStruct Atom>
 //Page GPUPagedBuffer<Atom>::GetPageOffset(const size_t& pageId) noexcept
 //{
 //	// page does not exisit
@@ -455,7 +455,7 @@ void GPUOrphanBuffer<Atom, LockManager>::BindTailBufferRange(GLuint index, size_
 //	return m_PageTable[pageId];
 //}
 //
-//template<typename Atom>
+//template<GPUSafeStruct Atom>
 //void GPUPagedBuffer<Atom>::move(size_t srcIndex, size_t dstIndex, size_t length)
 //{
 //	// if intervials overlap
@@ -493,19 +493,19 @@ void GPUOrphanBuffer<Atom, LockManager>::BindTailBufferRange(GLuint index, size_
 //	}
 //}
 
-template<typename Atom, ThreadMode Mode>
+template<GPUSafeStruct Atom, ThreadMode Mode>
 GPUPagedBuffer<Atom, Mode>::GPUPagedBuffer(bool cpuUpdates)
 	: m_RawBuffer(cpuUpdates)
 {
 }
 
-template<typename Atom, ThreadMode Mode>
+template<GPUSafeStruct Atom, ThreadMode Mode>
 GPUPagedBuffer<Atom, Mode>::~GPUPagedBuffer()
 {
 	Destroy();
 }
 
-template<typename Atom, ThreadMode Mode>
+template<GPUSafeStruct Atom, ThreadMode Mode>
 inline Atom* GPUPagedBuffer<Atom, Mode>::operator[](Page pageNum)
 {
 	assert(pageNum < GetPageCount());
@@ -513,7 +513,7 @@ inline Atom* GPUPagedBuffer<Atom, Mode>::operator[](Page pageNum)
 	return m_RawBuffer.GetContents() + pageNum * m_PageSize;
 }
 
-template<typename Atom, ThreadMode Mode>
+template<GPUSafeStruct Atom, ThreadMode Mode>
 const Atom* GPUPagedBuffer<Atom, Mode>::operator[](Page pageNum) const
 {
 	assert(pageNum < GetPageCount());
@@ -521,7 +521,7 @@ const Atom* GPUPagedBuffer<Atom, Mode>::operator[](Page pageNum) const
 	return m_RawBuffer.GetContents() + pageNum * m_PageSize;
 }
 
-template<typename Atom, ThreadMode Mode>
+template<GPUSafeStruct Atom, ThreadMode Mode>
 bool GPUPagedBuffer<Atom, Mode>::Create(GLenum target, size_t pageSize, size_t pageCount) noexcept
 {
 	PROFILE_FUNCTION();
@@ -586,7 +586,7 @@ bool GPUPagedBuffer<Atom, Mode>::Create(GLenum target, size_t pageSize, size_t p
 	return success;
 }
 
-template<typename Atom, ThreadMode Mode>
+template<GPUSafeStruct Atom, ThreadMode Mode>
 void GPUPagedBuffer<Atom, Mode>::Destroy() noexcept
 {
 	PROFILE_FUNCTION();
@@ -601,7 +601,7 @@ void GPUPagedBuffer<Atom, Mode>::Destroy() noexcept
 	m_RawBuffer.Destroy();
 }
 
-template<typename Atom, ThreadMode Mode>
+template<GPUSafeStruct Atom, ThreadMode Mode>
 void GPUPagedBuffer<Atom, Mode>::ReservePage(Page pageNum)
 {
 	assert(m_FreePages != nullptr);
@@ -640,7 +640,7 @@ void GPUPagedBuffer<Atom, Mode>::ReservePage(Page pageNum)
 	}
 }
 
-template<typename Atom, ThreadMode Mode>
+template<GPUSafeStruct Atom, ThreadMode Mode>
 void GPUPagedBuffer<Atom, Mode>::FreePage(Page pageNum)
 {
 	assert(m_FreePages != nullptr);
@@ -679,7 +679,7 @@ void GPUPagedBuffer<Atom, Mode>::FreePage(Page pageNum)
 	}
 }
 
-template<typename Atom, ThreadMode Mode>
+template<GPUSafeStruct Atom, ThreadMode Mode>
 bool GPUPagedBuffer<Atom, Mode>::ReserveFirstAvaliblePages(unsigned int n, std::vector<unsigned int>& outPages)
 {
 	assert(m_FreePages != nullptr);
@@ -766,7 +766,7 @@ bool GPUPagedBuffer<Atom, Mode>::ReserveFirstAvaliblePages(unsigned int n, std::
 	return  n == 0;
 }
 
-template<typename Atom, ThreadMode Mode>
+template<GPUSafeStruct Atom, ThreadMode Mode>
 bool GPUPagedBuffer<Atom, Mode>::_IsPageReserved(Page pageNum) const noexcept
 {
 	const size_t byteIdx = pageNum / WORD_BITS;

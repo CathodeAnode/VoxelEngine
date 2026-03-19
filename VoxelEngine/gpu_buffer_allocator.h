@@ -7,6 +7,8 @@
 #include <vector>
 #include <stdexcept>
 #include <cassert>
+#include <concepts>
+#include <cstddef>
 
 #include "gpu_buffer_lock.h"
 #include "helpers.h"
@@ -87,9 +89,16 @@ namespace GPUAllocatorsUtils
     }
 }
 
+template<typename T>
+concept GPUSafeStruct = std::is_trivially_copyable_v<T>
+    && std::is_standard_layout_v<T>
+    && !std::is_polymorphic_v<T>
+    && !std::is_reference_v<T>
+    && !std::is_pointer_v<T>;
 
 
-template<typename Atom, IBufferLockManager LockManager = GPUBufferLockManager>
+
+template<GPUSafeStruct Atom, IBufferLockManager LockManager = GPUBufferLockManager>
 class GPUPersistentlyMappedBuffer
 {
 public:
@@ -119,7 +128,7 @@ private:
     uint32_t m_CountAtoms;
 };
 
-template<typename Atom, IBufferLockManager LockManager = GPUBufferLockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager = GPUBufferLockManager>
 class GPUCircularBuffer
 {
 public:
@@ -147,7 +156,7 @@ private:
     size_t m_Head = 0;
 };
 
-template<typename Atom, IBufferLockManager LockManager = GPUBufferLockManager>
+template<GPUSafeStruct Atom, IBufferLockManager LockManager = GPUBufferLockManager>
 class GPUOrphanBuffer
 {
 public:
@@ -215,7 +224,7 @@ private:
 //    void move(size_t srcIndex, size_t dstIndex, size_t length);
 //};
 
-template<typename Atom, ThreadMode Mode>
+template<GPUSafeStruct Atom, ThreadMode Mode>
 class GPUPagedBuffer
 {
 public:
