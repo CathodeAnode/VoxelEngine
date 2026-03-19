@@ -12,7 +12,8 @@
 #include "gpu_buffer_lock.h"
 #include "gpu_cache_policy.h"
 
-template<typename ObjectID, typename Atom, EvictionPolicy<ObjectID> Policy>
+template<typename ObjectID, typename Atom, template<typename> typename Policy>
+    requires EvictionPolicy<Policy<ObjectID>, ObjectID>
 class GPUPagedCache
 {
 public:
@@ -33,14 +34,14 @@ public:
     void ClearObject(const ObjectID& obj);
     std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj);
 
-    inline bool Has(ObjectID obj) const { return m_ObjectMapping.contains(obj); }
+    inline bool Has(ObjectID obj) const { return m_ObjectPages.contains(obj); }
     inline GLuint GetName() const { return m_PagedBuffer.GetName(); }
 
 private:
     struct ObjectAllocation
     {
+        unsigned int elementCount;
         std::vector<unsigned int> pages; // TODO: change to fix array and make constructor of GPUPagedCache determine max size
-        size_t elementCount;
 
         inline unsigned int GetSize() const noexcept
         {
@@ -55,22 +56,20 @@ private:
         }
     };
 
-    Policy m_Policy;
+    Policy<ObjectID> m_Policy;
     GPUPagedBuffer <Atom, ThreadMode::LockFree> m_PagedBuffer;
     GPULockFreeHashMap<ObjectID, ObjectAllocation> m_ObjectPages; // TODO rename class to GPUHashMap and choose thread mode through template param
 
 private:
     [[nodiscard]] inline bool _EvictLRUAndReserve(unsigned int n, std::vector<unsigned int>& reservedPages)
     {
-        assert(!m_ObjectAccessHistory.empty());
+        ObjectID objToEvict = m_Policy.SelectVictim();
+        m_Policy.OnRemove(objToEvict);
 
-        ObjectID objToEvict = m_ObjectAccessHistory.back();
-        m_ObjectAccessHistory.pop_back();
+        auto it = m_ObjectPages.find(objToEvict);
+        assert(it != m_ObjectPages.end());
 
-        auto it = m_ObjectMapping.find(objToEvict);
-        assert(it != m_ObjectMapping.end());
-
-        ObjectAllocationData& objData = it->second;
+        ObjectAllocation& objData = it->second;
 
         size_t numPagesToMove = std::min(static_cast<size_t>(n), objData.pages.size());
 
@@ -90,20 +89,8 @@ private:
             m_PagedBuffer.FreePage(objData.pages[i]);
         }
 
-        m_ObjectMapping.erase(it);
-
         return numPagesToMove < n;
     }
-
-    inline void _MarkRecentlyUsed(const ObjectID& obj)
-    {
-        assert(m_ObjectMapping.contains(obj));
-
-        ObjectAllocationData& objData = m_ObjectMapping[obj];
-        m_ObjectAccessHistory.splice(m_ObjectAccessHistory.begin(), m_ObjectAccessHistory, objData.lruIterator);
-        objData.lruIterator = m_ObjectAccessHistory.begin();
-    }
-
 };
 
 #include "gpu_cache_allocator.tpp"
