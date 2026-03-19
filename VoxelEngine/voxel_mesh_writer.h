@@ -21,16 +21,26 @@ private:
 	ChunkQuads& m_Container;
 };
 
+template<typename Cache>
 class GPUVoxelMeshCacheWriter
 {
 public:
-	GPUVoxelMeshCacheWriter(GPUPagedLRUCache<VoxelObjectID, VoxelQuad>& cache);
+	GPUVoxelMeshCacheWriter(Cache& cache)
+		: m_Cache(cache)
+		, m_TargetObjectID(0)
+	{}
 
-	void Write(QuadMeshData quadData, RGBAColor quadColor);
-	void SetTargetObject(VoxelObjectID obj);
+	void Write(QuadMeshData quadData, RGBAColor quadColor)
+	{
+		m_Cache.PushBackToObject(m_TargetObjectID, { quadData, quadColor });
+	}
+	void SetTargetObject(VoxelObjectID obj)
+	{
+		m_TargetObjectID = obj;
+	}
 
 private:
-	GPUPagedLRUCache<VoxelObjectID, VoxelQuad>& m_Cache;
+	Cache& m_Cache;
 	VoxelObjectID m_TargetObjectID;
 };
 
