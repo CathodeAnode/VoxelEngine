@@ -28,6 +28,20 @@ GPUPersistentlyMappedBuffer<Atom, LockManager>::~GPUPersistentlyMappedBuffer()
 }
 
 template<GPUSafeStruct Atom, IBufferLockManager LockManager>
+Atom& GPUPersistentlyMappedBuffer<Atom, LockManager>::operator[](size_t index)
+{
+	assert(index < m_CountAtoms && "Index out of bounds");
+	return m_BufferContents[index];
+}
+
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
+const Atom& GPUPersistentlyMappedBuffer<Atom, LockManager>::operator[](size_t index) const
+{
+	assert(index < m_CountAtoms && "Index out of bounds");
+	return m_BufferContents[index];
+}
+
+template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLuint _count, BufferAccess access)
 {
 	PROFILE_FUNCTION();
@@ -522,7 +536,7 @@ const Atom* GPUPagedBuffer<Atom, Mode>::operator[](Page pageNum) const
 }
 
 template<GPUSafeStruct Atom, ThreadMode Mode>
-bool GPUPagedBuffer<Atom, Mode>::Create(GLenum target, size_t pageSize, size_t pageCount) noexcept
+bool GPUPagedBuffer<Atom, Mode>::Create(GLenum target, size_t pageSize, uint16_t pageCount) noexcept
 {
 	PROFILE_FUNCTION();
 

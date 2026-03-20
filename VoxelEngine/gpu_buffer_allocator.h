@@ -105,6 +105,9 @@ public:
     GPUPersistentlyMappedBuffer(bool _cpuUpdates);
     ~GPUPersistentlyMappedBuffer();
 
+    Atom& operator[](size_t index);
+    const Atom& operator[](size_t index) const;
+
     bool Create(GLenum _target, GLuint _count, BufferAccess access=BufferAccess::WriteOnly);
     void Destroy();
 
@@ -228,7 +231,7 @@ template<GPUSafeStruct Atom, ThreadMode Mode>
 class GPUPagedBuffer
 {
 public:
-    using Page = size_t;
+    using Page = uint16_t;
 
     GPUPagedBuffer(bool cpuUpdates = true);
     ~GPUPagedBuffer();
@@ -236,7 +239,7 @@ public:
     Atom* operator[](Page pageNum);
     const Atom* operator[](Page pageNum) const;
 
-    bool Create(GLenum target, size_t pageSize, size_t pageCount) noexcept;
+    bool Create(GLenum target, size_t pageSize, uint16_t pageCount) noexcept;
     void Destroy() noexcept;
 
     void ReservePage(Page pageNum);
