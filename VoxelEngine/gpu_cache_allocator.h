@@ -20,10 +20,10 @@ public:
     GPUPagedCache(bool cpuUpdates = true);
     ~GPUPagedCache();
 
-    bool Create(GLenum target, size_t pageSize, size_t pageCount) noexcept;
+    bool Create(GLenum target, size_t pageSize, uint16_t pageCount) noexcept;
     void Destroy() noexcept;
 
-    void AllocatePages(const ObjectID& obj, unsigned int pages);
+    void AllocatePages(const ObjectID& obj, uint16_t pageCount);
     void PushBackToObject(const ObjectID& obj, const Atom& data);
     //TODO: make emplace back function for Atom&& (r-value)
 
@@ -40,57 +40,53 @@ public:
 private:
     struct ObjectAllocation
     {
-        unsigned int elementCount;
-        std::vector<unsigned int> pages; // TODO: change to fix array and make constructor of GPUPagedCache determine max size
+        unsigned int totalElementCount = 0;
+        uint16_t startPage = PageNode::NULL_PAGE;
+        uint16_t endPage = PageNode::NULL_PAGE;
 
-        inline unsigned int GetSize() const noexcept
+        inline unsigned int GetPageCount(unsigned int pageSize) const noexcept
         {
-            return pages.size();
+            return (totalElementCount + pageSize - 1) / pageSize;
         }
 
-        inline void PushBackPages(std::vector<unsigned int>&& p) noexcept
+        inline bool IsEmpty() const noexcept
         {
-            pages.insert(pages.end(),
-                std::make_move_iterator(p.begin()),
-                std::make_move_iterator(p.end()));
+            return startPage == PageNode::NULL_PAGE;
         }
     };
 
+    struct PageNode
+    {
+        static inline constexpr uint16_t NULL_PAGE = std::numeric_limits<uint16_t>::max();
+
+        uint16_t next;
+    };
+
+    struct SplitChain
+    {
+        uint16_t takeStart;
+        uint16_t takeEnd;
+        uint16_t remainingStart;
+    };
+
     Policy<ObjectID> m_Policy;
-    GPUPagedBuffer <Atom, ThreadMode::LockFree> m_PagedBuffer;
-    GPULockFreeHashMap<ObjectID, ObjectAllocation> m_ObjectPages; // TODO rename class to GPUHashMap and choose thread mode through template param
+    GPUPagedBuffer<Atom, ThreadMode::LockFree> m_PagedBuffer;
+    GPUPersistentlyMappedBuffer<PageNode> m_PageNodes;
+    std::unordered_map<ObjectID, ObjectAllocation> m_ObjectPages; // TODO rename class to GPUHashMap and choose thread mode through template param
 
 private:
-    [[nodiscard]] inline bool _EvictLRUAndReserve(unsigned int n, std::vector<unsigned int>& reservedPages)
-    {
-        ObjectID objToEvict = m_Policy.SelectVictim();
-        m_Policy.OnRemove(objToEvict);
+    void _FreeObject(const ObjectID& obj);
+    void _FreeChain(uint16_t startPage);
+    void _BuildPageChain(ObjectAllocation& alloc, const std::vector<uint16_t>& pages);
+    void _AppendPages(ObjectAllocation& alloc, const std::vector<uint16_t>& pages);
+    std::unordered_set<uint16_t> _CollectPages(const ObjectAllocation& alloc);
 
-        auto it = m_ObjectPages.find(objToEvict);
-        assert(it != m_ObjectPages.end());
+    [[nodiscard]] bool _TryReservePages(const ObjectID& obj, uint16_t pageCount);
+    void _EvictAndTakePages(ObjectAllocation& targetAlloc, uint16_t requiredPages);
+    SplitChain _SplitVictimChain(ObjectAllocation& victim, uint16_t pagesToTake);
+    void _AttachPages(ObjectAllocation& target, uint16_t start, uint16_t end);
 
-        ObjectAllocation& objData = it->second;
 
-        size_t numPagesToMove = std::min(static_cast<size_t>(n), objData.pages.size());
-
-        LOG_DEBUG(EngineSystem::GPU_BUFFER,
-            "[GPUPagedLRUCache|{}] Evicting object {} from cache (pages_freed={}, pages_reserved={})",
-            m_PagedBuffer.GetName(),
-            objToEvict,
-            objData.pages.size() - numPagesToMove,
-            numPagesToMove);
-
-        reservedPages.insert(reservedPages.end(),
-            objData.pages.begin(),
-            objData.pages.begin() + numPagesToMove);
-
-        for (size_t i = numPagesToMove; i < objData.pages.size(); ++i)
-        {
-            m_PagedBuffer.FreePage(objData.pages[i]);
-        }
-
-        return numPagesToMove < n;
-    }
 };
 
 #include "gpu_cache_allocator.tpp"

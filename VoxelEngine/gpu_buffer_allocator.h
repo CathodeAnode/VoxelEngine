@@ -244,7 +244,7 @@ public:
 
     void ReservePage(Page pageNum);
     void FreePage(Page pageNum);
-    [[nodiscard]] bool ReserveFirstAvaliblePages(unsigned int n, std::vector<unsigned int>& outPages);
+    [[nodiscard]] bool ReserveFirstAvaliblePages(unsigned int n, std::vector<uint16_t>& outPages);
 
     size_t GetPageSize() const noexcept { return m_PageSize; }
     size_t GetPageCount() const noexcept { return m_RawBuffer.GetSize() / m_PageSize; }
