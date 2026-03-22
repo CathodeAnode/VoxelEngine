@@ -26,6 +26,12 @@ bool GPULockFreeHashMap<K, V>::Create(size_t cap)
 }
 
 template<LockFreeKey K, LockFreeValue V>
+void GPULockFreeHashMap<K, V>::Destroy()
+{
+    m_Table.Destroy();
+}
+
+template<LockFreeKey K, LockFreeValue V>
 bool GPULockFreeHashMap<K, V>::Insert(const K& key, const V& value)
 {
     Entry* table = m_Table.GetContents();
@@ -134,6 +140,50 @@ bool GPULockFreeHashMap<K, V>::Erase(const K& key)
     }
 
     return false;
+}
+
+template<LockFreeKey K, LockFreeValue V>
+template<typename... Args>
+bool GPULockFreeHashMap<K, V>::Emplace(const K& key, Args&&... args)
+{
+    Entry* table = m_Table.GetContents();
+    size_t cap = m_Table.GetSize();
+
+    size_t start = _Hash(key);
+
+    for (size_t probe = 0; probe < cap; ++probe)
+    {
+        Entry& entry = table[(start + probe) % cap];
+
+        std::atomic_ref<K> atomicKey(entry.key);
+
+        K current = atomicKey.load(std::memory_order_acquire);
+
+        // Empty slot => try to claim
+        if (current == EMPTY_KEY || current == TOMBSTONE_KEY)
+        {
+            K expected = current;
+
+            if (atomicKey.compare_exchange_strong(
+                expected,
+                key,
+                std::memory_order_acq_rel))
+            {
+                // construct value in-place
+                entry.value = V(std::forward<Args>(args)...);
+                return true;
+            }
+        }
+
+        // Update existing key
+        if (current == key)
+        {
+            entry.value = V(std::forward<Args>(args)...);
+            return true;
+        }
+    }
+
+    return false; // table full
 }
 
 #endif

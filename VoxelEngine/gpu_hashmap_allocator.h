@@ -30,11 +30,15 @@ public:
     GPULockFreeHashMap();
 
     bool Create(size_t cap);
+    void Destroy();
 
     bool Insert(const K& key, const V& value);
     bool Find(const K& key, V& out) const;
     bool Contains(const K& key) const;
     bool Erase(const K& key);
+
+    template<typename... Args>
+    bool Emplace(const K& key, Args&&... args)
 private:
     struct Entry 
     {
