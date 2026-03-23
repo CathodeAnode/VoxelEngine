@@ -34,7 +34,7 @@ public:
     void ClearObject(const ObjectID& obj);
     std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj);
 
-    inline bool Has(ObjectID obj) const { return m_ObjectPages.contains(obj); }
+    inline bool Has(ObjectID obj) const { return m_ObjectPages.Contains(obj); }
     inline GLuint GetName() const { return m_PagedBuffer.GetName(); }
 
 private:
@@ -69,10 +69,11 @@ private:
         uint16_t remainingStart;
     };
 
+private:
     Policy<ObjectID> m_Policy;
     GPUPagedBuffer<Atom, ThreadMode::LockFree> m_PagedBuffer;
     GPUPersistentlyMappedBuffer<PageNode> m_PageNodes;
-    std::unordered_map<ObjectID, ObjectAllocation> m_ObjectPages; // TODO rename class to GPUHashMap and choose thread mode through template param
+    GPULockFreeHashMap<ObjectID, ObjectAllocation> m_ObjectPages; // TODO rename class to GPUHashMap and choose thread mode through template param
 
 private:
     void _FreeObject(const ObjectID& obj);
@@ -82,9 +83,9 @@ private:
     std::unordered_set<uint16_t> _CollectPages(const ObjectAllocation& alloc);
 
     [[nodiscard]] bool _TryReservePages(const ObjectID& obj, uint16_t pageCount);
-    void _EvictAndTakePages(ObjectAllocation& targetAlloc, uint16_t requiredPages);
+    [[nodiscard]] bool _EvictAndTakePages(const ObjectID& obj, ObjectAllocation& targetAlloc, uint16_t requiredPages);
     SplitChain _SplitVictimChain(ObjectAllocation& victim, uint16_t pagesToTake);
-    void _AttachPages(ObjectAllocation& target, uint16_t start, uint16_t end);
+    void _AttachPages(const ObjectID& obj, ObjectAllocation& target, uint16_t start, uint16_t end);
 
 
 };

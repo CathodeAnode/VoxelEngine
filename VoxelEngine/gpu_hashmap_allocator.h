@@ -38,7 +38,7 @@ public:
     bool Erase(const K& key);
 
     template<typename... Args>
-    bool Emplace(const K& key, Args&&... args)
+    bool Emplace(const K& key, Args&&... args);
 private:
     struct Entry 
     {
