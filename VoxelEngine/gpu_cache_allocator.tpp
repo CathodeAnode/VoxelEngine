@@ -113,7 +113,7 @@ void GPUPagedCache<ObjectID, Atom, Policy>::PushBackToObject(const ObjectID& obj
 	const unsigned int pageElemOffset = objAlloc.totalElementCount % pageSize;
 
 	// Allocate new page if needed
-	if (pageIndex >= objAlloc.GetPageCount(pageSize))
+	if (pageIndex > objAlloc.GetPageCount(pageSize))
 	{
 		LOG_DEBUG(EngineSystem::GPU_BUFFER,
 			"[GPUPagedCache|{}] Push back overflow. Allocating page for object {}.",
