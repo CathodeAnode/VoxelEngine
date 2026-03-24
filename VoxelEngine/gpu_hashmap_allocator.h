@@ -48,8 +48,8 @@ private:
 
     GPUPersistentlyMappedBuffer<Entry> m_Table;
 
-    static constexpr K EMPTY_KEY = K();
-    static constexpr K TOMBSTONE_KEY = K(-1);
+    static constexpr K EMPTY_KEY = std::numeric_limits<K>::max();;
+    static constexpr K TOMBSTONE_KEY = std::numeric_limits<K>::min();;
 
     static inline uint64_t Hash64(uint64_t x)
     {
