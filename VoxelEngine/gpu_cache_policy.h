@@ -8,9 +8,11 @@
 template<typename Policy, typename ObjectID>
 concept EvictionPolicy = requires(Policy policy, const ObjectID & objectID)
 {
-    { policy.OnAccess(objectID) } noexcept -> std::same_as<void>;
-    { policy.OnInsert(objectID) } noexcept -> std::same_as<void>;
-    { policy.OnRemove(objectID) } noexcept -> std::same_as<void>;
+    typename Policy::Handle;
+
+    { policy.OnAccess(std::declval<typename Policy::Handle&>()) } noexcept -> std::same_as<void>;
+    { policy.OnInsert(objectID) } noexcept -> std::same_as<typename Policy::Handle>;
+    { policy.OnRemove(std::declval<typename Policy::Handle&>()) } noexcept -> std::same_as<void>;
     { policy.SelectVictim() } noexcept -> std::convertible_to<ObjectID>;
 };
 
@@ -18,48 +20,135 @@ template<typename ObjectID>
 class LRUPolicy
 {
 public:
-    void OnAccess(const ObjectID& id) noexcept
+    using Index = uint32_t;
+    static constexpr Index NULL_INDEX = std::numeric_limits<Index>::max();
+
+    struct Handle 
     {
-        auto it = m_ObjectMapping.find(id);
-        if (it == m_ObjectMapping.end())
-            return;
+        Index index = NULL_INDEX;
+    };
 
-        m_ObjectAccessHistory.splice(
-            m_ObjectAccessHistory.begin(),
-            m_ObjectAccessHistory,
-            it->second
-        );
+public:
+    LRUPolicy() = default;
 
-        it->second = m_ObjectAccessHistory.begin();
+    void OnAccess(Handle& h) noexcept
+    {
+        assert(_IsValid(h.index));
+        _MoveToFront(h.index);
     }
 
-    void OnInsert(const ObjectID& id) noexcept
+    Handle OnInsert(const ObjectID& id) noexcept
     {
-        m_ObjectAccessHistory.push_front(id);
-        m_ObjectMapping[id] = m_ObjectAccessHistory.begin();
+        Index idx = _AllocateNode();
+        Node& n = m_Nodes[idx];
+
+        n.id = id;
+        n.prev = NULL_INDEX;
+        n.next = NULL_INDEX;
+
+        _InsertFront(idx);
+
+        return Handle{ idx };
     }
 
-    void OnRemove(const ObjectID& id) noexcept
+    void OnRemove(Handle& h) noexcept
     {
-        auto it = m_ObjectMapping.find(id);
-        if (it == m_ObjectMapping.end())
+        if (!_IsValid(h.index))
             return;
 
-        m_ObjectAccessHistory.erase(it->second);
-        m_ObjectMapping.erase(it);
+        _RemoveNode(h.index);
+        _FreeNode(h.index);
+
+        h.index = NULL_INDEX;
     }
 
     [[nodiscard]] ObjectID SelectVictim() noexcept
     {
-        assert(!m_ObjectAccessHistory.empty());
-        return m_ObjectAccessHistory.back();
+        assert(m_Tail != NULL_INDEX);
+        return m_Nodes[m_Tail].id;
     }
 
 private:
-    using ListIt = typename std::list<ObjectID>::iterator;
+    struct Node 
+    {
+        ObjectID id;
+        Index prev = NULL_INDEX;
+        Index next = NULL_INDEX;
+    };
 
-    std::list<ObjectID> m_ObjectAccessHistory;
-    std::unordered_map<ObjectID, ListIt> m_ObjectMapping;
+private:
+    std::vector<Node> m_Nodes;
+    std::vector<Index> m_FreeList;
+
+    Index m_Head = NULL_INDEX;
+    Index m_Tail = NULL_INDEX;
+
+private:
+    bool _IsValid(Index i) const noexcept
+    {
+        return i != NULL_INDEX && i < m_Nodes.size();
+    }
+
+    Index _AllocateNode() noexcept
+    {
+        if (!m_FreeList.empty())
+        {
+            Index idx = m_FreeList.back();
+            m_FreeList.pop_back();
+            return idx;
+        }
+
+        m_Nodes.emplace_back();
+        return static_cast<Index>(m_Nodes.size() - 1);
+    }
+
+    void _FreeNode(Index idx) noexcept
+    {
+        m_FreeList.push_back(idx);
+    }
+
+    void _InsertFront(Index idx) noexcept
+    {
+        Node& n = m_Nodes[idx];
+
+        n.prev = NULL_INDEX;
+        n.next = m_Head;
+
+        if (m_Head != NULL_INDEX)
+            m_Nodes[m_Head].prev = idx;
+
+        m_Head = idx;
+
+        if (m_Tail == NULL_INDEX)
+            m_Tail = idx;
+    }
+
+    void _RemoveNode(Index idx) noexcept
+    {
+        Node& n = m_Nodes[idx];
+
+        if (n.prev != NULL_INDEX)
+            m_Nodes[n.prev].next = n.next;
+        else
+            m_Head = n.next;
+
+        if (n.next != NULL_INDEX)
+            m_Nodes[n.next].prev = n.prev;
+        else
+            m_Tail = n.prev;
+
+        n.prev = NULL_INDEX;
+        n.next = NULL_INDEX;
+    }
+
+    void _MoveToFront(Index idx) noexcept
+    {
+        if (idx == m_Head)
+            return;
+
+        _RemoveNode(idx);
+        _InsertFront(idx);
+    }
 };
 
 template<typename ObjectID>

@@ -44,6 +44,8 @@ private:
         uint16_t startPage = PageNode::NULL_PAGE;
         uint16_t endPage = PageNode::NULL_PAGE;
 
+        Policy<ObjectID>::Handle policyHandle;
+
         inline unsigned int GetPageCount(unsigned int pageSize) const noexcept
         {
             return (totalElementCount + pageSize - 1) / pageSize;
