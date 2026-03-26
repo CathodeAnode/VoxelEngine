@@ -119,7 +119,7 @@ void Application<ChunkT>::Run()
         Render();
 
         m_Screen.Flush();
-        //CalcFPSOnWindowTitle(1000);
+        CalcFPSOnWindowTitle(1000);
     }
 
     Profiler::GetInstance().SetEnabled(true);
@@ -243,7 +243,7 @@ void Application<ChunkT>::Render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     Gizmos::Begin(activeCamera);
-    Gizmos::DrawCube(glm::vec3(m_VoxelAimedAt) + 0.5f, glm::vec3(1));
+    if(m_AimedRaycastHit) Gizmos::DrawCube(glm::vec3(m_VoxelAimedAt) + 0.5f, glm::vec3(1));
     m_DebuggingRenderer.RenderOverlay(mainCamera);
     m_Scene.Render(activeCamera, mainCamera);
     Gizmos::End();
