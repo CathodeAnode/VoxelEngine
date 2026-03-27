@@ -1,6 +1,8 @@
 #include "gizmos.h"
 
 #include "camera.h"
+#include "profiler.h"
+#include "logger.h"
 
 glm::vec4 Gizmos::s_Color = { 1,1,1,1 };
 glm::mat4 Gizmos::s_ViewProj;
@@ -20,6 +22,8 @@ uint32_t Gizmos::s_CommandCount = 0;
 
 void Gizmos::Init(uint32_t maxInstances)
 {
+    PROFILE_FUNCTION();
+
     s_Shader = Shader({
     { "gizmos.vert", GL_VERTEX_SHADER },
     { "gizmos.frag", GL_FRAGMENT_SHADER }
@@ -124,6 +128,8 @@ void Gizmos::Init(uint32_t maxInstances)
 
 void Gizmos::Shutdown()
 {
+    PROFILE_FUNCTION();
+
     if (s_StaticVBO)
     {
         glDeleteBuffers(1, &s_StaticVBO);
@@ -145,6 +151,8 @@ void Gizmos::Shutdown()
 
 void Gizmos::Begin(const Camera& camera)
 {
+    PROFILE_FUNCTION();
+
     s_ViewProj = camera.GetProjMatrix() * camera.GetViewMatrix();
 
     s_InstanceBuffer.AdvanceHead();
@@ -156,6 +164,8 @@ void Gizmos::Begin(const Camera& camera)
 
 void Gizmos::End()
 {
+    PROFILE_FUNCTION();
+
     _Flush();
 }
 
@@ -166,6 +176,8 @@ void Gizmos::SetColor(const glm::vec4& color)
 
 void Gizmos::DrawLine(const glm::vec3& p0, const glm::vec3& p1)
 {
+    PROFILE_FUNCTION();
+
     glm::vec3 dir = p1 - p0;
     float len = glm::length(dir);
     if (len <= 0.00001f) return;
@@ -194,6 +206,8 @@ void Gizmos::DrawLine(const glm::vec3& p0, const glm::vec3& p1)
 
 void Gizmos::DrawCube(const glm::vec3& center, const glm::vec3& size)
 {
+    PROFILE_FUNCTION();
+
     glm::mat4 model(1.f);
     model = glm::translate(model, center);
     model = glm::scale(model, size);
@@ -203,6 +217,8 @@ void Gizmos::DrawCube(const glm::vec3& center, const glm::vec3& size)
 
 void Gizmos::DrawFrustum(const Camera& camera)
 {
+    PROFILE_FUNCTION();
+
     glm::mat4 invVP = glm::inverse(camera.GetProjMatrix() * camera.GetViewMatrix());
     _SubmitFrustum(invVP);
 }

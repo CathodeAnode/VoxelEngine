@@ -163,6 +163,8 @@ void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm
 template<typename ChunkType>
 void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistance, const Camera& camera)
 {
+    PROFILE_FUNCTION();
+
     const Frustum& camFrustum = camera.GetFrustum();
 
     m_FrustumCullingShader.Use();
@@ -195,6 +197,8 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
 template<typename ChunkType>
 std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetFrustumCulledChunkCoords()
 {
+    PROFILE_FUNCTION();
+
     std::byte* rawDataPtr = m_CulledChunkCoordsReadbackBuffer.GetTailContents();
     assert(rawDataPtr != nullptr);
 

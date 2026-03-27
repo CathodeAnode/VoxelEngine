@@ -4,8 +4,6 @@
 #include <vector>
 #include <memory>
 
-#include "logger.h"
-
 class Camera;
 
 class CameraManager

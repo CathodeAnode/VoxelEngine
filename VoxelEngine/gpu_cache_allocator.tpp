@@ -317,6 +317,8 @@ template<typename ObjectID, typename Atom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
 void GPUPagedCache<ObjectID, Atom, Policy>::_BuildPageChain(ObjectAllocation& alloc, const std::vector<uint16_t>& pages)
 {
+	PROFILE_FUNCTION();
+
 	alloc.startPage = pages.front();
 	alloc.endPage = pages.back();
 
@@ -332,6 +334,8 @@ template<typename ObjectID, typename Atom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
 void GPUPagedCache<ObjectID, Atom, Policy>::_AppendPages(ObjectAllocation& alloc, const std::vector<uint16_t>& pages)
 {
+	PROFILE_FUNCTION();
+
 	m_PageNodes[alloc.endPage].next = pages.front();
 
 	for (size_t i = 0; i < pages.size() - 1; ++i)
@@ -347,6 +351,8 @@ template<typename ObjectID, typename Atom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
 std::unordered_set<uint16_t> GPUPagedCache<ObjectID, Atom, Policy>::_CollectPages(const ObjectAllocation& alloc)
 {
+	PROFILE_FUNCTION();
+
 	std::unordered_set<uint16_t> objPages;
 
 	if (alloc.startPage == PageNode::NULL_PAGE)
@@ -370,6 +376,8 @@ template<typename ObjectID, typename Atom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
 bool GPUPagedCache<ObjectID, Atom, Policy>::_TryReservePages(const ObjectID& obj, uint16_t pageCount)
 {
+	PROFILE_FUNCTION();
+
 	std::vector<uint16_t> allocatedPages;
 	allocatedPages.reserve(pageCount);
 
@@ -405,6 +413,8 @@ template<typename ObjectID, typename Atom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
 bool GPUPagedCache<ObjectID, Atom, Policy>::_EvictAndTakePages(const ObjectID& obj, ObjectAllocation& targetAlloc, uint16_t requiredPages)
 {
+	PROFILE_FUNCTION();
+
 	ObjectID victimID = m_Policy.SelectVictim();
 	const unsigned int pageSize = m_PagedBuffer.GetPageSize();
 
@@ -440,6 +450,8 @@ template<typename ObjectID, typename Atom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
 GPUPagedCache<ObjectID, Atom, Policy>::SplitChain GPUPagedCache<ObjectID, Atom, Policy>::_SplitVictimChain(ObjectAllocation& victim, uint16_t pagesToTake)
 {
+	PROFILE_FUNCTION();
+
 	uint16_t takeStart = victim.startPage;
 	uint16_t current = takeStart;
 	uint16_t prev = PageNode::NULL_PAGE;
@@ -466,6 +478,8 @@ template<typename ObjectID, typename Atom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
 void GPUPagedCache<ObjectID, Atom, Policy>::_AttachPages(const ObjectID& obj, ObjectAllocation& target, uint16_t start, uint16_t end)
 {
+	PROFILE_FUNCTION();
+
 	if (target.IsEmpty())
 	{
 		target.startPage = start;

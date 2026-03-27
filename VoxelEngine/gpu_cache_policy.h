@@ -1,9 +1,9 @@
 #ifndef GPU_CACHE_POLICY_H
 #define GPU_CACHE_POLICY_H
 
+#include "gpu_buffer_allocator.h"
+
 #include <concepts>
-#include <list>
-#include <unordered_map>
 
 template<typename Policy, typename ObjectID>
 concept EvictionPolicy = requires(Policy policy, const ObjectID & objectID)
@@ -160,6 +160,10 @@ public:
     void OnRemove(const ObjectID& id) noexcept;
 
     [[nodiscard]] ObjectID SelectVictim() noexcept;
+
+private:
+    GPUPersistentlyMappedBuffer<bool> m_ObjectsRef;
+    GPUPersistentlyMappedBuffer<ObjectID> m_Objects;
 };
 
 #endif

@@ -1,9 +1,12 @@
 #include "compute_shader.h"
+#include "profiler.h"
 
 ComputeShader::ComputeShader(const char* filepath)
 	: Shader({ {filepath, GL_COMPUTE_SHADER} })
     , m_LocalSize(1)
 {
+	PROFILE_FUNCTION();
+
     _ParseLocalGroupSize(_LoadShaderSrc(filepath));
 }
 
