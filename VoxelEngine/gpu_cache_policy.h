@@ -6,10 +6,11 @@
 #include <concepts>
 
 template<typename Policy, typename ObjectID>
-concept EvictionPolicy = requires(Policy policy, const ObjectID & objectID)
+concept EvictionPolicy = requires(Policy policy, const ObjectID & objectID, int cap)
 {
     typename Policy::Handle;
 
+    { Policy(cap) } -> std::same_as<Policy>;
     { policy.OnAccess(std::declval<typename Policy::Handle&>()) } noexcept -> std::same_as<void>;
     { policy.OnInsert(objectID) } noexcept -> std::same_as<typename Policy::Handle>;
     { policy.OnRemove(std::declval<typename Policy::Handle&>()) } noexcept -> std::same_as<void>;
@@ -29,7 +30,10 @@ public:
     };
 
 public:
-    LRUPolicy() = default;
+    LRUPolicy(int cap)
+        : m_FreeList(cap)
+        , m_Nodes(cap)
+    {}
 
     void OnAccess(Handle& h) noexcept
     {
@@ -162,8 +166,10 @@ public:
     [[nodiscard]] ObjectID SelectVictim() noexcept;
 
 private:
-    GPUPersistentlyMappedBuffer<bool> m_ObjectsRef;
+    GPUPersistentlyMappedBuffer<bool> m_RefBits; // should be atomic for lock-free behavior
     GPUPersistentlyMappedBuffer<ObjectID> m_Objects;
+
+    std::atomic<size_t> hand;
 };
 
 #endif
