@@ -23,11 +23,13 @@ template<typename V>
 concept LockFreeValue = AtomicCompatible<V>;
 
 
-template<LockFreeKey K, LockFreeValue V>
-class GPULockFreeHashMap
+template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
+class GPUHashMap
 {
 public:
-    GPULockFreeHashMap();
+    static_assert(Mode != ThreadMode::SingleThreaded, "Single Threaded mode is not implemented");
+
+    GPUHashMap();
 
     bool Create(size_t cap);
     void Destroy();

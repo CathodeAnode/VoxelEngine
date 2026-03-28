@@ -38,7 +38,6 @@ public:
 
 	void Init(size_t cachePages, size_t cachePageSize, size_t renderBufferSize);
 
-	//TODO: fix updating chunk object logic (broke bcuz new uid chunk encoding)
 	template <ChunkProvider<ChunkType> ChunkContainer>
 	void Upload(const ChunkContainer& chunkContainer, const glm::ivec3& chunkCoords);
 	template <ChunkProvider<ChunkType> ChunkContainer>

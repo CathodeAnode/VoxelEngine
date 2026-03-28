@@ -8,6 +8,7 @@ template<typename ObjectID, typename Atom, template<typename> typename Policy>
 GPUPagedCache<ObjectID, Atom, Policy>::GPUPagedCache(bool cpuUpdates)
 	: m_PagedBuffer(cpuUpdates)
 	, m_PageNodes(cpuUpdates)
+	, m_Policy(10000)
 {
 	PROFILE_FUNCTION();
 }

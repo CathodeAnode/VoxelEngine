@@ -30,13 +30,13 @@ Screen* GPULockFreeHashMapTest::screen = nullptr;
 
 TEST_F(GPULockFreeHashMapTest, CreateTable)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     EXPECT_TRUE(map.Create(128));
 }
 
 TEST_F(GPULockFreeHashMapTest, InsertAndFind)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     ASSERT_TRUE(map.Create(128));
 
     EXPECT_TRUE(map.Insert(1, 42));
@@ -48,7 +48,7 @@ TEST_F(GPULockFreeHashMapTest, InsertAndFind)
 
 TEST_F(GPULockFreeHashMapTest, ContainsKey)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     ASSERT_TRUE(map.Create(128));
 
     EXPECT_FALSE(map.Contains(5));
@@ -60,7 +60,7 @@ TEST_F(GPULockFreeHashMapTest, ContainsKey)
 
 TEST_F(GPULockFreeHashMapTest, FindNonExistentKey)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     ASSERT_TRUE(map.Create(64));
 
     int value;
@@ -69,7 +69,7 @@ TEST_F(GPULockFreeHashMapTest, FindNonExistentKey)
 
 TEST_F(GPULockFreeHashMapTest, EraseKey)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     ASSERT_TRUE(map.Create(128));
 
     map.Insert(7, 77);
@@ -86,7 +86,7 @@ TEST_F(GPULockFreeHashMapTest, EraseKey)
 
 TEST_F(GPULockFreeHashMapTest, InsertMultipleKeys)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     ASSERT_TRUE(map.Create(256));
 
     for (int i = 0; i < 100; ++i)
@@ -102,7 +102,7 @@ TEST_F(GPULockFreeHashMapTest, InsertMultipleKeys)
 
 TEST_F(GPULockFreeHashMapTest, InsertEraseInsert)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     ASSERT_TRUE(map.Create(64));
 
     EXPECT_TRUE(map.Insert(1, 10));
@@ -116,7 +116,7 @@ TEST_F(GPULockFreeHashMapTest, InsertEraseInsert)
 
 TEST_F(GPULockFreeHashMapTest, DuplicateInsert)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     ASSERT_TRUE(map.Create(128));
 
     EXPECT_TRUE(map.Insert(10, 1));
@@ -131,7 +131,7 @@ TEST_F(GPULockFreeHashMapTest, DuplicateInsert)
 
 TEST_F(GPULockFreeHashMapTest, MultiThreadedInsert)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     ASSERT_TRUE(map.Create(2048));
 
     const int threadCount = 8;
@@ -164,7 +164,7 @@ TEST_F(GPULockFreeHashMapTest, MultiThreadedInsert)
 
 TEST_F(GPULockFreeHashMapTest, MultiThreadedInsertAndFind)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     ASSERT_TRUE(map.Create(4096));
 
     const int threadCount = 8;
@@ -200,7 +200,7 @@ TEST_F(GPULockFreeHashMapTest, MultiThreadedInsertAndFind)
 
 TEST_F(GPULockFreeHashMapTest, MultiThreadedDuplicateInsert)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     ASSERT_TRUE(map.Create(512));
 
     const int threadCount = 16;
@@ -227,7 +227,7 @@ TEST_F(GPULockFreeHashMapTest, MultiThreadedDuplicateInsert)
 
 TEST_F(GPULockFreeHashMapTest, HashCollisions)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
 
     ASSERT_TRUE(map.Create(8)); // tiny table => heavy collisions
 
@@ -246,7 +246,7 @@ TEST_F(GPULockFreeHashMapTest, HashCollisions)
 
 TEST_F(GPULockFreeHashMapTest, ForcedCollisionKeys)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     ASSERT_TRUE(map.Create(64));
 
     const int stride = 64;
@@ -269,7 +269,7 @@ TEST_F(GPULockFreeHashMapTest, ForcedCollisionKeys)
 
 TEST_F(GPULockFreeHashMapTest, StressTest)
 {
-    GPULockFreeHashMap<int, int> map;
+    GPUHashMap<int, int, ThreadMode::LockFree> map;
     ASSERT_TRUE(map.Create(16384));
 
     const int threadCount = std::thread::hardware_concurrency();

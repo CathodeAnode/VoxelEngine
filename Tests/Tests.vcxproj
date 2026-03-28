@@ -146,7 +146,7 @@
     <ClCompile Include="..\VoxelEngine\profiler.cpp" />
     <ClCompile Include="..\VoxelEngine\screen.cpp" />
     <ClCompile Include="..\VoxelEngine\shader.cpp" />
-    <ClCompile Include="gpu_hash_map_tests.cpp" />
+    <ClCompile Include="gpu_lockfree_hash_map_tests.cpp" />
     <ClCompile Include="test_main.cpp" />
   </ItemGroup>
   <ItemGroup>

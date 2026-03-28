@@ -17,6 +17,7 @@ template<typename ObjectID, typename Atom, template<typename> typename Policy>
 class GPUPagedCache
 {
 public:
+    // TODO pass max objects to constructor
     GPUPagedCache(bool cpuUpdates = true);
     ~GPUPagedCache();
 
@@ -75,7 +76,7 @@ private:
     Policy<ObjectID> m_Policy;
     GPUPagedBuffer<Atom, ThreadMode::LockFree> m_PagedBuffer;
     GPUPersistentlyMappedBuffer<PageNode> m_PageNodes;
-    GPULockFreeHashMap<ObjectID, ObjectAllocation> m_ObjectPages; // TODO rename class to GPUHashMap and choose thread mode through template param
+    GPUHashMap<ObjectID, ObjectAllocation, ThreadMode::LockFree> m_ObjectPages;
 
 private:
     void _FreeObject(const ObjectID& obj);

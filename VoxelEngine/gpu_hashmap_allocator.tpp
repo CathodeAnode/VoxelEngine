@@ -3,14 +3,14 @@
 
 #include "gpu_hashmap_allocator.h"
 
-template<LockFreeKey K, LockFreeValue V>
-GPULockFreeHashMap<K, V>::GPULockFreeHashMap()
+template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
+GPUHashMap<K, V, Mode>::GPUHashMap()
 	: m_Table(true)
 {
 }
 
-template<LockFreeKey K, LockFreeValue V>
-bool GPULockFreeHashMap<K, V>::Create(size_t cap)
+template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
+bool GPUHashMap<K, V, Mode>::Create(size_t cap)
 {
     if (!m_Table.Create(GL_SHADER_STORAGE_BUFFER, cap, BufferAccess::ReadWrite))
         return false;
@@ -25,14 +25,14 @@ bool GPULockFreeHashMap<K, V>::Create(size_t cap)
     return true;
 }
 
-template<LockFreeKey K, LockFreeValue V>
-void GPULockFreeHashMap<K, V>::Destroy()
+template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
+void GPUHashMap<K, V, Mode>::Destroy()
 {
     m_Table.Destroy();
 }
 
-template<LockFreeKey K, LockFreeValue V>
-bool GPULockFreeHashMap<K, V>::Insert(const K& key, const V& value)
+template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
+bool GPUHashMap<K, V, Mode>::Insert(const K& key, const V& value)
 {
     Entry* table = m_Table.GetContents();
     size_t cap = m_Table.GetSize();
@@ -73,8 +73,8 @@ bool GPULockFreeHashMap<K, V>::Insert(const K& key, const V& value)
     return false; // table full
 }
 
-template<LockFreeKey K, LockFreeValue V>
-bool GPULockFreeHashMap<K, V>::Find(const K& key, V& out) const
+template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
+bool GPUHashMap<K, V, Mode>::Find(const K& key, V& out) const
 {
     const Entry* table = m_Table.GetContents();
     size_t cap = m_Table.GetSize();
@@ -102,15 +102,15 @@ bool GPULockFreeHashMap<K, V>::Find(const K& key, V& out) const
     return false;
 }
 
-template<LockFreeKey K, LockFreeValue V>
-bool GPULockFreeHashMap<K, V>::Contains(const K& key) const
+template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
+bool GPUHashMap<K, V, Mode>::Contains(const K& key) const
 {
     V tmp;
     return Find(key, tmp);
 }
 
-template<LockFreeKey K, LockFreeValue V>
-bool GPULockFreeHashMap<K, V>::Erase(const K& key)
+template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
+bool GPUHashMap<K, V, Mode>::Erase(const K& key)
 {
     Entry* table = m_Table.GetContents();
     size_t cap = m_Table.GetSize();
@@ -142,9 +142,9 @@ bool GPULockFreeHashMap<K, V>::Erase(const K& key)
     return false;
 }
 
-template<LockFreeKey K, LockFreeValue V>
+template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
 template<typename... Args>
-bool GPULockFreeHashMap<K, V>::Emplace(const K& key, Args&&... args)
+bool GPUHashMap<K, V, Mode>::Emplace(const K& key, Args&&... args)
 {
     Entry* table = m_Table.GetContents();
     size_t cap = m_Table.GetSize();
