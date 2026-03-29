@@ -46,6 +46,7 @@ bool GPUPagedCache<ObjectID, Atom, Policy>::Create(GLenum target, size_t pageSiz
 	bool result = m_PagedBuffer.Create(target, pageSize, pageCount);
 	result |= m_PageNodes.Create(GL_UNIFORM_BUFFER, pageCount, BufferAccess::ReadWrite);
 	result |= m_ObjectPages.Create(10000); // TODO: calc optimial capacity using load factor & max objects
+	result |= m_Policy.Create();
 
 	PageNode initValue{ .next = PageNode::NULL_PAGE };
 	std::fill_n(m_PageNodes.GetContents(), pageCount, initValue);

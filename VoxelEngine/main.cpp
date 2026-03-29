@@ -47,7 +47,6 @@
 // - python script engine for terrian generation
 
 // codebase clean up todos:
-// - remove unnecessary includes and use forward declarations
 // - project file structure
 // - namespacing
 // - PCH file

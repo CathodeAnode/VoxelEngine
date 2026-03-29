@@ -56,7 +56,7 @@ public:
 
 private:
 
-	GPUPagedCache<VoxelObjectID, VoxelQuad, LRUPolicy> m_DataCache;
+	GPUPagedCache<VoxelObjectID, VoxelQuad, ClockPolicy> m_DataCache;
 	GPUOrphanBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
 	GPUOrphanBuffer<glm::vec4> m_PositionSSBO;
 	GPUOrphanBuffer<std::byte> m_CulledChunkCoordsReadbackBuffer; // TODO figure out sizing

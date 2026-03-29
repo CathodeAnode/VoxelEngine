@@ -11,6 +11,7 @@ concept EvictionPolicy = requires(Policy policy, const ObjectID & objectID, int 
     typename Policy::Handle;
 
     { Policy(cap) } -> std::same_as<Policy>;
+    { policy.Create() } -> std::same_as<bool>;
     { policy.OnAccess(std::declval<typename Policy::Handle&>()) } noexcept -> std::same_as<void>;
     { policy.OnInsert(objectID) } noexcept -> std::same_as<typename Policy::Handle>;
     { policy.OnRemove(std::declval<typename Policy::Handle&>()) } noexcept -> std::same_as<void>;
@@ -34,6 +35,12 @@ public:
         : m_FreeList(cap)
         , m_Nodes(cap)
     {}
+
+    // no gpu allocations, thus returns true without executing any code
+    bool Create()
+    {
+        return true;
+    }
 
     void OnAccess(Handle& h) noexcept
     {
@@ -161,16 +168,23 @@ class ClockPolicy
 public:
     struct Handle
     {
-        size_t index{ -1 };
+        size_t index;
     };
 
     explicit ClockPolicy(int cap)
         : m_Capacity(cap)
+        , m_ObjectIDs(cap)
+        , m_State(true)
+    {}
+
+    bool Create()
     {
+        bool sucess = m_State.Create(GL_SHADER_STORAGE_BUFFER, m_Capacity, BufferAccess::ReadWrite);
         for (size_t i = 0; i < m_Capacity; ++i)
         {
             std::atomic_ref<uint32_t>(m_State[i]).store(0, std::memory_order_relaxed);
         }
+        return sucess;
     }
 
     void OnAccess(Handle& h) noexcept
@@ -266,7 +280,7 @@ private:
     }
 
     GPUPersistentlyMappedBuffer<uint32_t> m_State;
-    GPUPersistentlyMappedBuffer<ObjectID> m_ObjectIDs;
+    std::vector<ObjectID> m_ObjectIDs;
 };
 
 #endif
