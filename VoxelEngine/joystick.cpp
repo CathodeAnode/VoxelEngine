@@ -1,6 +1,8 @@
 #include "joystick.h"
 #include "logger.h"
 
+#include <GLFW/glfw3.h>
+
 // generate an instance for joystick with id i
 Joystick::Joystick(int i) 
 {

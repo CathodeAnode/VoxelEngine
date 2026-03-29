@@ -1,15 +1,7 @@
 #ifndef SCREEN_H
 #define SCREEN_H
 
-#include <glad\glad.h>
-#include <GLFW\glfw3.h>
-
-#include "shader.h"
-#include "mouse.h"
-#include "keyboard.h"
-#include "joystick.h"
-#include "logger.h"
-#include "profiler.h"
+struct GLFWwindow;
 
 #define SCREEN_OPENGL_MAJOR_VERISON 4
 #define SCREEN_OPENGL_MINOR_VERISON 6

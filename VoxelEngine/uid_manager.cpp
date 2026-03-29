@@ -1,5 +1,7 @@
 #include "uid_manager.h"
 #include <glm/vec3.hpp>
+#include <cassert>
+
 
 VoxelObjectID UIDManager::Generate()
 {

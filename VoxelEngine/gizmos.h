@@ -1,12 +1,15 @@
 #ifndef GIZMOS_H
 #define GIZMOS_H
 
-#include <glm/glm.hpp>
+#include <glm/fwd.hpp>
+
 #include "gpu_buffer_allocator.h"
 #include "shader.h"
 #include "types.h"
 
 class Camera;
+
+using GLuint = unsigned int;
 
 struct GizmoInstance
 {

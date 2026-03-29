@@ -1,6 +1,8 @@
 #include "camera.h"
 #include <iostream>
 
+#include "profiler.h"
+
 
 Camera::Camera(glm::vec3 position, int _screenWidth, int _screenHeight, float _zNear, float _zFar)
 	: pos(position)

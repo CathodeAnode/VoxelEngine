@@ -1,8 +1,7 @@
 #ifndef KEYBOARD_H
 #define KEYBOARD_H
 
-#include <glad/glad.h>
-#include <glfw/glfw3.h>
+struct GLFWwindow;
 
 #include "key_codes.h"
 

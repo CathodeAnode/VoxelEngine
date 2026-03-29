@@ -3,20 +3,8 @@
 
 #include<glad/glad.h>
 
+#include <glm/fwd.hpp>
 #include <string>
-#include <filesystem>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <initializer_list>
-#include <vector>
-#include <span>
-
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-
-#include "logger.h"
-#include "profiler.h"
 
 struct ShaderFile
 {

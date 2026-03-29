@@ -1,4 +1,8 @@
 #include "keyboard.h"
+
+#include <glad/glad.h>
+#include <glfw/glfw3.h>
+
 #include "profiler.h"
 #include "logger.h"
 

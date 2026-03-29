@@ -1,5 +1,17 @@
 #include "screen.h"
 
+#include <glad/glad.h>
+
+#define GLFW_INCLUDE_NONE
+#include <GLFW/glfw3.h>
+
+#include "shader.h"
+#include "mouse.h"
+#include "keyboard.h"
+#include "joystick.h"
+#include "logger.h"
+#include "profiler.h"
+
 unsigned int Screen::m_Width = 0;
 unsigned int Screen::m_Height = 0;
 

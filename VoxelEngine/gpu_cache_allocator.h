@@ -4,7 +4,6 @@
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
-#include <list>
 #include <cassert>
 
 #include "gpu_buffer_allocator.h"

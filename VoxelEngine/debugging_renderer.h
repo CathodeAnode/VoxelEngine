@@ -1,7 +1,6 @@
 #ifndef DEBUGGING_RENDERER_H
 #define DEBUGGING_RENDERER_H
 
-#include<glad/glad.h>
 #include<glm/fwd.hpp>
 
 //TODO: make this not compile in distribution mode

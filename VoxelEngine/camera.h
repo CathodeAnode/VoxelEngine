@@ -6,8 +6,6 @@
 #include <glm/gtc/matrix_access.hpp>
 #include <memory>
 
-#include "profiler.h"
-
 enum CameraDirection {
 	NONE = 0,
 	FORWARD,

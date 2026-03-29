@@ -1,5 +1,18 @@
 #include "shader.h"
 
+#include <string>
+#include <filesystem>
+#include <fstream>
+#include <sstream>
+#include <iostream>
+#include <initializer_list>
+#include <vector>
+#include <span>
+#include <glm/gtc/type_ptr.hpp>
+
+#include "logger.h"
+#include "profiler.h"
+
 Shader::Shader(std::initializer_list<ShaderFile> shaders)
 {
 	LOG_INFO(EngineSystem::RENDERER, "Creating shader program with {} shaders", shaders.size());

@@ -2,6 +2,7 @@
 #define SCENE_TPP
 
 #include "scene.h"
+#include "profiler.h"
 
 template<typename ChunkType>
 Scene<ChunkType>::Scene(ChunkManager<ChunkType>& world, VoxelRenderer<ChunkType>& renderer)

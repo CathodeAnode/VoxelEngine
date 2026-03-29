@@ -1,9 +1,6 @@
 #ifndef JOYSTICK_H
 #define JOYSTICK_H
 
-
-#include <GLFW/glfw3.h>
-
 #include "joystick_codes.h"
 
 /*

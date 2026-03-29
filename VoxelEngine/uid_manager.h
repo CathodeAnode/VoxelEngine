@@ -3,8 +3,6 @@
 
 #include <atomic>
 #include <glm/fwd.hpp>
-#include <cstdint>
-#include <cassert>
 #include "types.h"
 
 /**

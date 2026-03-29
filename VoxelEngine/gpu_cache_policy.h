@@ -30,7 +30,7 @@ public:
     };
 
 public:
-    LRUPolicy(int cap)
+    explicit LRUPolicy(int cap)
         : m_FreeList(cap)
         , m_Nodes(cap)
     {}
@@ -159,17 +159,114 @@ template<typename ObjectID>
 class ClockPolicy
 {
 public:
-    void OnAccess(const ObjectID& id) noexcept;
-    void OnInsert(const ObjectID& id) noexcept;
-    void OnRemove(const ObjectID& id) noexcept;
+    struct Handle
+    {
+        size_t index{ -1 };
+    };
 
-    [[nodiscard]] ObjectID SelectVictim() noexcept;
+    explicit ClockPolicy(int cap)
+        : m_Capacity(cap)
+    {
+        for (size_t i = 0; i < m_Capacity; ++i)
+        {
+            std::atomic_ref<uint32_t>(m_State[i]).store(0, std::memory_order_relaxed);
+        }
+    }
+
+    void OnAccess(Handle& h) noexcept
+    {
+        if (h.index < m_Capacity)
+        {
+            auto state = std::atomic_ref<uint32_t>(m_State[h.index]);
+            state.fetch_or(REF_BIT, std::memory_order_relaxed);
+        }
+    }
+
+    Handle OnInsert(const ObjectID& id) noexcept
+    {
+        // simple probe starting from thread-local hand
+        size_t start = LocalHand();
+
+        for (size_t n = 0; n < m_Capacity; ++n)
+        {
+            size_t i = (start + n) % m_Capacity;
+            auto state = std::atomic_ref<uint32_t>(m_State[i]);
+
+            uint32_t expected = 0;
+            if (state.compare_exchange_strong(expected, VALID_BIT | REF_BIT,
+                std::memory_order_acq_rel))
+            {
+                m_ObjectIDs[i] = id;
+                return Handle{ i };
+            }
+        }
+
+        return Handle{};
+    }
+
+    void OnRemove(Handle& h) noexcept
+    {
+        if (h.index < m_Capacity)
+        {
+            auto state = std::atomic_ref<uint32_t>(m_State[h.index]);
+            state.store(0, std::memory_order_release);
+        }
+    }
+
+    [[nodiscard]] ObjectID SelectVictim() noexcept
+    {
+        size_t& hand = LocalHand();
+
+        while (true)
+        {
+            size_t idx = hand;
+            hand = (hand + 1) % m_Capacity;
+
+            auto state = std::atomic_ref<uint32_t>(m_State[idx]);
+            uint32_t s = state.load(std::memory_order_acquire);
+
+            if (!(s & VALID_BIT))
+                continue;
+
+            if (!(s & REF_BIT))
+            {
+                uint32_t expected = VALID_BIT;
+                if (state.compare_exchange_strong(expected, 0,
+                    std::memory_order_acq_rel))
+                {
+                    return m_ObjectIDs[idx];
+                }
+            }
+            else
+            {
+                // second chance
+                state.fetch_and(~REF_BIT, std::memory_order_relaxed);
+            }
+        }
+    }
 
 private:
-    GPUPersistentlyMappedBuffer<bool> m_RefBits; // should be atomic for lock-free behavior
-    GPUPersistentlyMappedBuffer<ObjectID> m_Objects;
+    static constexpr uint32_t VALID_BIT = 1 << 0;
+    static constexpr uint32_t REF_BIT = 1 << 1;
 
-    std::atomic<size_t> hand;
+    int m_Capacity;
+
+    // thread-local clock hand
+    static size_t& LocalHand() noexcept
+    {
+        thread_local size_t hand = InitHand();
+        return hand;
+    }
+
+    static size_t InitHand() noexcept
+    {
+        // spread threads across the ring (cheap hashing)
+        auto tid = std::hash<std::thread::id>{}(std::this_thread::get_id());
+        return tid;
+    }
+
+    GPUPersistentlyMappedBuffer<uint32_t> m_State;
+    GPUPersistentlyMappedBuffer<ObjectID> m_ObjectIDs;
 };
 
 #endif

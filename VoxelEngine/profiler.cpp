@@ -1,4 +1,5 @@
 #include "profiler.h"
+#include "logger.h"
 
 Profiler::Profiler()
     : m_CurrentSession(nullptr)

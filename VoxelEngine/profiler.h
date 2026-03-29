@@ -13,8 +13,6 @@
 #include <sstream>
 #include <iostream>
 
-#include "logger.h"
-
 struct ProfileResult
 {
 	std::string Name;
