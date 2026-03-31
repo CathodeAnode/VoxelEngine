@@ -19,6 +19,8 @@ layout(std430, binding = 1) buffer ResultBuffer
     ivec4 results[];
 };
 
+// TODO impl buffer bindings
+
 
 bool test_AABB_against_frustum(ChunkAABB aabb)
 {
@@ -38,6 +40,12 @@ bool test_AABB_against_frustum(ChunkAABB aabb)
     return true;
 }
 
+// TODO write functions:
+// - IsCached(id) => hash(id) => lookup hashmap
+// - PolicyTouch(id) => ClockPolicy.OnAccess
+// - GetIndirectCmds(id or hashtable index) => use pageNodes buffer to compute indirect commands GPUCachedBuffer.GetObjectBufferRanges
+// - Draw(id) => GetIndirectCmds => write to indirectCmdBuffer & posSSBOBuffer at uncompressed chunkID
+
 void main()
 {
     //TODO: use shared mem count to write results in batches
@@ -56,6 +64,10 @@ void main()
     {
         uint index = atomicAdd(count, 1);
         results[index] = ivec4(chunkCoord, 0);
+
+        // TOOD: Impl gpu driven frustum culling:
+        // - if chunk cached -> draw chunk
+        // - else -> write chunkID to ret buffer
     }
 
 }

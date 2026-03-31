@@ -7,7 +7,7 @@ VoxelRenderer<ChunkType>::VoxelRenderer(std::unique_ptr<VoxelMesher<ChunkType>> 
     : m_DataCache(true)
     , m_IndirectCommandBuffer(true)
     , m_PositionSSBO(true)
-    , m_CulledChunkCoordsReadbackBuffer(true)
+    , m_UncachedChunks(true)
     , m_Mesher(std::move(mesher))
 {
     PROFILE_FUNCTION();
@@ -174,10 +174,19 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     m_FrustumCullingShader.SetUInt("u_ChunkSize", static_cast<unsigned int>(ChunkType::Size));
     m_FrustumCullingShader.SetIVec3("u_CameraChunkPos", WorldToChunk(glm::ivec3(camera.pos), static_cast<unsigned int>(ChunkType::Size)));
 
-    uint32_t* counter = reinterpret_cast<uint32_t*>(m_CulledChunkCoordsReadbackBuffer.GetHeadContents());
+    uint32_t* counter = reinterpret_cast<uint32_t*>(m_UncachedChunks.GetHeadContents());
     *counter = 0;
 
-    m_CulledChunkCoordsReadbackBuffer.BindHeadBuffer(1);
+    const GLint retSSBOLocation = 1;
+    m_UncachedChunks.BindHeadBuffer(retSSBOLocation);
+
+    const GLint hashMapLocation = 2;
+    const GLint pageNodesBufferLocation = 3;
+    const GLint policyBufferLocation = 4;
+    m_DataCache.BindCacheLookup(hashMapLocation, pageNodesBufferLocation, policyBufferLocation);
+    
+    // TODO: Bind indirect commands buffer
+    // TODO: Bind Position SSBO buffer
 
     unsigned int localX = m_FrustumCullingShader.GetLocalSizeX();
     unsigned int localY = m_FrustumCullingShader.GetLocalSizeY();
@@ -191,7 +200,7 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     m_FrustumCullingShader.Dispatch(groupX, groupY, groupZ);
     m_FrustumCullingShader.Wait(GL_SHADER_STORAGE_BARRIER_BIT);
 
-    m_CulledChunkCoordsReadbackBuffer.AdvanceHead();
+    m_UncachedChunks.AdvanceHead();
 }
 
 template<typename ChunkType>
@@ -199,7 +208,7 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetFrustumCulledChunkCoord
 {
     PROFILE_FUNCTION();
 
-    std::byte* rawDataPtr = m_CulledChunkCoordsReadbackBuffer.GetTailContents();
+    std::byte* rawDataPtr = m_UncachedChunks.GetTailContents();
     assert(rawDataPtr != nullptr);
 
     const uint32_t count = *reinterpret_cast<const uint32_t*>(rawDataPtr);
@@ -209,7 +218,7 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetFrustumCulledChunkCoord
         // NOTE: these calculations will get optimized out by compiler in O2/-O3 or /O2 
         const size_t headerSize = sizeof(uint32_t);
         const size_t requiredBytes = static_cast<size_t>(count) * sizeof(glm::ivec4);
-        const size_t availableBytes = m_CulledChunkCoordsReadbackBuffer.GetSize() - headerSize;
+        const size_t availableBytes = m_UncachedChunks.GetSize() - headerSize;
 
         assert(requiredBytes <= availableBytes &&
             "Frustum culling SSBO size is too small for the result chunk count. "
@@ -221,7 +230,7 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetFrustumCulledChunkCoord
         "FrustumCull completed: {} chunks visible",
         count);
 
-    m_CulledChunkCoordsReadbackBuffer.AdvanceTail();
+    m_UncachedChunks.AdvanceTail();
 
     return std::span<const glm::ivec4>(results, count);
 }
@@ -291,12 +300,12 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
     const size_t CulledHeaderSize = sizeof(uint32_t);
     const size_t CulledCoordsSize = sizeof(glm::vec4) * indirectBufferSize * 5; // TEMP: sizing, later will give correct sizing for frustum culling SSBO
     const size_t CulledSSBOSize = CulledHeaderSize + CulledCoordsSize;
-    m_CulledChunkCoordsReadbackBuffer.Create(GL_SHADER_STORAGE_BUFFER, CulledSSBOSize, k_TripleBuffer, BufferAccess::ReadWrite);
+    m_UncachedChunks.Create(GL_SHADER_STORAGE_BUFFER, CulledSSBOSize, k_TripleBuffer, BufferAccess::ReadWrite);
 
     // Offset head from tail on OrphanBuffers
     m_IndirectCommandBuffer.AdvanceHead();
     m_PositionSSBO.AdvanceHead();
-    m_CulledChunkCoordsReadbackBuffer.AdvanceHead();
+    m_UncachedChunks.AdvanceHead();
 
     LOG_DEBUG(EngineSystem::RENDERER, "GPU Buffers Created")
 }

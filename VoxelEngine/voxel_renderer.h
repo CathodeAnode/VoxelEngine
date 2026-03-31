@@ -24,8 +24,6 @@
 #include "types.h"
 
 
-// TODO: refactor buffer bindings to use a const variable or macro to avoid using magic numbers
-
 template<typename ChunkType> 
 class VoxelMesher;
 
@@ -59,7 +57,7 @@ private:
 	GPUPagedCache<VoxelObjectID, VoxelQuad, ClockPolicy> m_DataCache;
 	GPUOrphanBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
 	GPUOrphanBuffer<glm::vec4> m_PositionSSBO;
-	GPUOrphanBuffer<std::byte> m_CulledChunkCoordsReadbackBuffer; // TODO figure out sizing
+	GPUOrphanBuffer<std::byte> m_UncachedChunks; // TODO figure out sizing
 
 	Shader m_VoxelShader;
 	ComputeShader m_FrustumCullingShader;
