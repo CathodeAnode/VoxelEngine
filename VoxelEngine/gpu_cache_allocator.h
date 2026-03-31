@@ -11,6 +11,7 @@
 #include "gpu_buffer_lock.h"
 #include "gpu_cache_policy.h"
 
+// TODO: pass thread mode & gpu-visiblity in template params
 template<typename ObjectID, typename Atom, template<typename> typename Policy>
     requires EvictionPolicy<Policy<ObjectID>, ObjectID>
 class GPUPagedCache
@@ -33,6 +34,9 @@ public:
     void DeallocateObject(const ObjectID& obj);
     void ClearObject(const ObjectID& obj);
     std::vector<GPUBufferRange> GetObjectBufferRanges(const ObjectID& obj);
+
+    void BindCacheData();
+    void BindCacheLookup(GLint hashMapLocation, GLint nodesLocation, GLint policyLocation);
 
     inline bool Has(ObjectID obj) const { return m_ObjectPages.Contains(obj); }
     inline GLuint GetName() const { return m_PagedBuffer.GetName(); }

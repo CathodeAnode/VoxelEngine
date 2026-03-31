@@ -6,16 +6,19 @@
 #include <concepts>
 
 template<typename Policy, typename ObjectID>
-concept EvictionPolicy = requires(Policy policy, const ObjectID & objectID, int cap)
+concept EvictionPolicy = requires(Policy policy, const ObjectID & objectID, int cap, GLint bindLocation)
 {
     typename Policy::Handle;
 
     { Policy(cap) } -> std::same_as<Policy>;
+
     { policy.Create() } -> std::same_as<bool>;
     { policy.OnAccess(std::declval<typename Policy::Handle&>()) } noexcept -> std::same_as<void>;
     { policy.OnInsert(objectID) } noexcept -> std::same_as<typename Policy::Handle>;
     { policy.OnRemove(std::declval<typename Policy::Handle&>()) } noexcept -> std::same_as<void>;
     { policy.SelectVictim() } noexcept -> std::convertible_to<ObjectID>;
+
+    { policy.BindBuffers(bindLocation) } -> std::same_as<void>;
 };
 
 template<typename ObjectID>
@@ -77,6 +80,11 @@ public:
     {
         assert(m_Tail != NULL_INDEX);
         return m_Nodes[m_Tail].id;
+    }
+
+    void BindBuffers(GLint bufferLocation)
+    {
+        LOG_WARN(EngineSystem::GPU_BUFFER, "LRUPolicy does not have gpu bindings");
     }
 
 private:
@@ -257,6 +265,11 @@ public:
                 state.fetch_and(~REF_BIT, std::memory_order_relaxed);
             }
         }
+    }
+
+    void BindBuffers(GLint bufferLocation)
+    {
+        m_State.BindBaseBuffer(bufferLocation);
     }
 
 private:

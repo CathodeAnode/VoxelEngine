@@ -781,6 +781,12 @@ bool GPUPagedBuffer<Atom, Mode>::ReserveFirstAvaliblePages(unsigned int n, std::
 }
 
 template<GPUSafeStruct Atom, ThreadMode Mode>
+void GPUPagedBuffer<Atom, Mode>::BindBuffer()
+{
+	m_RawBuffer.BindBuffer();
+}
+
+template<GPUSafeStruct Atom, ThreadMode Mode>
 bool GPUPagedBuffer<Atom, Mode>::_IsPageReserved(Page pageNum) const noexcept
 {
 	const size_t byteIdx = pageNum / WORD_BITS;

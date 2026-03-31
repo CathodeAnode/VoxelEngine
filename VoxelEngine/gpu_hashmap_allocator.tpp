@@ -143,6 +143,12 @@ bool GPUHashMap<K, V, Mode>::Erase(const K& key)
 }
 
 template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
+void GPUHashMap<K, V, Mode>::BindBuffer(GLuint location)
+{
+    m_Table.BindBufferBase(location);
+}
+
+template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
 template<typename... Args>
 bool GPUHashMap<K, V, Mode>::Emplace(const K& key, Args&&... args)
 {

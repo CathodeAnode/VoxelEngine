@@ -41,6 +41,8 @@ public:
 
     template<typename... Args>
     bool Emplace(const K& key, Args&&... args);
+
+    void BindBuffer(GLuint location);
 private:
     struct Entry 
     {

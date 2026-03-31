@@ -268,6 +268,22 @@ std::vector<GPUBufferRange> GPUPagedCache<ObjectID, Atom, Policy>::GetObjectBuff
 
 template<typename ObjectID, typename Atom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
+void GPUPagedCache<ObjectID, Atom, Policy>::BindCacheData()
+{
+	m_PagedBuffer.BindBuffer();
+}
+
+template<typename ObjectID, typename Atom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
+void GPUPagedCache<ObjectID, Atom, Policy>::BindCacheLookup(GLint hashMapLocation, GLint nodesLocation, GLint policyLocation)
+{
+	m_ObjectPages.BindBuffer(hashMapLocation);
+	m_PageNodes.BindBufferBase(nodesLocation);
+	m_Policy.BindBuffer(policyLocation);
+}
+
+template<typename ObjectID, typename Atom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
 void GPUPagedCache<ObjectID, Atom, Policy>::_FreeObject(const ObjectID& obj)
 {
 	assert(m_ObjectPages.Contains(obj));
