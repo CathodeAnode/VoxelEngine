@@ -1,5 +1,4 @@
 #version 460
-layout(local_size_x = 8, local_size_y = 4, local_size_z = 8) in; // 256 threads => 8 wraps
 
 struct ChunkAABB
 {
@@ -7,20 +6,51 @@ struct ChunkAABB
     ivec3 max;
 };
 
-uniform vec4 u_FrustumPlanes[6];
-uniform uint u_RenderDistance;
-uniform uint u_ChunkSize;
-uniform ivec3 u_CameraChunkPos;
+struct ClockPolicyHandle
+{
+    uint index;
+};
 
+struct ObjectAllocation
+{
+    uint totalElementCount;
+    uint startPage; // uint16
+    uint endPage; // uint16
+    ClockPolicyHandle policyHandle;
+};
 
-layout(std430, binding = 1) buffer ResultBuffer
+struct PageNode
+{
+    uint next; // uint16
+};
+
+layout(local_size_x = 8, local_size_y = 4, local_size_z = 8) in; // 256 threads => 8 wraps
+
+layout(std430, binding = 1) buffer UncachedChunks
 {
     uint  count;
     ivec4 results[];
 };
 
-// TODO impl buffer bindings
+layout(std430, binding = 2) readonly buffer CacheObjTable
+{
+    ObjectAllocation objectData[];
+};
 
+layout(std430, binding = 3) readonly buffer PageNodesBuffer
+{
+    PageNode pageNodes[];
+};
+
+layout(std430, binding = 4) buffer ClockPolicyState
+{
+    uint policyObjectState[];
+};
+
+uniform vec4 u_FrustumPlanes[6];
+uniform uint u_RenderDistance;
+uniform uint u_ChunkSize;
+uniform ivec3 u_CameraChunkPos;
 
 bool test_AABB_against_frustum(ChunkAABB aabb)
 {
@@ -65,7 +95,7 @@ void main()
         uint index = atomicAdd(count, 1);
         results[index] = ivec4(chunkCoord, 0);
 
-        // TOOD: Impl gpu driven frustum culling:
+        // TOOD: Impl gpu-driven frustum culling:
         // - if chunk cached -> draw chunk
         // - else -> write chunkID to ret buffer
     }

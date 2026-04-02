@@ -279,7 +279,7 @@ void GPUPagedCache<ObjectID, Atom, Policy>::BindCacheLookup(GLint hashMapLocatio
 {
 	m_ObjectPages.BindBuffer(hashMapLocation);
 	m_PageNodes.BindBufferBase(nodesLocation);
-	m_Policy.BindBuffer(policyLocation);
+	m_Policy.BindBuffers(policyLocation);
 }
 
 template<typename ObjectID, typename Atom, template<typename> typename Policy>

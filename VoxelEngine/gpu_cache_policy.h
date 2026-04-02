@@ -176,7 +176,7 @@ class ClockPolicy
 public:
     struct Handle
     {
-        size_t index;
+        uint32_t index;
     };
 
     explicit ClockPolicy(int cap)
@@ -211,7 +211,7 @@ public:
 
         for (size_t n = 0; n < m_Capacity; ++n)
         {
-            size_t i = (start + n) % m_Capacity;
+            uint32_t i = (start + n) % m_Capacity;
             auto state = std::atomic_ref<uint32_t>(m_State[i]);
 
             uint32_t expected = 0;
@@ -269,7 +269,7 @@ public:
 
     void BindBuffers(GLint bufferLocation)
     {
-        m_State.BindBaseBuffer(bufferLocation);
+        m_State.BindBufferBase(bufferLocation);
     }
 
 private:
