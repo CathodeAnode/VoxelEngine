@@ -294,7 +294,7 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
     PROFILE_FUNCTION();
 
     m_DataCache.Create(GL_ARRAY_BUFFER, cachePageSize, cachePages);
-    m_IndirectCommandBuffer.Create(GL_DRAW_INDIRECT_BUFFER, indirectBufferSize, k_TripleBuffer);
+    m_IndirectCommandBuffer.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
     m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
 
     const size_t CulledHeaderSize = sizeof(uint32_t);

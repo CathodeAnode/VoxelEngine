@@ -19,12 +19,32 @@ struct ObjectAllocation
     ClockPolicyHandle policyHandle;
 };
 
+struct MapEntry
+{
+    uvec2 key;
+    ObjectAllocation value;
+};
+
 struct PageNode
 {
     uint next; // uint16
 };
 
+struct DrawArraysIndirectCommand 
+{
+    uint count;
+    uint instanceCount;
+    uint first;
+    uint baseInstance;
+};
+
 layout(local_size_x = 8, local_size_y = 4, local_size_z = 8) in; // 256 threads => 8 wraps
+
+
+layout(std430, binding = 0) buffer IndirectDrawBuffer
+{
+    DrawArraysIndirectCommand indirectCmds[];
+};
 
 layout(std430, binding = 1) buffer UncachedChunks
 {
@@ -34,7 +54,7 @@ layout(std430, binding = 1) buffer UncachedChunks
 
 layout(std430, binding = 2) readonly buffer CacheObjTable
 {
-    ObjectAllocation objectData[];
+    MapEntry objectData[];
 };
 
 layout(std430, binding = 3) readonly buffer PageNodesBuffer
@@ -70,8 +90,119 @@ bool test_AABB_against_frustum(ChunkAABB aabb)
     return true;
 }
 
+uvec2 GetChunkID(ivec3 chunkCoords)
+{
+    // TODO
+    return uvec2(0);
+}
+
+// 64-bit right shift
+uvec2 shr64(uvec2 v, uint s) 
+{
+    if (s == 0u) return v;
+    if (s < 32u) 
+    {
+        return uvec2(
+            (v.x >> s) | (v.y << (32u - s)),
+            v.y >> s
+        );
+    } 
+    else 
+    {
+        return uvec2(
+            v.y >> (s - 32u),
+            0u
+        );
+    }
+}
+
+// 64-bit multiply
+uvec2 mul64(uvec2 a, uvec2 b) 
+{
+    uint lo = a.x * b.x;
+
+    uint mid1 = a.x * b.y;
+    uint mid2 = a.y * b.x;
+
+    uint hi = a.y * b.y;
+
+    uint carry = ((lo >> 16u) + (mid1 & 0xFFFFu) + (mid2 & 0xFFFFu)) >> 16u;
+
+    hi += (mid1 >> 16u) + (mid2 >> 16u) + carry;
+
+    return uvec2(lo, hi);
+}
+
+// XOR
+uvec2 xor64(uvec2 a, uvec2 b) 
+{
+    return uvec2(a.x ^ b.x, a.y ^ b.y);
+}
+
+// Constants split into low/high 32-bit parts
+const uvec2 C1 = uvec2(0xed558ccdU, 0xff51afd7U);
+const uvec2 C2 = uvec2(0x1a85ec53U, 0xc4ceb9feU);
+
+uint Hash64(uvec2 x)
+{
+    x = xor64(x, shr64(x, 33u));
+    x = mul64(x, C1);
+
+    x = xor64(x, shr64(x, 33u));
+    x = mul64(x, C2);
+
+    x = xor64(x, shr64(x, 33u));
+
+    return x.x; // lower 32 bits
+}
+
+uint MapIndex(uvec2 obj)
+{
+    uint h = Hash64(obj);
+    return h & (objectData.length() - 1);
+}
+
+const uvec2 EMPTY_KEY = uvec2(0xFFFFFFFFu, 0xFFFFFFFFu);
+
+bool IsCached(uvec2 obj, out ObjectAllocation alloc)
+{
+    uint cap = objectData.length();
+    uint start = MapIndex(obj);
+
+    for (uint probe = 0u; probe < cap; ++probe)
+    {
+        uint idx = (start + probe) & (cap - 1u);
+        MapEntry entry = objectData[idx];
+
+        uvec2 current = entry.key;
+
+        if (all(equal(current, EMPTY_KEY)))
+        {
+            alloc = entry.value;
+            return false;
+        }
+
+        if (all(equal(current, obj)))
+        {
+            alloc = entry.value;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+void DrawChunk(ObjectAllocation alloc)
+{
+    // TODO
+}
+
+void PolicyTouch(uvec2 chunkID)
+{
+    // TODO
+}
+
 // TODO write functions:
-// - IsCached(id) => hash(id) => lookup hashmap
 // - PolicyTouch(id) => ClockPolicy.OnAccess
 // - GetIndirectCmds(id or hashtable index) => use pageNodes buffer to compute indirect commands GPUCachedBuffer.GetObjectBufferRanges
 // - Draw(id) => GetIndirectCmds => write to indirectCmdBuffer & posSSBOBuffer at uncompressed chunkID
@@ -79,7 +210,6 @@ bool test_AABB_against_frustum(ChunkAABB aabb)
 void main()
 {
     //TODO: use shared mem count to write results in batches
-    //TODO: gpu indirect draw 
 
     ivec3 offset = ivec3(gl_GlobalInvocationID) - ivec3(u_RenderDistance);
     ivec3 chunkCoord = u_CameraChunkPos + offset;
@@ -92,12 +222,17 @@ void main()
     // Frustum culling
     if (test_AABB_against_frustum(chunkAABB))
     {
-        uint index = atomicAdd(count, 1);
-        results[index] = ivec4(chunkCoord, 0);
-
-        // TOOD: Impl gpu-driven frustum culling:
-        // - if chunk cached -> draw chunk
-        // - else -> write chunkID to ret buffer
+        uvec2 chunkID = GetChunkID(chunkCoord);
+        ObjectAllocation alloc;
+        if(IsCached(chunkID, alloc))
+        {
+            DrawChunk(alloc);
+            PolicyTouch(chunkID);
+        }
+        else
+        {
+            uint index = atomicAdd(count, 1);
+            results[index] = ivec4(chunkCoord, 0);
+        }
     }
-
 }
