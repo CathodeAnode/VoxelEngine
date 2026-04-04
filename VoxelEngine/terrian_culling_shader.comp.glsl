@@ -6,7 +6,11 @@
 // - Use SGL instead of shader.h
 
 const uint NULL_PAGE = 65535;
-const uint CACHE_PAGE_SIZE = 200
+const uint CACHE_PAGE_SIZE = 200;
+const uvec2 EMPTY_KEY = uvec2(0xFFFFFFFFu, 0xFFFFFFFFu);
+const uvec2 C1 = uvec2(0xed558ccdU, 0xff51afd7U);
+const uvec2 C2 = uvec2(0x1a85ec53U, 0xc4ceb9feU);
+const uint REF_BIT = 2; // 0b10
 
 struct ChunkAABB
 {
@@ -100,8 +104,27 @@ bool test_AABB_against_frustum(ChunkAABB aabb)
 
 uvec2 GetChunkID(ivec3 chunkCoords)
 {
-    // TODO
-    return uvec2(0);
+    const uint typeFlag = 0u; // Type flag = 0 for Chunk ID
+    const uint mask21 = 0x1FFFFFu; // 21-bit mask
+
+    uint x = uint(chunkCoords.x) & mask21;
+    uint y = uint(chunkCoords.y) & mask21;
+    uint z = uint(chunkCoords.z) & mask21;
+
+    uvec2 result;
+
+    // Pack lower 32 bits (uvec2.x)
+    // Bits 0–20: Z
+    // Bits 21–31: lower 11 bits of Y
+    result.x = (y & 0x7FFu) << 21 | (z & 0x1FFFFFu);
+
+    // Pack upper 32 bits (uvec2.y)
+    // Bits 0–9: upper 10 bits of Y
+    // Bits 10–30: X
+    // Bit 31: type flag
+    result.y = (x << 10) | ((y >> 11) & 0x3FFu) | (typeFlag << 31);
+
+    return result;
 }
 
 // 64-bit right shift
@@ -147,10 +170,6 @@ uvec2 xor64(uvec2 a, uvec2 b)
     return uvec2(a.x ^ b.x, a.y ^ b.y);
 }
 
-// Constants split into low/high 32-bit parts
-const uvec2 C1 = uvec2(0xed558ccdU, 0xff51afd7U);
-const uvec2 C2 = uvec2(0x1a85ec53U, 0xc4ceb9feU);
-
 uint Hash64(uvec2 x)
 {
     x = xor64(x, shr64(x, 33u));
@@ -169,8 +188,6 @@ uint MapIndex(uvec2 obj)
     uint h = Hash64(obj);
     return h & (objectData.length() - 1);
 }
-
-const uvec2 EMPTY_KEY = uvec2(0xFFFFFFFFu, 0xFFFFFFFFu);
 
 bool IsCached(uvec2 obj, out ObjectAllocation alloc)
 {
@@ -217,7 +234,7 @@ void DrawChunk(ObjectAllocation alloc)
             indirectCmds[i].baseInstance = start * CACHE_PAGE_SIZE;
             indirectCmds[i].instanceCount = (current - start) * CACHE_PAGE_SIZE;
 
-            indirectCmds[i].instanceCount += (current == alloc.endPage) * alloc.totalElementCount; // Branchless addition
+            indirectCmds[i].instanceCount += uint(current == alloc.endPage) * alloc.totalElementCount; // Branchless addition
 
             start = next;
         }
@@ -233,19 +250,14 @@ void DrawChunk(ObjectAllocation alloc)
         indirectCmds[i].instanceCount = (current - start + 1) * CACHE_PAGE_SIZE;
 
         // Add totalElementCount if the last page is reached
-        indirectCmds[i].instanceCount += (current == alloc.endPage) * alloc.totalElementCount;
+        indirectCmds[i].instanceCount += uint(current == alloc.endPage) * alloc.totalElementCount;
     }
 }
 
-void PolicyTouch(uvec2 chunkID)
+void PolicyTouch(ObjectAllocation alloc)
 {
-    // TODO
+    atomicOr(policyObjectState[alloc.policyHandle.index], REF_BIT);
 }
-
-// TODO write functions:
-// - PolicyTouch(id) => ClockPolicy.OnAccess
-// - GetIndirectCmds(id or hashtable index) => use pageNodes buffer to compute indirect commands GPUCachedBuffer.GetObjectBufferRanges
-// - Draw(id) => GetIndirectCmds => write to indirectCmdBuffer & posSSBOBuffer at uncompressed chunkID
 
 void main()
 {
