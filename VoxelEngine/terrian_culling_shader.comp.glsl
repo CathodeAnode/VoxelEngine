@@ -1,5 +1,13 @@
 #version 460
 
+// TODOs:
+// - Implement #define preprocessor (SGL)
+// - Implement const injection from cpu side (SGL)
+// - Use SGL instead of shader.h
+
+const uint NULL_PAGE = 65535;
+const uint CACHE_PAGE_SIZE = 200
+
 struct ChunkAABB
 {
     ivec3 min;
@@ -194,7 +202,39 @@ bool IsCached(uvec2 obj, out ObjectAllocation alloc)
 
 void DrawChunk(ObjectAllocation alloc)
 {
-    // TODO
+    uint current = alloc.startPage;
+    uint start = alloc.startPage;
+    
+    while (current != NULL_PAGE)
+    {
+        uint next = pageNodes[current].next;
+
+        if(next != start + 1)
+        {
+            // range is from start -> current (write to indirect buffer as DrawArraysIndirectCommand)
+            indirectCmds[i].count = 4;
+            indirectCmds[i].first = 0;
+            indirectCmds[i].baseInstance = start * CACHE_PAGE_SIZE;
+            indirectCmds[i].instanceCount = (current - start) * CACHE_PAGE_SIZE;
+
+            indirectCmds[i].instanceCount += (current == alloc.endPage) * alloc.totalElementCount; // Branchless addition
+
+            start = next;
+        }
+
+        current = next;
+    }
+
+    if (current != start) 
+    {
+        indirectCmds[i].count = 4;
+        indirectCmds[i].first = 0;
+        indirectCmds[i].baseInstance = start * CACHE_PAGE_SIZE;
+        indirectCmds[i].instanceCount = (current - start + 1) * CACHE_PAGE_SIZE;
+
+        // Add totalElementCount if the last page is reached
+        indirectCmds[i].instanceCount += (current == alloc.endPage) * alloc.totalElementCount;
+    }
 }
 
 void PolicyTouch(uvec2 chunkID)
