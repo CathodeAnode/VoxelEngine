@@ -38,7 +38,7 @@ void Scene<ChunkType>::Render(const Camera& viewCamera, const Camera& cullCamera
 { 
 	PROFILE_FUNCTION();
 
-	std::span<const glm::ivec4> coords = m_Renderer.GetFrustumCulledChunkCoords(); // get frustum culling results from preivous frame (frame n-1)
+	std::span<const glm::ivec4> coords = m_Renderer.GetGPURequestedChunks(); // get frustum culling results from preivous frame (frame n-1)
 
 	const int chunkSize = ChunkType::Size;
 	for (const auto& chunkCoord : coords)

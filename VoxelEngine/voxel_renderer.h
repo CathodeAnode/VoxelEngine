@@ -45,7 +45,7 @@ public:
 	void DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position);
 
 	void DispatchFrustumCullPass(unsigned int renderDistance, const Camera& camera);
-	std::span<const glm::ivec4> GetFrustumCulledChunkCoords();
+	std::span<const glm::ivec4> GetGPURequestedChunks();
 
 	void NextFrame();
 	void Render(const Camera& camera);
@@ -55,17 +55,22 @@ public:
 private:
 
 	GPUPagedCache<VoxelObjectID, VoxelQuad, ClockPolicy> m_DataCache;
-	GPUOrphanBuffer<DrawArraysIndirectCommand> m_IndirectCommandBuffer;
 	GPUOrphanBuffer<glm::vec4> m_PositionSSBO;
+	GPUOrphanBuffer<std::byte> m_IndirectCommandBuffer;
 	GPUOrphanBuffer<std::byte> m_UncachedChunks; // TODO figure out sizing
 
 	Shader m_VoxelShader;
 	ComputeShader m_FrustumCullingShader;
 	std::unique_ptr<VoxelMesher<ChunkType>> m_Mesher;
 
+	//TODO: remove m_ObjectsRenderedInCurrentFrame & m_ObjectsRenderedInNextFrame if unnessary
+	// (may be redunat information or could be completely eliminated with different approach)
 	std::vector<VoxelObjectID> m_ObjectsRenderedInCurrentFrame;
 	std::vector<VoxelObjectID> m_ObjectsRenderedInNextFrame;
 
+	//TODO remove m_CurrentIndirectCmdsCount & m_NextIndirectCmdsCount if unnessary
+	// (note: new architecture stores indirect cmds in header of indirectcmdSSBO, thus m_CurrentIndirectCmdsCount & 
+	// m_NextIndirectCmdsCount are already stored on DSA pointer of SSBO)
 	size_t m_CurrentIndirectCmdsCount = 0;
 	size_t m_NextIndirectCmdsCount = 0;
 

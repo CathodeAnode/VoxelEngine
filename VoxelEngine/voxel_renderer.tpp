@@ -129,7 +129,10 @@ void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm
     }
     
     std::vector<GPUBufferRange> memoryRanges = m_DataCache.GetObjectBufferRanges(objectID);
-    DrawArraysIndirectCommand* cmds = m_IndirectCommandBuffer.GetHeadContents() + m_NextIndirectCmdsCount;
+
+    const size_t headerSize = sizeof(uint32_t);
+    const size_t bodyCount = m_NextIndirectCmdsCount * sizeof(DrawArraysIndirectCommand);
+    DrawArraysIndirectCommand* cmds = reinterpret_cast<DrawArraysIndirectCommand*>(m_IndirectCommandBuffer.GetHeadContents() + headerSize + bodyCount);
     glm::vec4* paddedPos = m_PositionSSBO.GetHeadContents() + m_NextIndirectCmdsCount;
 
     LOG_TRACE(EngineSystem::RENDERER,
@@ -156,6 +159,9 @@ void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm
     }
 
     m_NextIndirectCmdsCount += memoryRanges.size();
+    uint32_t* header = reinterpret_cast<uint32_t*>(m_UncachedChunks.GetHeadContents());
+    *header = m_NextIndirectCmdsCount;
+
     m_ObjectsRenderedInNextFrame.push_back(objectID);
 
 }
@@ -177,12 +183,14 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     uint32_t* counter = reinterpret_cast<uint32_t*>(m_UncachedChunks.GetHeadContents());
     *counter = 0;
 
-    const GLint retSSBOLocation = 1;
-    m_UncachedChunks.BindHeadBuffer(retSSBOLocation);
-
+    const GLint indirectCmdsLocation = 0;
+    const GLint uncachedChunksLocation = 1;
     const GLint hashMapLocation = 2;
     const GLint pageNodesBufferLocation = 3;
     const GLint policyBufferLocation = 4;
+
+    m_IndirectCommandBuffer.BindHeadBuffer(indirectCmdsLocation);
+    m_UncachedChunks.BindHeadBuffer(uncachedChunksLocation);
     m_DataCache.BindCacheLookup(hashMapLocation, pageNodesBufferLocation, policyBufferLocation);
     
     // TODO: Bind indirect commands buffer
@@ -204,7 +212,7 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
 }
 
 template<typename ChunkType>
-std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetFrustumCulledChunkCoords()
+std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetGPURequestedChunks()
 {
     PROFILE_FUNCTION();
 
@@ -294,13 +302,17 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
     PROFILE_FUNCTION();
 
     m_DataCache.Create(GL_ARRAY_BUFFER, cachePageSize, cachePages);
-    m_IndirectCommandBuffer.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
     m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
 
-    const size_t CulledHeaderSize = sizeof(uint32_t);
-    const size_t CulledCoordsSize = sizeof(glm::vec4) * indirectBufferSize * 5; // TEMP: sizing, later will give correct sizing for frustum culling SSBO
-    const size_t CulledSSBOSize = CulledHeaderSize + CulledCoordsSize;
-    m_UncachedChunks.Create(GL_SHADER_STORAGE_BUFFER, CulledSSBOSize, k_TripleBuffer, BufferAccess::ReadWrite);
+    const size_t indirectHeaderSize = sizeof(uint32_t);
+    const size_t indirectBodySize = indirectBufferSize * sizeof(DrawArraysIndirectCommand);
+    const size_t indirectSSBOSize = indirectHeaderSize + indirectBodySize;
+    m_IndirectCommandBuffer.Create(GL_SHADER_STORAGE_BUFFER, indirectSSBOSize, k_TripleBuffer);
+
+    const size_t culledHeaderSize = sizeof(uint32_t);
+    const size_t culledCoordsSize = sizeof(glm::vec4) * indirectBufferSize * 5; // TEMP: sizing, later will give correct sizing for frustum culling SSBO
+    const size_t culledSSBOSize = culledHeaderSize + culledCoordsSize;
+    m_UncachedChunks.Create(GL_SHADER_STORAGE_BUFFER, culledSSBOSize, k_TripleBuffer, BufferAccess::ReadWrite);
 
     // Offset head from tail on OrphanBuffers
     m_IndirectCommandBuffer.AdvanceHead();

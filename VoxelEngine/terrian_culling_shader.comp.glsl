@@ -55,6 +55,7 @@ layout(local_size_x = 8, local_size_y = 4, local_size_z = 8) in; // 256 threads 
 
 layout(std430, binding = 0) buffer IndirectDrawBuffer
 {
+    uint indirectCmdsCount;
     DrawArraysIndirectCommand indirectCmds[];
 };
 
@@ -228,13 +229,15 @@ void DrawChunk(ObjectAllocation alloc)
 
         if(next != start + 1)
         {
-            // range is from start -> current (write to indirect buffer as DrawArraysIndirectCommand)
-            indirectCmds[i].count = 4;
-            indirectCmds[i].first = 0;
-            indirectCmds[i].baseInstance = start * CACHE_PAGE_SIZE;
-            indirectCmds[i].instanceCount = (current - start) * CACHE_PAGE_SIZE;
+            uint index = atomicAdd(indirectCmdsCount, 1);
 
-            indirectCmds[i].instanceCount += uint(current == alloc.endPage) * alloc.totalElementCount; // Branchless addition
+            // range is from start -> current (write to indirect buffer as DrawArraysIndirectCommand)
+            indirectCmds[index].count = 4;
+            indirectCmds[index].first = 0;
+            indirectCmds[index].baseInstance = start * CACHE_PAGE_SIZE;
+            indirectCmds[index].instanceCount = (current - start) * CACHE_PAGE_SIZE;
+
+            indirectCmds[index].instanceCount += uint(current == alloc.endPage) * alloc.totalElementCount; // Branchless addition
 
             start = next;
         }
@@ -244,13 +247,11 @@ void DrawChunk(ObjectAllocation alloc)
 
     if (current != start) 
     {
-        indirectCmds[i].count = 4;
-        indirectCmds[i].first = 0;
-        indirectCmds[i].baseInstance = start * CACHE_PAGE_SIZE;
-        indirectCmds[i].instanceCount = (current - start + 1) * CACHE_PAGE_SIZE;
-
-        // Add totalElementCount if the last page is reached
-        indirectCmds[i].instanceCount += uint(current == alloc.endPage) * alloc.totalElementCount;
+        uint index = atomicAdd(indirectCmdsCount, 1);
+        indirectCmds[index].count = 4;
+        indirectCmds[index].first = 0;
+        indirectCmds[index].baseInstance = start * CACHE_PAGE_SIZE;
+        indirectCmds[index].instanceCount = (current - start + 1) * CACHE_PAGE_SIZE + alloc.totalElementCount;
     }
 }
 
@@ -279,7 +280,7 @@ void main()
         if(IsCached(chunkID, alloc))
         {
             DrawChunk(alloc);
-            PolicyTouch(chunkID);
+            PolicyTouch(alloc);
         }
         else
         {
