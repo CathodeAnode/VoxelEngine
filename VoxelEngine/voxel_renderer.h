@@ -63,17 +63,6 @@ private:
 	ComputeShader m_FrustumCullingShader;
 	std::unique_ptr<VoxelMesher<ChunkType>> m_Mesher;
 
-	//TODO: remove m_ObjectsRenderedInCurrentFrame & m_ObjectsRenderedInNextFrame if unnessary
-	// (may be redunat information or could be completely eliminated with different approach)
-	std::vector<VoxelObjectID> m_ObjectsRenderedInCurrentFrame;
-	std::vector<VoxelObjectID> m_ObjectsRenderedInNextFrame;
-
-	//TODO remove m_CurrentIndirectCmdsCount & m_NextIndirectCmdsCount if unnessary
-	// (note: new architecture stores indirect cmds in header of indirectcmdSSBO, thus m_CurrentIndirectCmdsCount & 
-	// m_NextIndirectCmdsCount are already stored on DSA pointer of SSBO)
-	size_t m_CurrentIndirectCmdsCount = 0;
-	size_t m_NextIndirectCmdsCount = 0;
-
 	unsigned int m_VAO, m_QuadVBO;
 	static constexpr float m_QuadVertices[20] = {
 		// position             texture

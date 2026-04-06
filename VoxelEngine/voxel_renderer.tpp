@@ -36,9 +36,6 @@ void VoxelRenderer<ChunkType>::Init(size_t cachePages, size_t cachePageSize, siz
     _CreateGPUBuffers(indirectBufferSize, cachePageSize, cachePages);
     _EnableOpenGLFeatures();
 
-    m_ObjectsRenderedInCurrentFrame.reserve(indirectBufferSize);
-    m_ObjectsRenderedInNextFrame.reserve(indirectBufferSize);
-
     _SetupOpenGLAttribs();
 
     LOG_INFO(EngineSystem::RENDERER, "VoxelRenderer initialization complete");
@@ -129,11 +126,12 @@ void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm
     }
     
     std::vector<GPUBufferRange> memoryRanges = m_DataCache.GetObjectBufferRanges(objectID);
+    uint32_t* indirectCmdsCount = reinterpret_cast<uint32_t*>(m_IndirectCommandBuffer.GetHeadContents());
 
     const size_t headerSize = sizeof(uint32_t);
-    const size_t bodyCount = m_NextIndirectCmdsCount * sizeof(DrawArraysIndirectCommand);
+    const size_t bodyCount = (*indirectCmdsCount) * sizeof(DrawArraysIndirectCommand);
     DrawArraysIndirectCommand* cmds = reinterpret_cast<DrawArraysIndirectCommand*>(m_IndirectCommandBuffer.GetHeadContents() + headerSize + bodyCount);
-    glm::vec4* paddedPos = m_PositionSSBO.GetHeadContents() + m_NextIndirectCmdsCount;
+    glm::vec4* paddedPos = m_PositionSSBO.GetHeadContents() + (*indirectCmdsCount);
 
     LOG_TRACE(EngineSystem::RENDERER,
         "Scheduling UID={} for draw (indirectCmds={})",
@@ -158,12 +156,8 @@ void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm
         paddedPos++;
     }
 
-    m_NextIndirectCmdsCount += memoryRanges.size();
-    uint32_t* header = reinterpret_cast<uint32_t*>(m_UncachedChunks.GetHeadContents());
-    *header = m_NextIndirectCmdsCount;
-
-    m_ObjectsRenderedInNextFrame.push_back(objectID);
-
+    std::atomic<uint32_t>* atomicCount = reinterpret_cast<std::atomic<uint32_t>*>(indirectCmdsCount);
+    atomicCount->fetch_add(static_cast<uint32_t>(memoryRanges.size()), std::memory_order_relaxed);
 }
 
 template<typename ChunkType>
@@ -192,18 +186,12 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     m_IndirectCommandBuffer.BindHeadBuffer(indirectCmdsLocation);
     m_UncachedChunks.BindHeadBuffer(uncachedChunksLocation);
     m_DataCache.BindCacheLookup(hashMapLocation, pageNodesBufferLocation, policyBufferLocation);
-    
-    // TODO: Bind indirect commands buffer
-    // TODO: Bind Position SSBO buffer
 
-    unsigned int localX = m_FrustumCullingShader.GetLocalSizeX();
-    unsigned int localY = m_FrustumCullingShader.GetLocalSizeY();
-    unsigned int localZ = m_FrustumCullingShader.GetLocalSizeZ();
-
+    glm::ivec3 localSize = m_FrustumCullingShader.GetLocalSizeGroup();
     unsigned int dimension = renderDistance * 2 + 1;
-    unsigned int groupX = (dimension + localX - 1) / localX;
-    unsigned int groupY = (dimension + localY - 1) / localY;
-    unsigned int groupZ = (dimension + localZ - 1) / localZ;
+    unsigned int groupX = (dimension + localSize.x - 1) / localSize.x;
+    unsigned int groupY = (dimension + localSize.y - 1) / localSize.y;
+    unsigned int groupZ = (dimension + localSize.z - 1) / localSize.z;
 
     m_FrustumCullingShader.Dispatch(groupX, groupY, groupZ);
     m_FrustumCullingShader.Wait(GL_SHADER_STORAGE_BARRIER_BIT);
@@ -235,7 +223,7 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetGPURequestedChunks()
     }
 
     LOG_DEBUG(EngineSystem::RENDERER,
-        "FrustumCull completed: {} chunks visible",
+        "GPU requested {} chunks to be meshed",
         count);
 
     m_UncachedChunks.AdvanceTail();
@@ -250,20 +238,18 @@ void VoxelRenderer<ChunkType>::NextFrame()
 
     LOG_TRACE(EngineSystem::RENDERER,
         "VoxelRenderer advancing frame (indirectCmds={})",
-        m_NextIndirectCmdsCount);
-
-    //if (m_NextIndirectCmdsCount == 0) return;
-
-    m_ObjectsRenderedInNextFrame.swap(m_ObjectsRenderedInCurrentFrame);
+        *reinterpret_cast<uint32_t*>(m_IndirectCommandBuffer.GetHeadContents()));
 
     m_IndirectCommandBuffer.AdvanceHead();
     m_PositionSSBO.AdvanceHead();
+    m_UncachedChunks.AdvanceHead();
 
     m_IndirectCommandBuffer.AdvanceTail();
     m_PositionSSBO.AdvanceTail();
+    m_UncachedChunks.AdvanceTail();
 
-    m_CurrentIndirectCmdsCount = m_NextIndirectCmdsCount;
-    m_NextIndirectCmdsCount = 0;
+    uint32_t* nextFrameIndirectCmdsCount = reinterpret_cast<uint32_t*>(m_IndirectCommandBuffer.GetHeadContents());
+    *nextFrameIndirectCmdsCount = 0;
 }
 
 template <typename ChunkType>
@@ -271,7 +257,9 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 {
     PROFILE_FUNCTION();
 
-    if (m_CurrentIndirectCmdsCount == 0) return;
+    const uint32_t indirectCmdsCount = *reinterpret_cast<const uint32_t*>(m_IndirectCommandBuffer.GetTailContents());
+    
+    if (indirectCmdsCount == 0) return;
 
     m_VoxelShader.Use();
     m_VoxelShader.SetMat4("view", camera.GetViewMatrix());
@@ -279,11 +267,13 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 
     glBindVertexArray(m_VAO);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_IndirectCommandBuffer.GetName());
-    m_PositionSSBO.BindTailBufferRange(0, m_CurrentIndirectCmdsCount);
+    m_PositionSSBO.BindTailBufferRange(0, indirectCmdsCount);
 
     //assert(glGetError() == GL_NO_ERROR);
 
-    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, m_IndirectCommandBuffer.GetTailOffset(), m_CurrentIndirectCmdsCount, 0);
+    const size_t headerSize = sizeof(uint32_t);
+    const size_t offset = m_IndirectCommandBuffer.GetTail() * sizeof(DrawArraysIndirectCommand) + headerSize;
+    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, reinterpret_cast<const void*>(offset), indirectCmdsCount, 0);
     //assert(glGetError() == GL_NO_ERROR);
 
     glBindVertexArray(0);
