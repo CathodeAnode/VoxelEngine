@@ -208,7 +208,7 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetGPURequestedChunks()
     assert(rawDataPtr != nullptr);
 
     const uint32_t count = *reinterpret_cast<const uint32_t*>(rawDataPtr);
-    const glm::ivec4* results = reinterpret_cast<const glm::ivec4*>(rawDataPtr);
+    const glm::ivec4* results = reinterpret_cast<const glm::ivec4*>(rawDataPtr + sizeof(uint32_t));
 
     {
         // NOTE: these calculations will get optimized out by compiler in O2/-O3 or /O2 
