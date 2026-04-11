@@ -15,13 +15,14 @@
 #include "chunk_generator_strategy.h"
 #include "voxel_mesher.h"
 #include "gizmos.h"
+#include "frame_counter.h"
 
 // Cache configuration
 #define CACHE_PAGE_SIZE 200
 #define CACHE_NUM_OF_PAGES 31250
 #define AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK 3
 
-#define LOADED_CHUNK_DISTANCE 9
+#define LOADED_CHUNK_DISTANCE 3
 
 
 // TODO make loadedChunkDistance & terrian generation strargy user defiend
@@ -119,7 +120,8 @@ void Application<ChunkT>::Run()
         Render();
 
         m_Screen.Flush();
-        CalcFPSOnWindowTitle(1000);
+        CalcFPSOnWindowTitle(100);
+        FrameCounter::Tick();
     }
 
     Profiler::GetInstance().SetEnabled(true);

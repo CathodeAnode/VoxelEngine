@@ -87,6 +87,9 @@
     <ClCompile Include="gpu_cache_allocator.tpp">
       <Filter>Template Files</Filter>
     </ClCompile>
+    <ClCompile Include="frame_counter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="voxel_shader.vert.glsl">
@@ -239,6 +242,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="gpu_cache_policy.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="frame_counter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

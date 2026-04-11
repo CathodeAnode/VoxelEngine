@@ -149,6 +149,7 @@
     <ClCompile Include="camera_manager.cpp" />
     <ClCompile Include="compute_shader.cpp" />
     <ClCompile Include="debugging_renderer.cpp" />
+    <ClCompile Include="frame_counter.cpp" />
     <ClCompile Include="gizmos.cpp" />
     <ClCompile Include="glad.c" />
     <ClCompile Include="gpu_buffer_lock.cpp" />
@@ -190,6 +191,7 @@
     <ClInclude Include="chunk_generator_strategy.h" />
     <ClInclude Include="compute_shader.h" />
     <ClInclude Include="debugging_renderer.h" />
+    <ClInclude Include="frame_counter.h" />
     <ClInclude Include="gizmos.h" />
     <ClInclude Include="gpu_buffer_allocator.h" />
     <ClInclude Include="gpu_buffer_lock.h" />

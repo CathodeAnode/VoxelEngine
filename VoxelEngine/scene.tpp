@@ -20,9 +20,6 @@ void Scene<ChunkType>::Init(unsigned int renderDistance, const glm::vec3& starti
 	m_RenderDist = renderDistance;
 
 	_UploadLoadedTerrain(startingCameraPos);
-	//m_Renderer.DispatchFrustumCullPass(m_RenderDist, m_Camera);
-	//m_Renderer.NextFrame();
-	//m_Renderer.Render(m_Camera);
 }
 
 template<typename ChunkType>
@@ -38,21 +35,13 @@ void Scene<ChunkType>::Render(const Camera& viewCamera, const Camera& cullCamera
 { 
 	PROFILE_FUNCTION();
 
-	std::span<const glm::ivec4> coords = m_Renderer.GetGPURequestedChunks(); // get frustum culling results from preivous frame (frame n-1)
+	std::span<const glm::ivec4> uncachedChunkCoords = m_Renderer.GetGPURequestedChunks(); // get frustum culling results from preivous frame (frame n-1)
 
-	const int chunkSize = ChunkType::Size;
-	for (const auto& chunkCoord : coords)
+	//TODO: multi-thread (thread-pool)
+	//TODO: schdule n chunks to be uploaded per frame rather than the entire request buffer per frame
+	for (const auto& chunkCoord : uncachedChunkCoords)
 	{
-		glm::ivec3 chunkWorldPos = chunkCoord * chunkSize;
-		const VoxelObjectID chunkUID = UIDManager::Generate(chunkCoord);
-		//if (!m_Renderer.IsCached(chunkUID))
-		//{
-		//	m_Renderer.Upload(m_World, chunkCoord);
-		//}
-		if (m_Renderer.IsCached(chunkUID))
-		{
-			m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
-		}
+		m_Renderer.Upload(m_World, chunkCoord);
 	}
 
 	m_Renderer.DispatchFrustumCullPass(m_RenderDist, cullCamera); // compute frustum cullign results for this frame (frame n)
