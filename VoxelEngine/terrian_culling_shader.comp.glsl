@@ -1,4 +1,5 @@
 #version 460
+#extension GL_ARB_gpu_shader_int64 : require
 
 // TODOs:
 // - Implement #define preprocessor (SGL)
@@ -7,9 +8,7 @@
 
 const uint NULL_PAGE = 65535;
 const uint CACHE_PAGE_SIZE = 200;
-const uvec2 EMPTY_KEY = uvec2(0xFFFFFFFFu, 0xFFFFFFFFu);
-const uvec2 C1 = uvec2(0xed558ccdU, 0xff51afd7U);
-const uvec2 C2 = uvec2(0x1a85ec53U, 0xc4ceb9feU);
+const uint64_t EMPTY_KEY = 0xFFFFFFFFFFFFFFFFUL;
 const uint REF_BIT = 2; // 0b10
 
 struct ChunkAABB
@@ -33,7 +32,7 @@ struct ObjectAllocation
 
 struct MapEntry
 {
-    uvec2 key;
+    uint64_t key;
     ObjectAllocation value;
 };
 
@@ -103,112 +102,39 @@ bool test_AABB_against_frustum(ChunkAABB aabb)
     return true;
 }
 
-uvec2 GetChunkID(ivec3 chunkCoords)
+uint64_t Hash64(uint64_t x)
 {
-    const uint typeFlag = 0u; // Type flag = 0 for Chunk ID
-    const uint mask21 = 0x1FFFFFu; // 21-bit mask
-
-    uint x = uint(chunkCoords.x) & mask21;
-    uint y = uint(chunkCoords.y) & mask21;
-    uint z = uint(chunkCoords.z) & mask21;
-
-    uvec2 result;
-
-    // Pack lower 32 bits (uvec2.x)
-    // Bits 0–20: Z
-    // Bits 21–31: lower 11 bits of Y
-    result.x = (y & 0x7FFu) << 21 | (z & 0x1FFFFFu);
-
-    // Pack upper 32 bits (uvec2.y)
-    // Bits 0–9: upper 10 bits of Y
-    // Bits 10–30: X
-    // Bit 31: type flag
-    result.y = (x << 10) | ((y >> 11) & 0x3FFu) | (typeFlag << 31);
-
-    return result;
+    x ^= x >> 33;
+    x *= 0xff51afd7ed558ccdUL;
+    x ^= x >> 33;
+    x *= 0xc4ceb9fe1a85ec53UL;
+    x ^= x >> 33;
+    return x;
 }
 
-// 64-bit right shift
-uvec2 shr64(uvec2 v, uint s) 
+uint MapIndex(uint64_t obj)
 {
-    if (s == 0u) return v;
-    if (s < 32u) 
-    {
-        return uvec2(
-            (v.x >> s) | (v.y << (32u - s)),
-            v.y >> s
-        );
-    } 
-    else 
-    {
-        return uvec2(
-            v.y >> (s - 32u),
-            0u
-        );
-    }
+    uint64_t h = Hash64(obj);
+    return uint(h % objectData.length());
 }
 
-// 64-bit multiply
-uvec2 mul64(uvec2 a, uvec2 b) 
-{
-    uint lo = a.x * b.x;
-
-    uint mid1 = a.x * b.y;
-    uint mid2 = a.y * b.x;
-
-    uint hi = a.y * b.y;
-
-    uint carry = ((lo >> 16u) + (mid1 & 0xFFFFu) + (mid2 & 0xFFFFu)) >> 16u;
-
-    hi += (mid1 >> 16u) + (mid2 >> 16u) + carry;
-
-    return uvec2(lo, hi);
-}
-
-// XOR
-uvec2 xor64(uvec2 a, uvec2 b) 
-{
-    return uvec2(a.x ^ b.x, a.y ^ b.y);
-}
-
-uint Hash64(uvec2 x)
-{
-    x = xor64(x, shr64(x, 33u));
-    x = mul64(x, C1);
-
-    x = xor64(x, shr64(x, 33u));
-    x = mul64(x, C2);
-
-    x = xor64(x, shr64(x, 33u));
-
-    return x.x; // lower 32 bits
-}
-
-uint MapIndex(uvec2 obj)
-{
-    uint h = Hash64(obj);
-    return h & (objectData.length() - 1);
-}
-
-bool IsCached(uvec2 obj, out ObjectAllocation alloc)
+bool IsCached(uint64_t obj, out ObjectAllocation alloc)
 {
     uint cap = objectData.length();
     uint start = MapIndex(obj);
 
     for (uint probe = 0u; probe < cap; ++probe)
     {
-        uint idx = (start + probe) & (cap - 1u);
+        uint idx = (start + probe) % cap;
         MapEntry entry = objectData[idx];
 
-        uvec2 current = entry.key;
-
-        if (all(equal(current, EMPTY_KEY)))
+        if (entry.key == EMPTY_KEY)
         {
             alloc = entry.value;
             return false;
         }
 
-        if (all(equal(current, obj)))
+        if (entry.key == obj)
         {
             alloc = entry.value;
             return true;
@@ -275,7 +201,11 @@ void main()
     // Frustum culling
     if (test_AABB_against_frustum(chunkAABB))
     {
-        uvec2 chunkID = GetChunkID(chunkCoord);
+        uint64_t chunkID =
+            (uint64_t(0) << 63) | // chunk = 0
+            (uint64_t(uint(chunkCoord.x) & 0x1FFFFF) << 42) |
+            (uint64_t(uint(chunkCoord.y) & 0x1FFFFF) << 21) |
+            uint64_t(uint(chunkCoord.z) & 0x1FFFFF);
         ObjectAllocation alloc;
         if(IsCached(chunkID, alloc))
         {

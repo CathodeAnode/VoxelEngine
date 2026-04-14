@@ -2,6 +2,8 @@
 #define VOXEL_RENDERER_TPP
 #include "voxel_renderer.h"
 
+#include "frame_counter.h"
+
 template <typename ChunkType>
 VoxelRenderer<ChunkType>::VoxelRenderer(std::unique_ptr<VoxelMesher<ChunkType>> mesher)
     : m_DataCache(true)
@@ -54,8 +56,8 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer, cons
     if (IsCached(chunkUID))
     {
         LOG_DEBUG(EngineSystem::RENDERER,
-            "ChunkMeshUpdate chunk VoxelObjectHandle={} coords=({},{},{}) container VoxelObjectHandle={}",
-            chunkUID,
+            "[Frame: {}] ChunkMeshUpdate chunk VoxelObjectHandle={} coords=({},{},{}) container VoxelObjectHandle={}",
+            FrameCounter::Get(), chunkUID,
             chunkCoords.x, chunkCoords.y, chunkCoords.z,
             chunkContainer.GetUID());
 
@@ -70,8 +72,8 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer, cons
     else
     {
         LOG_DEBUG(EngineSystem::RENDERER,
-            "ChunkMeshNew chunk VoxelObjectHandle={} coords=({},{},{}) container VoxelObjectHandle={}",
-            chunkUID,
+            "[Frame: {}] ChunkMeshNew chunk VoxelObjectHandle={} coords=({},{},{}) container VoxelObjectHandle={}",
+            FrameCounter::Get(), chunkUID,
             chunkCoords.x, chunkCoords.y, chunkCoords.z,
             chunkContainer.GetUID());
 
@@ -92,8 +94,8 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer)
     if (IsCached(containerUID))
     {
         LOG_DEBUG(EngineSystem::RENDERER,
-            "ChunkContainerMeshUpdate VoxelObjectHandle={}",
-            containerUID);
+            "[Frame: {}] ChunkContainerMeshUpdate VoxelObjectHandle={}",
+            FrameCounter::Get(), containerUID);
         VoxelObjectID tempUID = UIDManager::Generate();
         meshWriter.SetTargetObject(tempUID);
         m_Mesher->MeshChunk(chunkContainer, meshWriter);
@@ -105,8 +107,8 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer)
     else
     {
         LOG_DEBUG(EngineSystem::RENDERER,
-            "ChunkContainerMeshNew VoxelObjectHandle={}",
-            containerUID);
+            "[Frame: {}] ChunkContainerMeshNew VoxelObjectHandle={}",
+            FrameCounter::Get(), containerUID);
 
         meshWriter.SetTargetObject(containerUID);
         m_Mesher->MeshChunkGrid(chunkContainer, meshWriter);
@@ -121,7 +123,8 @@ void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm
 
     if (!m_DataCache.Has(objectID))
     {
-        LOG_WARN(EngineSystem::RENDERER, "Attempted to draw uncached voxel object (VoxelObjectHandle={})", objectID);
+        LOG_WARN(EngineSystem::RENDERER, "[Frame: {}] Attempted to draw uncached voxel object (VoxelObjectHandle={})", 
+            FrameCounter::Get(), objectID);
         return;
     }
     
@@ -134,8 +137,8 @@ void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm
     glm::vec4* paddedPos = m_PositionSSBO.GetHeadContents() + (*indirectCmdsCount);
 
     LOG_TRACE(EngineSystem::RENDERER,
-        "Scheduling UID={} for draw (indirectCmds={})",
-        objectID, memoryRanges.size());
+        "[Frame: {}] Scheduling UID={} for draw (indirectCmds={})",
+        FrameCounter::Get(), objectID, memoryRanges.size());
 
     // optimization can be done here if we can guarantee object buffer ranges wont be defragmented
     // only having one range for each object is better bcuz we would only need to have one indirect cmd per object
@@ -196,6 +199,10 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     m_FrustumCullingShader.Dispatch(groupX, groupY, groupZ);
     m_FrustumCullingShader.Wait(GL_SHADER_STORAGE_BARRIER_BIT);
 
+    LOG_DEBUG(EngineSystem::RENDERER,
+        "[Frame: {}] VoxelRenderer Dispatched Frustum Cull Pass",
+        FrameCounter::Get());
+
     m_UncachedChunks.AdvanceHead();
 }
 
@@ -223,7 +230,8 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetGPURequestedChunks()
     }
 
     LOG_DEBUG(EngineSystem::RENDERER,
-        "GPU requested {} chunks to be meshed",
+        "[Frame: {}] GPU requested {} chunks to be meshed",
+        FrameCounter::Get(), 
         count);
 
     m_UncachedChunks.AdvanceTail();
@@ -236,13 +244,15 @@ void VoxelRenderer<ChunkType>::NextFrame()
 {
     PROFILE_FUNCTION();
 
+    LOG_TRACE(EngineSystem::RENDERER, "VoxelRenderer Advancing frame");
+
     m_IndirectCommandBuffer.AdvanceHead();
     m_PositionSSBO.AdvanceHead();
-    m_UncachedChunks.AdvanceHead();
+    //m_UncachedChunks.AdvanceHead();
 
     m_IndirectCommandBuffer.AdvanceTail();
     m_PositionSSBO.AdvanceTail();
-    m_UncachedChunks.AdvanceTail();
+    //m_UncachedChunks.AdvanceTail();
 
     //uint32_t* nextFrameIndirectCmdsCount = reinterpret_cast<uint32_t*>(m_IndirectCommandBuffer.GetHeadContents());
     //*nextFrameIndirectCmdsCount = 0;

@@ -45,8 +45,8 @@ private:
     struct ObjectAllocation
     {
         unsigned int totalElementCount = 0;
-        uint16_t startPage = PageNode::NULL_PAGE;
-        uint16_t endPage = PageNode::NULL_PAGE;
+        uint32_t startPage = PageNode::NULL_PAGE;
+        uint32_t endPage = PageNode::NULL_PAGE;
 
         Policy<ObjectID>::Handle policyHandle;
 
