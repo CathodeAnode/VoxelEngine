@@ -58,6 +58,7 @@ private:
 	GPUOrphanBuffer<glm::vec4> m_PositionSSBO;
 	GPUOrphanBuffer<std::byte> m_IndirectCommandBuffer;
 	GPUOrphanBuffer<std::byte> m_UncachedChunks; // TODO figure out sizing
+	GPUPersistentlyMappedBuffer<std::byte> m_DebuggingBuffer;
 
 	Shader m_VoxelShader;
 	ComputeShader m_FrustumCullingShader;

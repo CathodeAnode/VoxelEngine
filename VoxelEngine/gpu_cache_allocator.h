@@ -44,7 +44,7 @@ public:
 private:
     struct ObjectAllocation
     {
-        unsigned int totalElementCount = 0;
+        uint32_t totalElementCount = 0;
         uint32_t startPage = PageNode::NULL_PAGE;
         uint32_t endPage = PageNode::NULL_PAGE;
 

@@ -55,17 +55,17 @@ private:
     static constexpr K EMPTY_KEY = std::numeric_limits<K>::max();;
     static constexpr K TOMBSTONE_KEY = std::numeric_limits<K>::min();;
 
-    static inline uint32_t Hash64(uint64_t x)
+    static inline uint64_t Hash64(uint64_t x)
     {
         x ^= x >> 33;
         x *= 0xff51afd7ed558ccdULL;
         x ^= x >> 33;
         x *= 0xc4ceb9fe1a85ec53ULL;
         x ^= x >> 33;
-        return (uint32_t)x;
+        return x;
     }
 
-    size_t _Hash(const K& key) const
+    uint32_t _Hash(const K& key) const
     {
         uint64_t h = Hash64(static_cast<uint64_t>(key));
         return h & (m_Table.GetSize() - 1);

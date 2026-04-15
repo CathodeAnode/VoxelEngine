@@ -25,8 +25,8 @@ struct ClockPolicyHandle
 struct ObjectAllocation
 {
     uint totalElementCount;
-    uint startPage; // uint16
-    uint endPage; // uint16
+    uint startPage;
+    uint endPage;
     ClockPolicyHandle policyHandle;
 };
 
@@ -79,6 +79,13 @@ layout(std430, binding = 4) buffer ClockPolicyState
     uint policyObjectState[];
 };
 
+layout(std430, binding = 5) buffer testBuffer
+{
+    uint tempCount;
+    uint64_t ids[];
+};
+
+
 uniform vec4 u_FrustumPlanes[6];
 uniform uint u_RenderDistance;
 uniform uint u_ChunkSize;
@@ -115,13 +122,13 @@ uint64_t Hash64(uint64_t x)
 uint MapIndex(uint64_t obj)
 {
     uint64_t h = Hash64(obj);
-    return uint(h % objectData.length());
+    return uint(h & (objectData.length() - 1));
 }
 
-bool IsCached(uint64_t obj, out ObjectAllocation alloc)
+bool IsCached(uint64_t key, out ObjectAllocation alloc)
 {
     uint cap = objectData.length();
-    uint start = MapIndex(obj);
+    uint start = MapIndex(key);
 
     for (uint probe = 0u; probe < cap; ++probe)
     {
@@ -134,7 +141,7 @@ bool IsCached(uint64_t obj, out ObjectAllocation alloc)
             return false;
         }
 
-        if (entry.key == obj)
+        if (entry.key == key)
         {
             alloc = entry.value;
             return true;
@@ -203,9 +210,13 @@ void main()
     {
         uint64_t chunkID =
             (uint64_t(0) << 63) | // chunk = 0
-            (uint64_t(uint(chunkCoord.x) & 0x1FFFFF) << 42) |
-            (uint64_t(uint(chunkCoord.y) & 0x1FFFFF) << 21) |
-            uint64_t(uint(chunkCoord.z) & 0x1FFFFF);
+            (uint64_t(chunkCoord.x & 0x1FFFFF) << 42) |
+            (uint64_t(chunkCoord.y & 0x1FFFFF) << 21) |
+            uint64_t(chunkCoord.z & 0x1FFFFF);
+
+        uint index = atomicAdd(tempCount, 1);
+        ids[index] = chunkID;
+
         ObjectAllocation alloc;
         if(IsCached(chunkID, alloc))
         {

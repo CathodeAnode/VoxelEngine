@@ -37,7 +37,7 @@ bool GPUHashMap<K, V, Mode>::Insert(const K& key, const V& value)
     Entry* table = m_Table.GetContents();
     size_t cap = m_Table.GetSize();
 
-    size_t start = _Hash(key);
+    uint32_t start = _Hash(key);
 
     for (size_t probe = 0; probe < cap; ++probe)
     {
@@ -79,7 +79,7 @@ bool GPUHashMap<K, V, Mode>::Find(const K& key, V& out) const
     const Entry* table = m_Table.GetContents();
     size_t cap = m_Table.GetSize();
 
-    size_t start = _Hash(key);
+    uint32_t start = _Hash(key);
 
     for (size_t probe = 0; probe < cap; ++probe)
     {
@@ -115,7 +115,7 @@ bool GPUHashMap<K, V, Mode>::Erase(const K& key)
     Entry* table = m_Table.GetContents();
     size_t cap = m_Table.GetSize();
 
-    size_t start = _Hash(key);
+    uint32_t start = _Hash(key);
 
     for (size_t probe = 0; probe < cap; ++probe)
     {
@@ -155,7 +155,7 @@ bool GPUHashMap<K, V, Mode>::Emplace(const K& key, Args&&... args)
     Entry* table = m_Table.GetContents();
     size_t cap = m_Table.GetSize();
 
-    size_t start = _Hash(key);
+    uint32_t start = _Hash(key);
 
     for (size_t probe = 0; probe < cap; ++probe)
     {
