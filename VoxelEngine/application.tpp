@@ -18,8 +18,8 @@
 #include "frame_counter.h"
 
 // Cache configuration
-#define CACHE_PAGE_SIZE 200
-#define CACHE_NUM_OF_PAGES 31250
+#define CACHE_PAGE_SIZE 400
+#define CACHE_NUM_OF_PAGES 15625
 #define AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK 3
 
 #define LOADED_CHUNK_DISTANCE 3

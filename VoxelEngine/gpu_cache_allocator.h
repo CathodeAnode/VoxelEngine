@@ -21,10 +21,10 @@ public:
     GPUPagedCache(bool cpuUpdates = true);
     ~GPUPagedCache();
 
-    bool Create(GLenum target, size_t pageSize, uint16_t pageCount) noexcept;
+    bool Create(GLenum target, size_t pageSize, uint32_t pageCount) noexcept;
     void Destroy() noexcept;
 
-    void AllocatePages(const ObjectID& obj, uint16_t pageCount);
+    void AllocatePages(const ObjectID& obj, uint32_t pageCount);
     void PushBackToObject(const ObjectID& obj, const Atom& data);
     //TODO: make emplace back function for Atom&& (r-value)
 
@@ -63,16 +63,16 @@ private:
 
     struct PageNode
     {
-        static inline constexpr uint16_t NULL_PAGE = std::numeric_limits<uint16_t>::max();
+        static inline constexpr uint32_t NULL_PAGE = std::numeric_limits<uint32_t>::max();
 
-        uint16_t next;
+        uint32_t next;
     };
 
     struct SplitChain
     {
-        uint16_t takeStart;
-        uint16_t takeEnd;
-        uint16_t remainingStart;
+        uint32_t takeStart;
+        uint32_t takeEnd;
+        uint32_t remainingStart;
     };
 
 private:
@@ -83,15 +83,15 @@ private:
 
 private:
     void _FreeObject(const ObjectID& obj);
-    void _FreeChain(uint16_t startPage);
-    void _BuildPageChain(ObjectAllocation& alloc, const std::vector<uint16_t>& pages);
-    void _AppendPages(ObjectAllocation& alloc, const std::vector<uint16_t>& pages);
-    std::unordered_set<uint16_t> _CollectPages(const ObjectAllocation& alloc);
+    void _FreeChain(uint32_t startPage);
+    void _BuildPageChain(ObjectAllocation& alloc, const std::vector<uint32_t>& pages);
+    void _AppendPages(ObjectAllocation& alloc, const std::vector<uint32_t>& pages);
+    std::unordered_set<uint32_t> _CollectPages(const ObjectAllocation& alloc);
 
-    [[nodiscard]] bool _TryReservePages(const ObjectID& obj, uint16_t pageCount);
-    [[nodiscard]] bool _EvictAndTakePages(const ObjectID& obj, ObjectAllocation& targetAlloc, uint16_t requiredPages);
-    SplitChain _SplitVictimChain(ObjectAllocation& victim, uint16_t pagesToTake);
-    void _AttachPages(const ObjectID& obj, ObjectAllocation& target, uint16_t start, uint16_t end);
+    [[nodiscard]] bool _TryReservePages(const ObjectID& obj, uint32_t pageCount);
+    [[nodiscard]] bool _EvictAndTakePages(const ObjectID& obj, ObjectAllocation& targetAlloc, uint32_t requiredPages);
+    SplitChain _SplitVictimChain(ObjectAllocation& victim, uint32_t pagesToTake);
+    void _AttachPages(const ObjectID& obj, ObjectAllocation& target, uint32_t start, uint32_t end);
 
 
 };

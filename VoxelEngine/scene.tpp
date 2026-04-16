@@ -39,10 +39,10 @@ void Scene<ChunkType>::Render(const Camera& viewCamera, const Camera& cullCamera
 
 	//TODO: multi-thread (thread-pool)
 	//TODO: schdule n chunks to be uploaded per frame rather than the entire request buffer per frame
-	for (const auto& chunkCoord : uncachedChunkCoords)
-	{
-		m_Renderer.Upload(m_World, chunkCoord);
-	}
+	//for (const auto& chunkCoord : uncachedChunkCoords)
+	//{
+	//	m_Renderer.Upload(m_World, chunkCoord);
+	//}
 
 	m_Renderer.DispatchFrustumCullPass(m_RenderDist, cullCamera); // compute frustum cullign results for this frame (frame n)
 

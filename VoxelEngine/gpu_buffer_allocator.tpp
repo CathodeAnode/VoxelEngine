@@ -694,7 +694,7 @@ void GPUPagedBuffer<Atom, Mode>::FreePage(Page pageNum)
 }
 
 template<GPUSafeStruct Atom, ThreadMode Mode>
-bool GPUPagedBuffer<Atom, Mode>::ReserveFirstAvaliblePages(unsigned int n, std::vector<uint16_t>& outPages)
+bool GPUPagedBuffer<Atom, Mode>::ReserveFirstAvaliblePages(unsigned int n, std::vector<uint32_t>& outPages)
 {
 	assert(m_FreePages != nullptr);
 	const size_t pageCount = m_RawBuffer.GetSize() / m_PageSize;

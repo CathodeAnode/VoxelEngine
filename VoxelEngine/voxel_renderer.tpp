@@ -10,7 +10,6 @@ VoxelRenderer<ChunkType>::VoxelRenderer(std::unique_ptr<VoxelMesher<ChunkType>> 
     , m_IndirectCommandBuffer(true)
     , m_PositionSSBO(true)
     , m_UncachedChunks(true)
-    , m_DebuggingBuffer(true)
     , m_Mesher(std::move(mesher))
 {
     PROFILE_FUNCTION();
@@ -190,7 +189,6 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     m_IndirectCommandBuffer.BindHeadBuffer(indirectCmdsLocation);
     m_UncachedChunks.BindHeadBuffer(uncachedChunksLocation);
     m_DataCache.BindCacheLookup(hashMapLocation, pageNodesBufferLocation, policyBufferLocation);
-    m_DebuggingBuffer.BindBufferBase(5);
 
     glm::ivec3 localSize = m_FrustumCullingShader.GetLocalSizeGroup();
     unsigned int dimension = renderDistance * 2 + 1;
@@ -204,28 +202,6 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     LOG_DEBUG(EngineSystem::RENDERER,
         "[Frame: {}] VoxelRenderer Dispatched Frustum Cull Pass",
         FrameCounter::Get());
-
-    // todo print debug buffer using GetContents to get persistently mapped ptr std::btyes of SSBO
-    auto* ptr = reinterpret_cast<uint8_t*>(m_DebuggingBuffer.GetContents());
-    uint32_t idsCount = *reinterpret_cast<uint32_t*>(ptr);
-    uint64_t* ids = reinterpret_cast<uint64_t*>(ptr + sizeof(uint32_t));
-
-    // Clamp to avoid accidental overflow reads (very important)
-    uint32_t maxCount = m_DebuggingBuffer.GetSize() / sizeof(uint64_t);
-    idsCount = std::min(idsCount, maxCount);
-
-    std::cout << "DebugBuffer count = " << idsCount << std::endl;
-
-    for (uint32_t i = 0; i < idsCount; i++)
-    {
-        uint64_t id = ids[i];
-
-        std::cout
-            << "ChunkID[" << i << "] = "
-            << id
-            << " (0x" << std::hex << id << std::dec << ")"
-            << std::endl;
-    }
 
     m_UncachedChunks.AdvanceHead();
 }
@@ -278,8 +254,8 @@ void VoxelRenderer<ChunkType>::NextFrame()
     m_PositionSSBO.AdvanceTail();
     //m_UncachedChunks.AdvanceTail();
 
-    //uint32_t* nextFrameIndirectCmdsCount = reinterpret_cast<uint32_t*>(m_IndirectCommandBuffer.GetHeadContents());
-    //*nextFrameIndirectCmdsCount = 0;
+    uint32_t* nextFrameIndirectCmdsCount = reinterpret_cast<uint32_t*>(m_IndirectCommandBuffer.GetHeadContents());
+    *nextFrameIndirectCmdsCount = 0;
 }
 
 template <typename ChunkType>
@@ -337,8 +313,6 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
     const size_t culledCoordsSize = sizeof(glm::vec4) * indirectBufferSize * 5; // TEMP: sizing, later will give correct sizing for frustum culling SSBO
     const size_t culledSSBOSize = culledHeaderSize + culledCoordsSize;
     m_UncachedChunks.Create(GL_SHADER_STORAGE_BUFFER, culledSSBOSize, k_TripleBuffer, BufferAccess::ReadWrite);
-
-    m_DebuggingBuffer.Create(GL_SHADER_STORAGE_BUFFER, 4096, BufferAccess::ReadOnly);
 
     // Offset head from tail on OrphanBuffers
     m_IndirectCommandBuffer.AdvanceHead();

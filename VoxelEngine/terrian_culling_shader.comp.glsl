@@ -6,7 +6,7 @@
 // - Implement const injection from cpu side (SGL)
 // - Use SGL instead of shader.h
 
-const uint NULL_PAGE = 65535;
+const uint NULL_PAGE = 0xFFFFFFFFU;
 const uint CACHE_PAGE_SIZE = 200;
 const uint64_t EMPTY_KEY = 0xFFFFFFFFFFFFFFFFUL;
 const uint REF_BIT = 2; // 0b10
@@ -38,7 +38,7 @@ struct MapEntry
 
 struct PageNode
 {
-    uint next; // uint16
+    uint next;
 };
 
 struct DrawArraysIndirectCommand 
@@ -77,12 +77,6 @@ layout(std430, binding = 3) readonly buffer PageNodesBuffer
 layout(std430, binding = 4) buffer ClockPolicyState
 {
     uint policyObjectState[];
-};
-
-layout(std430, binding = 5) buffer testBuffer
-{
-    uint tempCount;
-    uint64_t ids[];
 };
 
 
@@ -151,6 +145,8 @@ bool IsCached(uint64_t key, out ObjectAllocation alloc)
     return false;
 }
 
+// TODO: problem causing blackscreen here.
+// very likely infinitly looping in here! Figure out why and fix it
 void DrawChunk(ObjectAllocation alloc)
 {
     uint current = alloc.startPage;
@@ -213,9 +209,6 @@ void main()
             (uint64_t(chunkCoord.x & 0x1FFFFF) << 42) |
             (uint64_t(chunkCoord.y & 0x1FFFFF) << 21) |
             uint64_t(chunkCoord.z & 0x1FFFFF);
-
-        uint index = atomicAdd(tempCount, 1);
-        ids[index] = chunkID;
 
         ObjectAllocation alloc;
         if(IsCached(chunkID, alloc))

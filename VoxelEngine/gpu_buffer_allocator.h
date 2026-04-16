@@ -244,7 +244,7 @@ public:
 
     void ReservePage(Page pageNum);
     void FreePage(Page pageNum);
-    [[nodiscard]] bool ReserveFirstAvaliblePages(unsigned int n, std::vector<uint16_t>& outPages);
+    [[nodiscard]] bool ReserveFirstAvaliblePages(unsigned int n, std::vector<uint32_t>& outPages);
 
     void BindBuffer();
 
