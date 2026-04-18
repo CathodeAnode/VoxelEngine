@@ -181,12 +181,14 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     *counter = 0;
 
     const GLint indirectCmdsLocation = 0;
-    const GLint uncachedChunksLocation = 1;
-    const GLint hashMapLocation = 2;
-    const GLint pageNodesBufferLocation = 3;
-    const GLint policyBufferLocation = 4;
+    const GLint chunkPosLocation = 1;
+    const GLint uncachedChunksLocation = 2;
+    const GLint hashMapLocation = 3;
+    const GLint pageNodesBufferLocation = 4;
+    const GLint policyBufferLocation = 5;
 
     m_IndirectCommandBuffer.BindHeadBuffer(indirectCmdsLocation);
+    m_PositionSSBO.BindHeadBuffer(chunkPosLocation);
     m_UncachedChunks.BindHeadBuffer(uncachedChunksLocation);
     m_DataCache.BindCacheLookup(hashMapLocation, pageNodesBufferLocation, policyBufferLocation);
 
@@ -269,7 +271,6 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
         "VoxelRenderer rendering frame with {} indirect commands",
         indirectCmdsCount);
     
-    if (indirectCmdsCount == 0) return;
 
     m_VoxelShader.Use();
     m_VoxelShader.SetMat4("view", camera.GetViewMatrix());
@@ -283,6 +284,14 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 
     const size_t headerSize = sizeof(uint32_t);
     const size_t offset = m_IndirectCommandBuffer.GetTail() * sizeof(DrawArraysIndirectCommand) + headerSize;
+
+    LOG_TRACE(EngineSystem::RENDERER,
+        "tail={}, offset={}, count={}",
+        m_IndirectCommandBuffer.GetTail(),
+        offset,
+        indirectCmdsCount);
+
+    if (indirectCmdsCount == 0) return;
     glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, reinterpret_cast<const void*>(offset), indirectCmdsCount, 0);
     //assert(glGetError() == GL_NO_ERROR);
 

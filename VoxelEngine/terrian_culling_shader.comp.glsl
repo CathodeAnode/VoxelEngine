@@ -58,23 +58,28 @@ layout(std430, binding = 0) buffer IndirectDrawBuffer
     DrawArraysIndirectCommand indirectCmds[];
 };
 
-layout(std430, binding = 1) buffer UncachedChunks
+layout(std430, binding = 1) buffer chunkPosBuffer
+{
+    vec4 chunkPositions[];
+};
+
+layout(std430, binding = 2) buffer UncachedChunks
 {
     uint  count;
     ivec4 results[];
 };
 
-layout(std430, binding = 2) readonly buffer CacheObjTable
+layout(std430, binding = 3) readonly buffer CacheObjTable
 {
     MapEntry objectData[];
 };
 
-layout(std430, binding = 3) readonly buffer PageNodesBuffer
+layout(std430, binding = 4) readonly buffer PageNodesBuffer
 {
     PageNode pageNodes[];
 };
 
-layout(std430, binding = 4) buffer ClockPolicyState
+layout(std430, binding = 5) buffer ClockPolicyState
 {
     uint policyObjectState[];
 };
@@ -145,9 +150,7 @@ bool IsCached(uint64_t key, out ObjectAllocation alloc)
     return false;
 }
 
-// TODO: problem causing blackscreen here.
-// very likely infinitly looping in here! Figure out why and fix it
-void DrawChunk(ObjectAllocation alloc)
+void DrawChunk(ObjectAllocation alloc, ivec3 chunkPos)
 {
     uint current = alloc.startPage;
     uint start = alloc.startPage;
@@ -167,6 +170,7 @@ void DrawChunk(ObjectAllocation alloc)
             indirectCmds[index].instanceCount = (current - start) * CACHE_PAGE_SIZE;
 
             indirectCmds[index].instanceCount += uint(current == alloc.endPage) * alloc.totalElementCount; // Branchless addition
+            chunkPositions[index] = vec4(chunkPos, 0);
 
             start = next;
         }
@@ -181,6 +185,7 @@ void DrawChunk(ObjectAllocation alloc)
         indirectCmds[index].first = 0;
         indirectCmds[index].baseInstance = start * CACHE_PAGE_SIZE;
         indirectCmds[index].instanceCount = (current - start + 1) * CACHE_PAGE_SIZE + alloc.totalElementCount;
+        chunkPositions[index] = vec4(chunkPos, 0);
     }
 }
 
@@ -213,7 +218,7 @@ void main()
         ObjectAllocation alloc;
         if(IsCached(chunkID, alloc))
         {
-            DrawChunk(alloc);
+            DrawChunk(alloc, chunkCoord);
             PolicyTouch(alloc);
         }
         else
