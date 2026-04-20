@@ -180,6 +180,9 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     uint32_t* counter = reinterpret_cast<uint32_t*>(m_UncachedChunks.GetHeadContents());
     *counter = 0;
 
+    uint32_t* indirectCmdsCount = reinterpret_cast<uint32_t*>(m_IndirectCommandBuffer.GetHeadContents());
+    *indirectCmdsCount = 0;
+
     const GLint indirectCmdsLocation = 0;
     const GLint chunkPosLocation = 1;
     const GLint uncachedChunksLocation = 2;
@@ -192,6 +195,9 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     m_UncachedChunks.BindHeadBuffer(uncachedChunksLocation);
     m_DataCache.BindCacheLookup(hashMapLocation, pageNodesBufferLocation, policyBufferLocation);
 
+    LOG_TRACE(EngineSystem::RENDERER, "head ptr = {}", (uint64_t)m_IndirectCommandBuffer.GetHeadContents());
+    LOG_TRACE(EngineSystem::RENDERER, "tail ptr = {}", (uint64_t)m_IndirectCommandBuffer.GetTailContents());
+
     glm::ivec3 localSize = m_FrustumCullingShader.GetLocalSizeGroup();
     unsigned int dimension = renderDistance * 2 + 1;
     unsigned int groupX = (dimension + localSize.x - 1) / localSize.x;
@@ -199,13 +205,11 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     unsigned int groupZ = (dimension + localSize.z - 1) / localSize.z;
 
     m_FrustumCullingShader.Dispatch(groupX, groupY, groupZ);
-    m_FrustumCullingShader.Wait(GL_SHADER_STORAGE_BARRIER_BIT);
+    m_FrustumCullingShader.Wait(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT);
 
     LOG_DEBUG(EngineSystem::RENDERER,
         "[Frame: {}] VoxelRenderer Dispatched Frustum Cull Pass",
         FrameCounter::Get());
-
-    m_UncachedChunks.AdvanceHead();
 }
 
 template<typename ChunkType>
@@ -236,8 +240,6 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetGPURequestedChunks()
         FrameCounter::Get(), 
         count);
 
-    m_UncachedChunks.AdvanceTail();
-
     return std::span<const glm::ivec4>(results, count);
 }
 
@@ -250,14 +252,15 @@ void VoxelRenderer<ChunkType>::NextFrame()
 
     m_IndirectCommandBuffer.AdvanceHead();
     m_PositionSSBO.AdvanceHead();
-    //m_UncachedChunks.AdvanceHead();
+    m_UncachedChunks.AdvanceHead();
 
-    m_IndirectCommandBuffer.AdvanceTail();
-    m_PositionSSBO.AdvanceTail();
-    //m_UncachedChunks.AdvanceTail();
-
-    uint32_t* nextFrameIndirectCmdsCount = reinterpret_cast<uint32_t*>(m_IndirectCommandBuffer.GetHeadContents());
-    *nextFrameIndirectCmdsCount = 0;
+    static int frameDelay = 0;
+    if (frameDelay++ >= 2) // for triple buffering
+    {
+        m_IndirectCommandBuffer.AdvanceTail();
+        m_PositionSSBO.AdvanceTail();
+        m_UncachedChunks.AdvanceTail();
+    }
 }
 
 template <typename ChunkType>
@@ -283,7 +286,7 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
     //assert(glGetError() == GL_NO_ERROR);
 
     const size_t headerSize = sizeof(uint32_t);
-    const size_t offset = m_IndirectCommandBuffer.GetTail() * sizeof(DrawArraysIndirectCommand) + headerSize;
+    const size_t offset = headerSize;
 
     LOG_TRACE(EngineSystem::RENDERER,
         "tail={}, offset={}, count={}",
@@ -292,7 +295,7 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
         indirectCmdsCount);
 
     if (indirectCmdsCount == 0) return;
-    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, reinterpret_cast<const void*>(offset), indirectCmdsCount, 0);
+    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, reinterpret_cast<const void*>(offset), indirectCmdsCount, 0); // TODO: substitute with glMultiDrawArraysIndirectCount
     //assert(glGetError() == GL_NO_ERROR);
 
     glBindVertexArray(0);
@@ -324,9 +327,9 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
     m_UncachedChunks.Create(GL_SHADER_STORAGE_BUFFER, culledSSBOSize, k_TripleBuffer, BufferAccess::ReadWrite);
 
     // Offset head from tail on OrphanBuffers
-    m_IndirectCommandBuffer.AdvanceHead();
-    m_PositionSSBO.AdvanceHead();
-    m_UncachedChunks.AdvanceHead();
+    //m_IndirectCommandBuffer.AdvanceHead();
+    //m_PositionSSBO.AdvanceHead();
+    //m_UncachedChunks.AdvanceHead();
 
     LOG_DEBUG(EngineSystem::RENDERER, "GPU Buffers Created")
 }
