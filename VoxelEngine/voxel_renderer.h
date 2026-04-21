@@ -53,11 +53,12 @@ public:
 	inline bool IsCached(VoxelObjectID objectID) { return m_DataCache.Has(objectID); }
 
 private:
+	static constexpr int k_TripleBuffer = 3;
 
 	GPUPagedCache<VoxelObjectID, VoxelQuad, ClockPolicy> m_DataCache;
-	GPUOrphanBuffer<glm::vec4> m_PositionSSBO;
-	GPUOrphanBuffer<std::byte> m_IndirectCommandBuffer;
-	GPUOrphanBuffer<std::byte> m_UncachedChunks; // TODO figure out sizing
+	GPUOrphanBuffer<glm::vec4, k_TripleBuffer> m_PositionSSBO;
+	GPUOrphanBuffer<std::byte, k_TripleBuffer> m_IndirectCommandBuffer;
+	GPUOrphanBuffer<std::byte, k_TripleBuffer> m_UncachedChunks; // TODO figure out sizing
 
 	Shader m_VoxelShader;
 	ComputeShader m_FrustumCullingShader;
@@ -71,8 +72,6 @@ private:
 		1.0f,  0.0f, 0.0f,    0.0f, 0.0f, // Bottom Right
 		1.0f,  1.0f, 0.0f,    1.0f, 0.0f  // Top Right
 	};
-
-	const int k_TripleBuffer = 3;
 
 private:
 	// this function will clear the objects queued to be rendered on the next frame

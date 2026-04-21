@@ -29,8 +29,8 @@ void Gizmos::Init(uint32_t maxInstances)
     { "gizmos.frag", GL_FRAGMENT_SHADER }
         });
 
-    s_InstanceBuffer.Create(GL_ARRAY_BUFFER, maxInstances, 3);
-    s_IndirectBuffer.Create(GL_DRAW_INDIRECT_BUFFER, maxInstances, 3);
+    s_InstanceBuffer.Create(GL_ARRAY_BUFFER, maxInstances);
+    s_IndirectBuffer.Create(GL_DRAW_INDIRECT_BUFFER, maxInstances);
 
     glGenVertexArrays(1, &s_VAO);
     glBindVertexArray(s_VAO);
@@ -155,9 +155,6 @@ void Gizmos::Begin(const Camera& camera)
 
     s_ViewProj = camera.GetProjMatrix() * camera.GetViewMatrix();
 
-    s_InstanceBuffer.AdvanceHead();
-    s_IndirectBuffer.AdvanceHead();
-
     s_InstanceCount = 0;
     s_CommandCount = 0;
 }
@@ -225,11 +222,11 @@ void Gizmos::DrawFrustum(const Camera& camera)
 
 void Gizmos::_SubmitLine(const glm::mat4& model)
 {
-    GizmoInstance* instances = s_InstanceBuffer.GetHeadContents();
+    GizmoInstance* instances = s_InstanceBuffer.GetCurrentContents();
     instances[s_InstanceCount].Model = model;
     instances[s_InstanceCount].Color = s_Color;
 
-    DrawArraysIndirectCommand* commands = s_IndirectBuffer.GetHeadContents();
+    DrawArraysIndirectCommand* commands = s_IndirectBuffer.GetCurrentContents();
 
     commands[s_CommandCount].count = 2;
     commands[s_CommandCount].instanceCount = 1;
@@ -242,11 +239,11 @@ void Gizmos::_SubmitLine(const glm::mat4& model)
 
 void Gizmos::_SubmitCube(const glm::mat4& model)
 {
-    GizmoInstance* instances = s_InstanceBuffer.GetHeadContents();
+    GizmoInstance* instances = s_InstanceBuffer.GetCurrentContents();
     instances[s_InstanceCount].Model = model;
     instances[s_InstanceCount].Color = s_Color;
 
-    DrawArraysIndirectCommand* commands = s_IndirectBuffer.GetHeadContents();
+    DrawArraysIndirectCommand* commands = s_IndirectBuffer.GetCurrentContents();
 
     commands[s_CommandCount].count = 24; // 12 edges
     commands[s_CommandCount].instanceCount = 1;
@@ -259,12 +256,12 @@ void Gizmos::_SubmitCube(const glm::mat4& model)
 
 void Gizmos::_SubmitFrustum(const glm::mat4& model)
 {
-    GizmoInstance* instances = s_InstanceBuffer.GetHeadContents();
+    GizmoInstance* instances = s_InstanceBuffer.GetCurrentContents();
     instances[s_InstanceCount].Model = model;
     instances[s_InstanceCount].Color = s_Color;
 
     DrawArraysIndirectCommand* commands =
-        s_IndirectBuffer.GetHeadContents();
+        s_IndirectBuffer.GetCurrentContents();
 
     commands[s_CommandCount].count = 24;
     commands[s_CommandCount].instanceCount = 1;
@@ -292,12 +289,12 @@ void Gizmos::_Flush()
 
     glMultiDrawArraysIndirect(
         GL_LINES,
-        s_IndirectBuffer.GetHeadOffset(),
+        s_IndirectBuffer.GetPreviousContents(),
         s_CommandCount,
         0);
 
-    s_InstanceBuffer.AdvanceTail();
-    s_IndirectBuffer.AdvanceTail();
+    s_InstanceBuffer.Commit();
+    s_IndirectBuffer.Commit();
 
     glBindVertexArray(0);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);

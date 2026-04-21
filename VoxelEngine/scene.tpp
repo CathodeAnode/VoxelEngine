@@ -44,9 +44,8 @@ void Scene<ChunkType>::Render(const Camera& viewCamera, const Camera& cullCamera
 	//	m_Renderer.Upload(m_World, chunkCoord);
 	//}
 
-	m_Renderer.DispatchFrustumCullPass(m_RenderDist, cullCamera); // compute frustum cullign results for this frame (frame n)
-
 	m_Renderer.Render(viewCamera);
+	m_Renderer.DispatchFrustumCullPass(m_RenderDist, cullCamera); // compute frustum cullign results for this frame (frame n)
 	m_Renderer.NextFrame();
 }
 

@@ -159,39 +159,44 @@ private:
     size_t m_Head = 0;
 };
 
-template<GPUSafeStruct Atom, IBufferLockManager LockManager = GPUBufferLockManager>
+template<GPUSafeStruct Atom, size_t FRAME_COUNT>
 class GPUOrphanBuffer
 {
 public:
+    static_assert(FRAME_COUNT > 2, "GPUOrphanBuffer frame count must be atleast 3");
+
     GPUOrphanBuffer(bool _cpuUpdates = true);
 
-    bool Create(GLenum target, GLuint countPerBuffer, uint8_t numOfBuffers, BufferAccess access = BufferAccess::WriteOnly);
+    bool Create(GLenum target, GLuint countPerBuffer, BufferAccess access = BufferAccess::WriteOnly);
     void Destroy();
 
-    void AdvanceHead();
-    void AdvanceTail();
+    void Commit();
+    void BindFrame(GLuint index);
 
-    void BindHeadBuffer(GLuint index);
-    void BindHeadBufferRange(GLuint index, size_t count);
+    inline Atom* GetCurrentContents()
+    {
+        return m_Buffer.GetContents() + _GetOffset(m_CurrentFrame);
+    }
 
-    void BindTailBuffer(GLuint index);
-    void BindTailBufferRange(GLuint index, size_t count);
+    inline const Atom* GetPreviousContents() const
+    {
+        const size_t index = (m_CurrentFrame + FRAME_COUNT - 1) % FRAME_COUNT;
+        return m_Buffer.GetContents() + _GetOffset(index);
+    }
 
-    inline size_t GetHead() const { return m_CircularBuffer.GetHead(); }
-    inline void* GetHeadOffset() const { return m_CircularBuffer.GetHeadOffset(); }
-    inline Atom* GetHeadContents() { return m_CircularBuffer.Reserve(m_CountPerBuffer); }
-
-    inline size_t GetTail() const { return m_Tail; }
-    inline void* GetTailOffset() const { return (void*)(m_Tail * sizeof(Atom)); }
-    inline Atom* GetTailContents() { return m_CircularBuffer.ReserveRange(m_Tail, m_CountPerBuffer); }
-
-    inline size_t GetSize() const { return m_CountPerBuffer; }
-    inline GLuint GetName() const { return m_CircularBuffer.GetName(); }
+    inline size_t GetSize() const { return m_FrameSize; }
+    inline GLuint GetName() const { return m_Buffer.GetName(); }
 
 private:
-    GPUCircularBuffer<Atom, LockManager> m_CircularBuffer;
-    size_t m_Tail = 0;
-    uint32_t m_CountPerBuffer;
+    inline size_t _GetOffset(size_t frame) const
+    {
+        return frame * m_FrameSize;
+    }
+
+private:
+    GPUPersistentlyMappedBuffer<Atom, NullBufferLockManager> m_Buffer;
+    size_t m_CurrentFrame = 0;
+    uint32_t m_FrameSize;
 };
 
 //template<typename Atom>

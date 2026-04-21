@@ -177,11 +177,11 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     m_FrustumCullingShader.SetUInt("u_ChunkSize", static_cast<unsigned int>(ChunkType::Size));
     m_FrustumCullingShader.SetIVec3("u_CameraChunkPos", WorldToChunk(glm::ivec3(camera.pos), static_cast<unsigned int>(ChunkType::Size)));
 
-    uint32_t* counter = reinterpret_cast<uint32_t*>(m_UncachedChunks.GetHeadContents());
-    *counter = 0;
+    std::byte* uncachedBase = m_UncachedChunks.GetCurrentContents();
+    std::byte* indirectBase = m_IndirectCommandBuffer.GetCurrentContents();
 
-    uint32_t* indirectCmdsCount = reinterpret_cast<uint32_t*>(m_IndirectCommandBuffer.GetHeadContents());
-    *indirectCmdsCount = 0;
+    *reinterpret_cast<uint32_t*>(uncachedBase) = 0;
+    *reinterpret_cast<uint32_t*>(indirectBase) = 0;
 
     const GLint indirectCmdsLocation = 0;
     const GLint chunkPosLocation = 1;
@@ -190,13 +190,10 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     const GLint pageNodesBufferLocation = 4;
     const GLint policyBufferLocation = 5;
 
-    m_IndirectCommandBuffer.BindHeadBuffer(indirectCmdsLocation);
-    m_PositionSSBO.BindHeadBuffer(chunkPosLocation);
-    m_UncachedChunks.BindHeadBuffer(uncachedChunksLocation);
+    m_IndirectCommandBuffer.BindFrame(indirectCmdsLocation);
+    m_PositionSSBO.BindFrame(chunkPosLocation);
+    m_UncachedChunks.BindFrame(uncachedChunksLocation);
     m_DataCache.BindCacheLookup(hashMapLocation, pageNodesBufferLocation, policyBufferLocation);
-
-    LOG_TRACE(EngineSystem::RENDERER, "head ptr = {}", (uint64_t)m_IndirectCommandBuffer.GetHeadContents());
-    LOG_TRACE(EngineSystem::RENDERER, "tail ptr = {}", (uint64_t)m_IndirectCommandBuffer.GetTailContents());
 
     glm::ivec3 localSize = m_FrustumCullingShader.GetLocalSizeGroup();
     unsigned int dimension = renderDistance * 2 + 1;
@@ -217,11 +214,9 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetGPURequestedChunks()
 {
     PROFILE_FUNCTION();
 
-    std::byte* rawDataPtr = m_UncachedChunks.GetTailContents();
-    assert(rawDataPtr != nullptr);
-
-    const uint32_t count = *reinterpret_cast<const uint32_t*>(rawDataPtr);
-    const glm::ivec4* results = reinterpret_cast<const glm::ivec4*>(rawDataPtr + sizeof(uint32_t));
+    const std::byte* uncachedBase = m_UncachedChunks.GetPreviousContents();
+    const uint32_t count = *reinterpret_cast<const uint32_t*>(uncachedBase);
+    const glm::ivec4* results = reinterpret_cast<const glm::ivec4*>(uncachedBase + sizeof(uint32_t));
 
     {
         // NOTE: these calculations will get optimized out by compiler in O2/-O3 or /O2 
@@ -237,7 +232,7 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetGPURequestedChunks()
 
     LOG_DEBUG(EngineSystem::RENDERER,
         "[Frame: {}] GPU requested {} chunks to be meshed",
-        FrameCounter::Get(), 
+        FrameCounter::Get(),
         count);
 
     return std::span<const glm::ivec4>(results, count);
@@ -250,17 +245,9 @@ void VoxelRenderer<ChunkType>::NextFrame()
 
     LOG_TRACE(EngineSystem::RENDERER, "VoxelRenderer Advancing frame");
 
-    m_IndirectCommandBuffer.AdvanceHead();
-    m_PositionSSBO.AdvanceHead();
-    m_UncachedChunks.AdvanceHead();
-
-    static int frameDelay = 0;
-    if (frameDelay++ >= 2) // for triple buffering
-    {
-        m_IndirectCommandBuffer.AdvanceTail();
-        m_PositionSSBO.AdvanceTail();
-        m_UncachedChunks.AdvanceTail();
-    }
+    m_IndirectCommandBuffer.Commit();
+    m_PositionSSBO.Commit();
+    m_UncachedChunks.Commit();
 }
 
 template <typename ChunkType>
@@ -268,12 +255,14 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 {
     PROFILE_FUNCTION();
 
-    const uint32_t indirectCmdsCount = *reinterpret_cast<const uint32_t*>(m_IndirectCommandBuffer.GetTailContents());
+    const uint32_t indirectCmdsCount = *reinterpret_cast<const uint32_t*>(m_IndirectCommandBuffer.GetPreviousContents());
+
 
     LOG_TRACE(EngineSystem::RENDERER,
         "VoxelRenderer rendering frame with {} indirect commands",
         indirectCmdsCount);
     
+    if (indirectCmdsCount == 0) return;
 
     m_VoxelShader.Use();
     m_VoxelShader.SetMat4("view", camera.GetViewMatrix());
@@ -281,21 +270,13 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 
     glBindVertexArray(m_VAO);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_IndirectCommandBuffer.GetName());
-    m_PositionSSBO.BindTailBufferRange(0, indirectCmdsCount);
+
+    const GLuint positionSSBOLocation = 0;
+    m_PositionSSBO.BindFrame(positionSSBOLocation);
 
     //assert(glGetError() == GL_NO_ERROR);
 
-    const size_t headerSize = sizeof(uint32_t);
-    const size_t offset = headerSize;
-
-    LOG_TRACE(EngineSystem::RENDERER,
-        "tail={}, offset={}, count={}",
-        m_IndirectCommandBuffer.GetTail(),
-        offset,
-        indirectCmdsCount);
-
-    if (indirectCmdsCount == 0) return;
-    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, reinterpret_cast<const void*>(offset), indirectCmdsCount, 0); // TODO: substitute with glMultiDrawArraysIndirectCount
+    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, reinterpret_cast<const void*>(sizeof(uint32_t)), indirectCmdsCount, 0); // TODO: substitute with glMultiDrawArraysIndirectCount
     //assert(glGetError() == GL_NO_ERROR);
 
     glBindVertexArray(0);
@@ -314,17 +295,17 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
     PROFILE_FUNCTION();
 
     m_DataCache.Create(GL_ARRAY_BUFFER, cachePageSize, cachePages);
-    m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize, k_TripleBuffer);
+    m_PositionSSBO.Create(GL_SHADER_STORAGE_BUFFER, indirectBufferSize);
 
     const size_t indirectHeaderSize = sizeof(uint32_t);
     const size_t indirectBodySize = indirectBufferSize * sizeof(DrawArraysIndirectCommand);
     const size_t indirectSSBOSize = indirectHeaderSize + indirectBodySize;
-    m_IndirectCommandBuffer.Create(GL_SHADER_STORAGE_BUFFER, indirectSSBOSize, k_TripleBuffer, BufferAccess::ReadWrite);
+    m_IndirectCommandBuffer.Create(GL_SHADER_STORAGE_BUFFER, indirectSSBOSize, BufferAccess::ReadWrite);
 
     const size_t culledHeaderSize = sizeof(uint32_t);
     const size_t culledCoordsSize = sizeof(glm::vec4) * indirectBufferSize * 5; // TEMP: sizing, later will give correct sizing for frustum culling SSBO
     const size_t culledSSBOSize = culledHeaderSize + culledCoordsSize;
-    m_UncachedChunks.Create(GL_SHADER_STORAGE_BUFFER, culledSSBOSize, k_TripleBuffer, BufferAccess::ReadWrite);
+    m_UncachedChunks.Create(GL_SHADER_STORAGE_BUFFER, culledSSBOSize, BufferAccess::ReadWrite);
 
     // Offset head from tail on OrphanBuffers
     //m_IndirectCommandBuffer.AdvanceHead();

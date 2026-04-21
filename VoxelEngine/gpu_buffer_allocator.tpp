@@ -294,82 +294,59 @@ void GPUCircularBuffer<Atom, LockManager>::BindBufferRange(GLuint _index, size_t
 
 // ------------------------------------------------------------------------------------------------------------------
 
-template<GPUSafeStruct Atom, IBufferLockManager LockManager>
-inline GPUOrphanBuffer<Atom, LockManager>::GPUOrphanBuffer(bool _cpuUpdates)
-	: m_CircularBuffer(_cpuUpdates)
+template<GPUSafeStruct Atom, size_t FRAME_COUNT>
+inline GPUOrphanBuffer<Atom, FRAME_COUNT>::GPUOrphanBuffer(bool _cpuUpdates)
+	: m_Buffer(_cpuUpdates)
 {
 	PROFILE_FUNCTION();
 }
 
-template<GPUSafeStruct Atom, IBufferLockManager LockManager>
-bool GPUOrphanBuffer<Atom, LockManager>::Create(GLenum target, GLuint countPerBuffer, uint8_t numOfBuffers, BufferAccess access)
+template<GPUSafeStruct Atom, size_t FRAME_COUNT>
+bool GPUOrphanBuffer<Atom, FRAME_COUNT>::Create(GLenum target, GLuint countPerBuffer, BufferAccess access)
 {
-	assert(numOfBuffers > 0);
+	assert(FRAME_COUNT > 0);
 	PROFILE_FUNCTION();
 
+	m_FrameSize = countPerBuffer;
+	m_CurrentFrame = 0;
 
-	m_CountPerBuffer = countPerBuffer;
-	GLuint totalCount = m_CountPerBuffer * numOfBuffers;
-	m_Tail = 0;
+	const GLuint totalCount = m_FrameSize * FRAME_COUNT;
 
-	bool result = m_CircularBuffer.Create(target, totalCount, access);
+	bool result = m_Buffer.Create(target, totalCount, access);
 
 	LOG_INFO(EngineSystem::GPU_BUFFER,
-		"[GPUOrphanBuffer|{}] Created (target={}, capacity={}, buffers={})",
-		m_CircularBuffer.GetName(), GPUAllocatorsUtils::ToString(target), countPerBuffer, numOfBuffers);
+		"[GPUOrphanBuffer] Created (target={}, frameSize={}, frames={})",
+		GPUAllocatorsUtils::ToString(target), countPerBuffer, FRAME_COUNT);
 
 	return result;
 }
 
-template<GPUSafeStruct Atom, IBufferLockManager LockManager>
-void GPUOrphanBuffer<Atom, LockManager>::Destroy()
+template<GPUSafeStruct Atom, size_t FRAME_COUNT>
+void GPUOrphanBuffer<Atom, FRAME_COUNT>::Destroy()
 {
 	PROFILE_FUNCTION();
 
-	LOG_INFO(EngineSystem::GPU_BUFFER,
-		"[GPUOrphanBuffer|{}] Destroyed",
-		m_CircularBuffer.GetName());
+	m_FrameSize = 0;
+	m_CurrentFrame = 0;
 
-	m_CountPerBuffer = 0;
-	m_Tail = 0;
-	m_CircularBuffer.Destroy();
+	m_Buffer.Destroy();
 }
 
-template<GPUSafeStruct Atom, IBufferLockManager LockManager>
-void GPUOrphanBuffer<Atom, LockManager>::AdvanceHead()
+template<GPUSafeStruct Atom, size_t FRAME_COUNT>
+void GPUOrphanBuffer<Atom, FRAME_COUNT>::Commit()
 {
-	m_CircularBuffer.OnUsageComplete(m_CountPerBuffer);
+	m_CurrentFrame = (m_CurrentFrame + 1) % FRAME_COUNT;
 }
 
-template<GPUSafeStruct Atom, IBufferLockManager LockManager>
-void GPUOrphanBuffer<Atom, LockManager>::AdvanceTail()
+template<GPUSafeStruct Atom, size_t FRAME_COUNT>
+void GPUOrphanBuffer<Atom, FRAME_COUNT>::BindFrame(GLuint index)
 {
-	m_Tail = (m_Tail + m_CountPerBuffer) % m_CircularBuffer.GetSize();
+	const size_t frame = (m_CurrentFrame + FRAME_COUNT - 1) % FRAME_COUNT;
+	const size_t offset = _GetOffset(frame);
+
+	m_Buffer.BindBufferRange(index, offset, m_FrameSize);
 }
 
-template<GPUSafeStruct Atom, IBufferLockManager LockManager>
-void GPUOrphanBuffer<Atom, LockManager>::BindHeadBuffer(GLuint index)
-{
-	m_CircularBuffer.BindBufferHeadRange(index, m_CountPerBuffer);
-}
-
-template<GPUSafeStruct Atom, IBufferLockManager LockManager>
-void GPUOrphanBuffer<Atom, LockManager>::BindHeadBufferRange(GLuint index, size_t count)
-{
-	m_CircularBuffer.BindBufferHeadRange(index, count);
-}
-
-template<GPUSafeStruct Atom, IBufferLockManager LockManager>
-void GPUOrphanBuffer<Atom, LockManager>::BindTailBuffer(GLuint index)
-{
-	m_CircularBuffer.BindBufferRange(index, m_Tail, m_CountPerBuffer);
-}
-
-template<GPUSafeStruct Atom, IBufferLockManager LockManager>
-void GPUOrphanBuffer<Atom, LockManager>::BindTailBufferRange(GLuint index, size_t count)
-{
-	m_CircularBuffer.BindBufferRange(index, m_Tail, count);
-}
 
 // ------------------------------------------------------------------------------------------------------------------
 

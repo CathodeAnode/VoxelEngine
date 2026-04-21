@@ -56,8 +56,8 @@ private:
     static uint32_t s_CubeOffset;
     static uint32_t s_FrustumOffset;
 
-    using InstanceBuffer = GPUOrphanBuffer<GizmoInstance>;
-    using IndirectBuffer = GPUOrphanBuffer<DrawArraysIndirectCommand>;
+    using InstanceBuffer = GPUOrphanBuffer<GizmoInstance, 3>;
+    using IndirectBuffer = GPUOrphanBuffer<DrawArraysIndirectCommand, 3>;
 
     static InstanceBuffer s_InstanceBuffer;
     static IndirectBuffer s_IndirectBuffer;
