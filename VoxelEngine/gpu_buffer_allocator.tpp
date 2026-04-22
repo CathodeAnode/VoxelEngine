@@ -339,12 +339,29 @@ void GPUOrphanBuffer<Atom, FRAME_COUNT>::Commit()
 }
 
 template<GPUSafeStruct Atom, size_t FRAME_COUNT>
-void GPUOrphanBuffer<Atom, FRAME_COUNT>::BindFrame(GLuint index)
+void GPUOrphanBuffer<Atom, FRAME_COUNT>::BindPreviousFrame(GLuint index)
 {
 	const size_t frame = (m_CurrentFrame + FRAME_COUNT - 1) % FRAME_COUNT;
 	const size_t offset = _GetOffset(frame);
 
 	m_Buffer.BindBufferRange(index, offset, m_FrameSize);
+}
+
+template<GPUSafeStruct Atom, size_t FRAME_COUNT>
+void GPUOrphanBuffer<Atom, FRAME_COUNT>::BindCurrentFrame(GLuint index)
+{
+	const size_t offset = _GetOffset(m_CurrentFrame);
+
+	m_Buffer.BindBufferRange(index, offset, m_FrameSize);
+}
+
+template<GPUSafeStruct Atom, size_t FRAME_COUNT>
+size_t GPUOrphanBuffer<Atom, FRAME_COUNT>::GetPrevFrameOffset() const
+{
+	const size_t frame = (m_CurrentFrame + FRAME_COUNT - 1) % FRAME_COUNT;
+	const size_t offset = _GetOffset(frame);
+
+	return offset;
 }
 
 

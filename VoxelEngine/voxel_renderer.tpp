@@ -183,6 +183,9 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     *reinterpret_cast<uint32_t*>(uncachedBase) = 0;
     *reinterpret_cast<uint32_t*>(indirectBase) = 0;
 
+    GLsync clearCounts = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    glWaitSync(clearCounts, 0, 1000000000);
+
     const GLint indirectCmdsLocation = 0;
     const GLint chunkPosLocation = 1;
     const GLint uncachedChunksLocation = 2;
@@ -190,9 +193,9 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     const GLint pageNodesBufferLocation = 4;
     const GLint policyBufferLocation = 5;
 
-    m_IndirectCommandBuffer.BindFrame(indirectCmdsLocation);
-    m_PositionSSBO.BindFrame(chunkPosLocation);
-    m_UncachedChunks.BindFrame(uncachedChunksLocation);
+    m_IndirectCommandBuffer.BindCurrentFrame(indirectCmdsLocation);
+    m_PositionSSBO.BindCurrentFrame(chunkPosLocation);
+    m_UncachedChunks.BindCurrentFrame(uncachedChunksLocation);
     m_DataCache.BindCacheLookup(hashMapLocation, pageNodesBufferLocation, policyBufferLocation);
 
     glm::ivec3 localSize = m_FrustumCullingShader.GetLocalSizeGroup();
@@ -225,7 +228,7 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetGPURequestedChunks()
         const size_t availableBytes = m_UncachedChunks.GetSize() - headerSize;
 
         assert(requiredBytes <= availableBytes &&
-            "Frustum culling SSBO size is too small for the result chunk count. "
+            "Overflow: Frustum culling SSBO size is too small for the result chunk count. "
             "Required bytes: {}, Available bytes: {}",
             requiredBytes, availableBytes);
     }
@@ -257,7 +260,6 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 
     const uint32_t indirectCmdsCount = *reinterpret_cast<const uint32_t*>(m_IndirectCommandBuffer.GetPreviousContents());
 
-
     LOG_TRACE(EngineSystem::RENDERER,
         "VoxelRenderer rendering frame with {} indirect commands",
         indirectCmdsCount);
@@ -272,11 +274,11 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_IndirectCommandBuffer.GetName());
 
     const GLuint positionSSBOLocation = 0;
-    m_PositionSSBO.BindFrame(positionSSBOLocation);
+    m_PositionSSBO.BindPreviousFrame(positionSSBOLocation);
 
     //assert(glGetError() == GL_NO_ERROR);
-
-    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, reinterpret_cast<const void*>(sizeof(uint32_t)), indirectCmdsCount, 0); // TODO: substitute with glMultiDrawArraysIndirectCount
+    const size_t offset = sizeof(uint32_t) + m_IndirectCommandBuffer.GetPrevFrameOffset();
+    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, reinterpret_cast<const void*>(offset), indirectCmdsCount, 0); // TODO: substitute with glMultiDrawArraysIndirectCount
     //assert(glGetError() == GL_NO_ERROR);
 
     glBindVertexArray(0);

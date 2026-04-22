@@ -171,7 +171,8 @@ public:
     void Destroy();
 
     void Commit();
-    void BindFrame(GLuint index);
+    void BindPreviousFrame(GLuint index);
+    void BindCurrentFrame(GLuint index);
 
     inline Atom* GetCurrentContents()
     {
@@ -183,6 +184,8 @@ public:
         const size_t index = (m_CurrentFrame + FRAME_COUNT - 1) % FRAME_COUNT;
         return m_Buffer.GetContents() + _GetOffset(index);
     }
+
+    size_t GetPrevFrameOffset() const;
 
     inline size_t GetSize() const { return m_FrameSize; }
     inline GLuint GetName() const { return m_Buffer.GetName(); }
