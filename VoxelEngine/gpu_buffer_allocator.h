@@ -176,19 +176,21 @@ public:
 
     inline Atom* GetCurrentContents()
     {
-        return m_Buffer.GetContents() + _GetOffset(m_CurrentFrame);
+        return &m_Buffer.GetContents()[_GetOffset(m_CurrentFrame)];
     }
 
     inline const Atom* GetPreviousContents() const
     {
-        const size_t index = (m_CurrentFrame + FRAME_COUNT - 1) % FRAME_COUNT;
-        return m_Buffer.GetContents() + _GetOffset(index);
+        const size_t index = _GetOffset((m_CurrentFrame + FRAME_COUNT - 1) % FRAME_COUNT);
+        return &m_Buffer.GetContents()[index];
     }
 
     size_t GetPrevFrameOffset() const;
 
     inline size_t GetSize() const { return m_FrameSize; }
     inline GLuint GetName() const { return m_Buffer.GetName(); }
+    inline void* GetPreviousFrameOffset() const { return (void*)(_GetOffset((m_CurrentFrame + FRAME_COUNT - 1) % FRAME_COUNT) * sizeof(Atom)); }
+    inline size_t GetPreviousFrameByteOffset() const { return _GetOffset((m_CurrentFrame + FRAME_COUNT - 1) % FRAME_COUNT) * sizeof(Atom); }
 
 private:
     inline size_t _GetOffset(size_t frame) const
