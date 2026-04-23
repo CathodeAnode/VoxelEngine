@@ -87,6 +87,29 @@ namespace GPUAllocatorsUtils
             return "UNKNOWN_GL_BUFFER_TARGET";
         }
     }
+
+    inline GLint GetOffsetAlignment(GLenum target)
+    {
+        GLint alignment = 0;
+
+        switch (target)
+        {
+        case GL_UNIFORM_BUFFER:
+            glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &alignment);
+            return alignment;
+
+        case GL_SHADER_STORAGE_BUFFER:
+            glGetIntegerv(GL_SHADER_STORAGE_BUFFER_OFFSET_ALIGNMENT, &alignment);
+            return alignment;
+
+        case GL_TEXTURE_BUFFER:
+            glGetIntegerv(GL_TEXTURE_BUFFER_OFFSET_ALIGNMENT, &alignment);
+            return alignment;
+
+        default:
+            return 1;
+        }
+    }
 }
 
 template<typename T>
@@ -159,6 +182,9 @@ private:
     size_t m_Head = 0;
 };
 
+
+//TODO: add padding in creation to enure frame binding is correctly aligned
+//TODO: correct _GetOffset to factor in padding added
 template<GPUSafeStruct Atom, size_t FRAME_COUNT>
 class GPUOrphanBuffer
 {

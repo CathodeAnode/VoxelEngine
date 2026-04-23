@@ -175,6 +175,8 @@ void GPUPersistentlyMappedBuffer<Atom, LockManager>::BindBufferRange(GLuint _ind
 		_head * sizeof(Atom),
 		(_head + _count) * sizeof(Atom));
 
+	assert(_head % GPUAllocatorsUtils::GetOffsetAlignment(m_Target) == 0); // TODO: add assertion error message
+
 	glBindBufferRange(m_Target, _index, m_Name , _head * sizeof(Atom), _count * sizeof(Atom));
 }
 

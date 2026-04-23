@@ -278,8 +278,9 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
     m_PositionSSBO.BindPreviousFrame(positionSSBOLocation);
 
     //assert(glGetError() == GL_NO_ERROR);
-    const size_t offset = sizeof(uint32_t) + m_IndirectCommandBuffer.GetPrevFrameOffset();
-    glMultiDrawArraysIndirectCount(GL_TRIANGLE_STRIP, reinterpret_cast<const void*>(offset), 0, m_MaxIndirectCommands, 0);
+    const size_t countOffset = m_IndirectCommandBuffer.GetPreviousFrameByteOffset();
+    const size_t offset = sizeof(uint32_t) + countOffset;
+    glMultiDrawArraysIndirectCount(GL_TRIANGLE_STRIP, reinterpret_cast<const void*>(offset), countOffset, m_MaxIndirectCommands, 0);
     //assert(glGetError() == GL_NO_ERROR);
 
     glBindVertexArray(0);
