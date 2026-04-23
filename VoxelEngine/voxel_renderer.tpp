@@ -33,7 +33,7 @@ void VoxelRenderer<ChunkType>::Init(size_t cachePages, size_t cachePageSize, siz
         "Initializing VoxelRenderer (cachePages={}, cachePageSize={}, indirectBufferSize={})",
         cachePages, cachePageSize, indirectBufferSize);
     assert(cachePages * cachePageSize * 5 > indirectBufferSize && "Cache Size too small");
-
+    m_MaxIndirectCommands = indirectBufferSize;
     _CompileShaders();
     _CreateGPUBuffers(indirectBufferSize, cachePageSize, cachePages);
     _EnableOpenGLFeatures();
@@ -258,13 +258,13 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 {
     PROFILE_FUNCTION();
 
-    const uint32_t indirectCmdsCount = *reinterpret_cast<const uint32_t*>(m_IndirectCommandBuffer.GetPreviousContents());
+    //const uint32_t indirectCmdsCount = *reinterpret_cast<const uint32_t*>(m_IndirectCommandBuffer.GetPreviousContents());
 
-    LOG_TRACE(EngineSystem::RENDERER,
-        "VoxelRenderer rendering frame with {} indirect commands",
-        indirectCmdsCount);
+    //LOG_TRACE(EngineSystem::RENDERER,
+    //    "VoxelRenderer rendering frame with {} indirect commands",
+    //    indirectCmdsCount);
     
-    if (indirectCmdsCount == 0) return;
+    //if (indirectCmdsCount == 0) return;
 
     m_VoxelShader.Use();
     m_VoxelShader.SetMat4("view", camera.GetViewMatrix());
@@ -272,17 +272,19 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 
     glBindVertexArray(m_VAO);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_IndirectCommandBuffer.GetName());
+    glBindBuffer(GL_PARAMETER_BUFFER, m_IndirectCommandBuffer.GetName());
 
     const GLuint positionSSBOLocation = 0;
     m_PositionSSBO.BindPreviousFrame(positionSSBOLocation);
 
     //assert(glGetError() == GL_NO_ERROR);
     const size_t offset = sizeof(uint32_t) + m_IndirectCommandBuffer.GetPrevFrameOffset();
-    glMultiDrawArraysIndirect(GL_TRIANGLE_STRIP, reinterpret_cast<const void*>(offset), indirectCmdsCount, 0); // TODO: substitute with glMultiDrawArraysIndirectCount
+    glMultiDrawArraysIndirectCount(GL_TRIANGLE_STRIP, reinterpret_cast<const void*>(offset), 0, m_MaxIndirectCommands, 0);
     //assert(glGetError() == GL_NO_ERROR);
 
     glBindVertexArray(0);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, 0);
+    glBindBuffer(GL_PARAMETER_BUFFER, 0);
 }
 
 template <typename ChunkType>
