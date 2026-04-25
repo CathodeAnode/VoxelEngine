@@ -42,7 +42,9 @@ public:
 	void Upload(const ChunkContainer& chunkContainer);
 
 	bool UpdatePosition(VoxelObjectID objectID, const glm::vec3& newPosition);
-	void DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position);
+
+	// TODO: needs to be updated to accommodate new changes
+	[[deprecated]] void DrawOnNextFrame(VoxelObjectID objectID, const glm::vec3& position);
 
 	void DispatchFrustumCullPass(unsigned int renderDistance, const Camera& camera);
 	std::span<const glm::ivec4> GetGPURequestedChunks();

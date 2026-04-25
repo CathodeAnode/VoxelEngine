@@ -7,7 +7,8 @@
 // - Use SGL instead of shader.h
 
 const uint NULL_PAGE = 0xFFFFFFFFU;
-const uint CACHE_PAGE_SIZE = 200;
+const uint CACHE_PAGE_SIZE = 400;
+const uint CHUNK_SIZE = 8;
 const uint64_t EMPTY_KEY = 0xFFFFFFFFFFFFFFFFUL;
 const uint REF_BIT = 2; // 0b10
 
@@ -159,7 +160,7 @@ void DrawChunk(ObjectAllocation alloc, ivec3 chunkPos)
     {
         uint next = pageNodes[current].next;
 
-        if(next != start + 1)
+        if(next != current + 1)
         {
             uint index = atomicAdd(indirectCmdsCount, 1);
 
@@ -170,22 +171,12 @@ void DrawChunk(ObjectAllocation alloc, ivec3 chunkPos)
             indirectCmds[index].instanceCount = (current - start) * CACHE_PAGE_SIZE;
 
             indirectCmds[index].instanceCount += uint(current == alloc.endPage) * alloc.totalElementCount; // Branchless addition
-            chunkPositions[index] = vec4(chunkPos, 0);
+            chunkPositions[index] = vec4(chunkPos, 0) * CHUNK_SIZE;
 
             start = next;
         }
 
         current = next;
-    }
-
-    if (current != start) 
-    {
-        uint index = atomicAdd(indirectCmdsCount, 1);
-        indirectCmds[index].count = 4;
-        indirectCmds[index].first = 0;
-        indirectCmds[index].baseInstance = start * CACHE_PAGE_SIZE;
-        indirectCmds[index].instanceCount = (current - start + 1) * CACHE_PAGE_SIZE + alloc.totalElementCount;
-        chunkPositions[index] = vec4(chunkPos, 0);
     }
 }
 
