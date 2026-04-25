@@ -309,7 +309,9 @@ bool GPUOrphanBuffer<Atom, FRAME_COUNT>::Create(GLenum target, GLuint countPerBu
 	assert(FRAME_COUNT > 0);
 	PROFILE_FUNCTION();
 
-	m_FrameSize = countPerBuffer;
+	GLuint alignment = GPUAllocatorsUtils::GetOffsetAlignment(target);
+	GLuint alignedSize = (countPerBuffer + alignment - 1) / alignment * alignment;
+	m_FrameSize = alignedSize;
 	m_CurrentFrame = 0;
 
 	const GLuint totalCount = m_FrameSize * FRAME_COUNT;

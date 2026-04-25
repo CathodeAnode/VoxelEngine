@@ -183,8 +183,6 @@ private:
 };
 
 
-//TODO: add padding in creation to enure frame binding is correctly aligned
-//TODO: correct _GetOffset to factor in padding added
 template<GPUSafeStruct Atom, size_t FRAME_COUNT>
 class GPUOrphanBuffer
 {
@@ -221,7 +219,7 @@ public:
 private:
     inline size_t _GetOffset(size_t frame) const
     {
-        return frame * m_FrameSize;
+        return frame * (m_FrameSize);
     }
 
 private:
