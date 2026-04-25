@@ -18,6 +18,8 @@ template<typename ChunkType>
 template<ChunkProvider<ChunkType> ChunkContainer>
 VoxelMesher<ChunkType>::VoxelColumnData VoxelMesher<ChunkType>::_GetPaddedColumnRowBits(const ChunkContainer& world, int x, int z, const glm::ivec3& chunkLocation)
 {
+	PROFILE_FUNCTION();
+
 	// Reject completely invalid or corner out-of-bounds accesses
 	assert((x > 0 && z > 0) || x >= 0 || z >= 0 ||
 		(x < CS_P && z < CS_P) ||
@@ -61,6 +63,7 @@ VoxelMesher<ChunkType>::VoxelColumnData VoxelMesher<ChunkType>::_GetPaddedColumn
 template<typename ChunkType>
 QuadMeshData VoxelMesher<ChunkType>::_CompressQuadData(uint8_t x, uint8_t y, uint8_t z, uint8_t w, uint8_t h, uint8_t dir)
 {
+	PROFILE_FUNCTION();
 
 	//std::cout << "Face: " << (int)dir << " pos: (" << (int)x << "," << (int)y << "," << (int)z << ") "
 	//		  << "size: (" << (int)w << "x" << (int)h << ")\n";
@@ -78,6 +81,8 @@ QuadMeshData VoxelMesher<ChunkType>::_CompressQuadData(uint8_t x, uint8_t y, uin
 template<typename ChunkType>
 VoxelMesher<ChunkType>::ColorFaceMasksMap VoxelMesher<ChunkType>::_SplitVoxelsByColor(uint8_t axis, std::shared_ptr<const ChunkType> chunk)
 {
+	PROFILE_FUNCTION();
+
 	// MUST HAPPEN AFTER FACE HULLING STEP
 	ColorFaceMasksMap data;
 
