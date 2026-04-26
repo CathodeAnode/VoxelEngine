@@ -22,7 +22,7 @@
 #define CACHE_NUM_OF_PAGES 15625
 #define AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK 3
 
-#define LOADED_CHUNK_DISTANCE 9
+#define LOADED_CHUNK_DISTANCE 15
 
 
 // TODO make loadedChunkDistance & terrian generation strargy user defiend

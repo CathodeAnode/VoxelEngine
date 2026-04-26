@@ -87,7 +87,7 @@ public:
 			return &m_ChunkMap.at(index);
 		}
 
-		return &s_NullChunk;
+		return nullptr;
 	}
 	const ChunkType* GetChunk(const glm::ivec3& chunkGridLocation) const
 	{
@@ -101,7 +101,7 @@ public:
 			return &m_ChunkMap.at(index);
 		}
 
-		return &s_NullChunk;
+		return nullptr;
 	}
 
 	[[nodiscard]] VoxelObjectID GetChunkID(const glm::ivec3& chunkCoords) const
@@ -232,7 +232,7 @@ private:
 	float m_VoxelScale;
 	const VoxelObjectID k_Uid;
 
-	inline static NullChunk<typename ChunkType::ValueType, ChunkType::Size> s_NullChunk;
+	//inline static NullChunk<typename ChunkType::ValueType, ChunkType::Size> s_NullChunk;
 	
 };
 

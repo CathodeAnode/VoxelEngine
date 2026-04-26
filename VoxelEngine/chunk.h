@@ -28,15 +28,15 @@ public:
 	Chunk& operator=(Chunk&& other) noexcept;
 
 	bool IsSolid(int x, int y, int z) const;
-	virtual bool IsEmpty() const;
+	bool IsEmpty() const;
 	void ToggleBit(int x, int y, int z);
 	void SetVoxel(int x, int y, int z, RGBAColor color);
 
 	inline RGBAColor GetVoxelColorAt(int x, int y, int z) const { return m_ColorData[ColorDataIndexAt(x, y, z)]; }
 	inline RGBAColor GetVoxelColorAt(glm::ivec3 coords) const { return GetVoxelColorAt(coords.x, coords.y, coords.z); }
-	virtual inline T GetColumnRow(int x, int z) const { return m_OpaqueData[OpaqueDataIndexAt(x, z)]; }
+	inline T GetColumnRow(int x, int z) const { return m_OpaqueData[OpaqueDataIndexAt(x, z)]; }
 
-	virtual inline VoxelObjectID GetUID() const { return k_Uid; };
+	inline VoxelObjectID GetUID() const { return k_Uid; };
 	inline T* GetOpaqueData() noexcept { return m_OpaqueData; }
 	inline RGBAColor* GetColorData() noexcept { return m_ColorData; }
 	inline std::span<T> GetOpaqueSpan() noexcept { return std::span<T>(m_OpaqueData, Size * Size); }
@@ -55,21 +55,6 @@ private:
 typedef Chunk<uint8_t, 8> Chunk8;
 typedef Chunk<uint16_t, 16> Chunk16;
 typedef Chunk<uint32_t, 32> Chunk32;
-
-
-// NullChunk class that behaves as an empty chunk
-// this is temporary, figure out a way to create a null chunk / empty chunk without virtual funcs and overrides
-template<typename T, unsigned int ChunkSize>
-class NullChunk : public Chunk<T, ChunkSize> {
-public:
-	// Override constructor if needed
-	NullChunk()  {}
-
-	T GetColumnRow(int x, int z) const override { return T(0); }
-	bool IsEmpty() const override { return true; }
-	VoxelObjectID GetUID() const override  { return UIDManager::NullVoxelObjectID; }
-
-};
 
 #include "chunk.tpp"
 
