@@ -64,36 +64,12 @@ inline void Scene<ChunkType>::_UploadLoadedTerrain(const glm::vec3& cameraPos)
 		{
 			for (int z = -halfLoadedDist; z <= halfLoadedDist; z++)
 			{
-
+				
 				glm::ivec3 chunkCoords = cameraChunkCoords + glm::ivec3(x, y, z);
-				std::shared_ptr<ChunkType const> chunk = m_World.GetChunk(chunkCoords);
-
-				if (!chunk || chunk->IsEmpty()) continue;
-				glm::ivec3 chunkWorldPos = chunkCoords * chunkSize;
-
-
-				const VoxelObjectID chunkUID = chunk->GetUID();
-				if (chunkUID != UIDManager::NullVoxelObjectID)
-				{
-					m_Renderer.Upload(m_World, chunkCoords);
-				}
-
+				m_Renderer.Upload(m_World, chunkCoords);
 			}
 		}
 	}
 }
-
-
-/*
-				const VoxelObjectID chunkUID = chunk->GetUID();
-				if (chunkUID != 0)
-				{
-					if (!m_Renderer.IsCached(chunkUID))
-					{
-						m_Renderer.Upload(m_World, chunkCoords);
-					}
-					m_Renderer.DrawOnNextFrame(chunkUID, chunkWorldPos);
-				}
-*/
 
 #endif

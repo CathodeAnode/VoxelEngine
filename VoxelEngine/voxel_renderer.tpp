@@ -49,8 +49,7 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer, cons
 {
     PROFILE_FUNCTION();
 
-    std::shared_ptr<const ChunkType> chunk = chunkContainer.GetChunk(chunkCoords);
-    VoxelObjectID chunkUID = chunk->GetUID();
+    VoxelObjectID chunkUID = UIDManager::Generate(chunkCoords);
     GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
 
     if (IsCached(chunkUID))
