@@ -37,10 +37,16 @@ public:
 	inline T GetColumnRow(int x, int z) const { return m_OpaqueData[OpaqueDataIndexAt(x, z)]; }
 
 	inline VoxelObjectID GetUID() const { return k_Uid; };
+
 	inline T* GetOpaqueData() noexcept { return m_OpaqueData; }
 	inline RGBAColor* GetColorData() noexcept { return m_ColorData; }
 	inline std::span<T> GetOpaqueSpan() noexcept { return std::span<T>(m_OpaqueData, Size * Size); }
 	inline std::span<RGBAColor> GetColorSpan() noexcept { return std::span<RGBAColor>(m_ColorData, Size * Size * Size); }
+
+	inline const T* GetOpaqueData() const noexcept { return m_OpaqueData; }
+	inline const RGBAColor* GetColorData() const noexcept { return m_ColorData; }
+	inline std::span<const T> GetOpaqueSpan() const noexcept { return std::span<const T>(m_OpaqueData, Size * Size); }
+	inline std::span<const RGBAColor> GetColorSpan() const noexcept { return std::span<const RGBAColor>(m_ColorData, Size * Size * Size); }
 
 	static inline size_t OpaqueDataIndexAt(int x, int z) { return x + z * ChunkSize; }
 	static inline size_t ColorDataIndexAt(int x, int y, int z) { return x + z * ChunkSize + y * ChunkSize * ChunkSize; }
