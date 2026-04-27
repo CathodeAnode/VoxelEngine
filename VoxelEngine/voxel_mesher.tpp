@@ -90,121 +90,122 @@ template<ChunkProvider<ChunkType> ChunkContainer, VoxelMeshWriter MeshWriter>
 void VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& chunkContainer, const glm::ivec3& chunkLocation, MeshWriter& out)
 {
 	PROFILE_FUNCTION();
-
-	std::shared_ptr<const ChunkType> chunk = chunkContainer.GetChunk(chunkLocation);
-	assert(chunk != nullptr);
-
-	if (chunk->IsEmpty()) 
-	{
-		return;
-	}
-
-	LOG_DEBUG(EngineSystem::VOXEL_MESHER,
-		"Meshing chunk at ({}, {}, {}) in container {}",
-		chunkLocation.x,
-		chunkLocation.y,
-		chunkLocation.z,
-		chunkContainer.GetUID());
-
-	std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
-
 	ChunkData<ChunkType> chunks;
-	chunks.GatherData(chunkContainer, chunkLocation);
+	{
+		PROFILE_SCOPE("Init");
 
-	// face hulling
-	for (int a = 1; a < CS_P - 1; a++) {
-		for (int b = 1; b < CS_P - 1; b++) {
-			const VoxelColumnData columnBits = chunks.GetPaddedColumnRowBits(b, a);
-			const int baIndex = (b - 1) + (a - 1) * CS;
-			const int abIndex = (a - 1) + (b - 1) * CS;
+		LOG_DEBUG(EngineSystem::VOXEL_MESHER,
+			"Meshing chunk at ({}, {}, {}) in container {}",
+			chunkLocation.x,
+			chunkLocation.y,
+			chunkLocation.z,
+			chunkContainer.GetUID());
+
+		std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
+
+		
+		chunks.GatherData(chunkContainer, chunkLocation);
+	}
+	{
+		PROFILE_SCOPE("Hull");
+		// face hulling
+		for (int a = 1; a < CS_P - 1; a++) {
+			for (int b = 1; b < CS_P - 1; b++) {
+				const VoxelColumnData columnBits = chunks.GetPaddedColumnRowBits(b, a);
+				const int baIndex = (b - 1) + (a - 1) * CS;
+				const int abIndex = (a - 1) + (b - 1) * CS;
 
 
-			// +ve, -ve z
-			m_FaceMasks[baIndex + 0 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b, a - 1));
-			m_FaceMasks[baIndex + 1 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b, a + 1));
+				// +ve, -ve z
+				m_FaceMasks[baIndex + 0 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b, a - 1));
+				m_FaceMasks[baIndex + 1 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b, a + 1));
 
-			// +ve, -ve x
-			m_FaceMasks[abIndex + 2 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b + 1, a));
-			m_FaceMasks[abIndex + 3 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b - 1, a));
+				// +ve, -ve x
+				m_FaceMasks[abIndex + 2 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b + 1, a));
+				m_FaceMasks[abIndex + 3 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b - 1, a));
 
-			//TODO optimize and cleanup
-			// +ve, -ve y
-			VoxelColumnData postiveYMask = ~(chunks.yPos->GetColumnRow(b - 1, a - 1) & VoxelColumnData(1) << CS - 1);
-			VoxelColumnData negitveYMask = ~(chunks.zPos->GetColumnRow(b - 1, a - 1) & (VoxelColumnData(1) << CS - 1) >> CS - 1);
+				//TODO optimize and cleanup
+				// +ve, -ve y
+				VoxelColumnData postiveYMask = ~(chunks.yPos->GetColumnRow(b - 1, a - 1) & VoxelColumnData(1) << CS - 1);
+				VoxelColumnData negitveYMask = ~(chunks.yNeg->GetColumnRow(b - 1, a - 1) & (VoxelColumnData(1) << CS - 1) >> CS - 1);
 
-			m_FaceMasks[baIndex + 4 * CS_2] = columnBits & ~(columnBits >> 1) & postiveYMask;
-			m_FaceMasks[baIndex + 5 * CS_2] = columnBits & ~(columnBits << 1) & negitveYMask;
+				m_FaceMasks[baIndex + 4 * CS_2] = columnBits & ~(columnBits >> 1) & postiveYMask;
+				m_FaceMasks[baIndex + 5 * CS_2] = columnBits & ~(columnBits << 1) & negitveYMask;
+			}
 		}
 	}
 
-	// Greedy Meshing
-	for (uint8_t axis = 0; axis < 6; axis++)
 	{
-		ColorFaceMasksMap data = _SplitVoxelsByColor(axis, chunk);
-
-		for (auto& [type, axisFaceMask] : data)
+		PROFILE_SCOPE("Mesh");
+		// Greedy Meshing
+		for (uint8_t axis = 0; axis < 6; axis++)
 		{
-			for (uint8_t layer = 0; layer < CS; layer++)
+			ColorFaceMasksMap data = _SplitVoxelsByColor(axis, chunks.center);
+
+			for (auto& [type, axisFaceMask] : data)
 			{
-				const int bitsLocation = layer * CS;
-				for (uint8_t row = 0; row < CS; row++)
+				for (uint8_t layer = 0; layer < CS; layer++)
 				{
-					if (axisFaceMask[row + bitsLocation] == 0) continue;
-					uint8_t y = 0;
-
-					while (y < CS)
+					const int bitsLocation = layer * CS;
+					for (uint8_t row = 0; row < CS; row++)
 					{
-						y += GetTrailingZeros(axisFaceMask[row + bitsLocation] >> y);
+						if (axisFaceMask[row + bitsLocation] == 0) continue;
+						uint8_t y = 0;
 
-						if (y >= CS) break;
+						while (y < CS)
+						{
+							y += GetTrailingZeros(axisFaceMask[row + bitsLocation] >> y);
 
-						uint8_t h = GetTrailingOnes(axisFaceMask[row + bitsLocation] >> y);
+							if (y >= CS) break;
 
-						VoxelColumnData hMask = (h >= CS) ? ~VoxelColumnData(0) : ((VoxelColumnData(1) << h) - 1);
-						VoxelColumnData mask = hMask << y;
+							uint8_t h = GetTrailingOnes(axisFaceMask[row + bitsLocation] >> y);
 
-						uint8_t w = 1;
+							VoxelColumnData hMask = (h >= CS) ? ~VoxelColumnData(0) : ((VoxelColumnData(1) << h) - 1);
+							VoxelColumnData mask = hMask << y;
 
-						while (row + w < CS) {
-							// fetch bits spanning height, in the next row
-							VoxelColumnData nextRowH = (axisFaceMask[row + w + bitsLocation] >> y) & hMask;
-							if (nextRowH != hMask) {
-								break; // can no longer expand horizontally
+							uint8_t w = 1;
+
+							while (row + w < CS) {
+								// fetch bits spanning height, in the next row
+								VoxelColumnData nextRowH = (axisFaceMask[row + w + bitsLocation] >> y) & hMask;
+								if (nextRowH != hMask) {
+									break; // can no longer expand horizontally
+								}
+
+								axisFaceMask[row + w + bitsLocation] &= ~mask;
+								w++;
 							}
 
-							axisFaceMask[row + w + bitsLocation] &= ~mask;
-							w++;
+							QuadMeshData quad;
+							switch (axis) {
+							case 0:
+							case 1:
+								quad = _CompressQuadData(row, y, layer, w, h, axis);
+								break;
+							case 2:
+							case 3:
+								quad = _CompressQuadData(layer, y, row, w, h, axis);
+								break;
+							case 4:
+							case 5:
+								quad = _CompressQuadData(y, layer, row, h, w, axis);
+								break;
+							}
+
+							LOG_TRACE(EngineSystem::VOXEL_MESHER,
+								"Chunk quad upload -> chunk=({},{},{}), size={}x{}, pos=({},{},{}), axis={}, color=0x{:08X}"
+								, chunkLocation.x, chunkLocation.y, chunkLocation.z
+								, w, h
+								, row, y, layer
+								, axis
+								, type)
+
+								out.Write(quad, type);
+
+
+							y += h;
+
 						}
-
-						QuadMeshData quad;
-						switch (axis) {
-						case 0:
-						case 1:
-							quad = _CompressQuadData(row, y, layer, w, h, axis);
-							break;
-						case 2:
-						case 3:
-							quad = _CompressQuadData(layer, y, row, w, h, axis);
-							break;
-						case 4:
-						case 5:
-							quad = _CompressQuadData(y, layer, row, h, w, axis);
-							break;
-						}
-
-						LOG_TRACE(EngineSystem::VOXEL_MESHER,
-							"Chunk quad upload -> chunk=({},{},{}), size={}x{}, pos=({},{},{}), axis={}, color=0x{:08X}"
-						, chunkLocation.x, chunkLocation.y, chunkLocation.z
-						, w, h
-						, row, y, layer
-						, axis
-						, type)
-
-						out.Write(quad, type);
-
-
-						y += h;
-
 					}
 				}
 			}

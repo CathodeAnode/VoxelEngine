@@ -19,22 +19,14 @@
 template<typename ChunkType>
 struct ChunkData
 {
-	// Center chunk (current chunk being meshed)
-	std::shared_ptr<const ChunkType> main;
+	static const size_t DATA_SIZE = VoxelMesher<ChunkType>::CS_P * VoxelMesher<ChunkType>::CS_P;
+	using T = typename ChunkType::ValueType;
 
-	// X axis (left / right)
-	std::shared_ptr<const ChunkType> xPos; // right neighbor
-	std::shared_ptr<const ChunkType> xNeg; // left neighbor
-
-	// Z axis (forward / backward)
-	std::shared_ptr<const ChunkType> zPos; // forward neighbor
-	std::shared_ptr<const ChunkType> zNeg; // backward neighbor
-
-	// Y axis (up / down)
-	std::shared_ptr<const ChunkType> yPos; // top neighbor
-	std::shared_ptr<const ChunkType> yNeg; // bottom neighbor
-
-	std::array<std::shared_ptr<const ChunkType>, 9> neighbors;
+	std::array<T, DATA_SIZE> paddedData;
+	std::shared_ptr<const ChunkType> center;
+	std::shared_ptr<const ChunkType> yPos;
+	std::shared_ptr<const ChunkType> yNeg;
+	
 
 	template<ChunkProvider<ChunkType> ChunkContainer>
 	void GatherData(const ChunkContainer& chunkContainer, const glm::ivec3& chunkLocation)
@@ -42,41 +34,62 @@ struct ChunkData
 		PROFILE_FUNCTION();
 
 		// Center
-		main = chunkContainer.GetChunk(chunkLocation);
+		center = chunkContainer.GetChunk(chunkLocation);
 
 		// X neighbors
-		xPos = chunkContainer.GetChunk(chunkLocation + glm::ivec3(1, 0, 0));  // right
-		xNeg = chunkContainer.GetChunk(chunkLocation + glm::ivec3(-1, 0, 0)); // left
+		std::shared_ptr<const ChunkType> xPos = chunkContainer.GetChunk(chunkLocation + glm::ivec3(1, 0, 0));  // right
+		std::shared_ptr<const ChunkType> xNeg = chunkContainer.GetChunk(chunkLocation + glm::ivec3(-1, 0, 0)); // left
 
 		// Z neighbors
-		zPos = chunkContainer.GetChunk(chunkLocation + glm::ivec3(0, 0, 1));  // forward
-		zNeg = chunkContainer.GetChunk(chunkLocation + glm::ivec3(0, 0, -1)); // backward
+		std::shared_ptr<const ChunkType> zPos = chunkContainer.GetChunk(chunkLocation + glm::ivec3(0, 0, 1));  // forward
+		std::shared_ptr<const ChunkType> zNeg = chunkContainer.GetChunk(chunkLocation + glm::ivec3(0, 0, -1)); // backward
 
 		// Y neighbors
 		yPos = chunkContainer.GetChunk(chunkLocation + glm::ivec3(0, 1, 0));  // above
 		yNeg = chunkContainer.GetChunk(chunkLocation + glm::ivec3(0, -1, 0)); // below
 
-		neighbors = {
-			nullptr, zNeg,   nullptr,
-			xNeg,    main,   xPos,
-			nullptr, zPos,   nullptr
-		};
+		// copy center chunk opaque data
+		auto* data = center->GetOpaqueData();
+		for (int i = 1; i < VoxelMesher<ChunkType>::CS_P - 1; ++i)
+		{
+			std::memcpy(&paddedData[1 + i * VoxelMesher<ChunkType>::CS_P],
+				&data[0 + i * VoxelMesher<ChunkType>::CS],
+				VoxelMesher<ChunkType>::CS);
+		}
+
+		// copy neighbour z-chunks opaque data
+		// z postive
+		data = zPos->GetOpaqueData();
+		std::memcpy(&paddedData[1],
+			&data[0 + (VoxelMesher<ChunkType>::CS - 1) * VoxelMesher<ChunkType>::CS],
+			VoxelMesher<ChunkType>::CS);
+
+		// z negative
+		data = zNeg->GetOpaqueData();
+		std::memcpy(&paddedData[1 + (VoxelMesher<ChunkType>::CS_P - 1) * VoxelMesher<ChunkType>::CS_P],
+			&data[0],
+			VoxelMesher<ChunkType>::CS);
+
+		// x postive
+		data = xPos->GetOpaqueData();
+		for (int i = 0; i < VoxelMesher<ChunkType>::CS; ++i)
+		{
+			paddedData[0 + (i + 1) * VoxelMesher<ChunkType>::CS_P]
+				= data[(VoxelMesher<ChunkType>::CS - 1) + i * VoxelMesher<ChunkType>::CS];
+		}
+
+		// x negitive
+		data = xNeg->GetOpaqueData();
+		for (int i = 0; i < VoxelMesher<ChunkType>::CS; ++i)
+		{
+			paddedData[(VoxelMesher<ChunkType>::CS_P - 1) + (i + 1) * VoxelMesher<ChunkType>::CS_P]
+				= data[0 + i * VoxelMesher<ChunkType>::CS];
+		}
 	}
 
 	typename VoxelMesher<ChunkType>::VoxelColumnData GetPaddedColumnRowBits(int x, int z) const
 	{
-		PROFILE_FUNCTION();
-
-		const int offX = (x == 0) * -1 + (x == VoxelMesher<ChunkType>::CS_P - 1) * 1;
-		const int offZ = (z == 0) * -1 + (z == VoxelMesher<ChunkType>::CS_P - 1) * 1;
-
-		const int localX = (x + VoxelMesher<ChunkType>::CS - 1) % VoxelMesher<ChunkType>::CS;
-		const int localZ = (z + VoxelMesher<ChunkType>::CS - 1) % VoxelMesher<ChunkType>::CS;
-
-		const int index = (offZ + 1) * 3 + (offX + 1);
-		const std::shared_ptr<const ChunkType>& chunk = neighbors[index];
-
-		return chunk ? chunk->GetColumnRow(localX, localZ) : 0;
+		return paddedData[x + z * VoxelMesher<ChunkType>::CS_P];
 	}
 };
 
