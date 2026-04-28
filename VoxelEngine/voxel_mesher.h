@@ -50,10 +50,10 @@ struct ChunkData
 
 		// copy center chunk opaque data
 		auto* data = center->GetOpaqueData();
-		for (int i = 1; i < VoxelMesher<ChunkType>::CS_P - 1; ++i)
+		for (int i = 0; i < VoxelMesher<ChunkType>::CS; ++i)
 		{
-			std::memcpy(&paddedData[1 + i * VoxelMesher<ChunkType>::CS_P],
-				&data[0 + i * VoxelMesher<ChunkType>::CS],
+			std::memcpy(&paddedData[1 + ((i+1) * VoxelMesher<ChunkType>::CS_P)],
+				&data[0 + (i * VoxelMesher<ChunkType>::CS)],
 				VoxelMesher<ChunkType>::CS);
 		}
 
@@ -74,7 +74,7 @@ struct ChunkData
 		data = xPos->GetOpaqueData();
 		for (int i = 0; i < VoxelMesher<ChunkType>::CS; ++i)
 		{
-			paddedData[0 + (i + 1) * VoxelMesher<ChunkType>::CS_P]
+			paddedData[0 + ((i + 1) * VoxelMesher<ChunkType>::CS_P)]
 				= data[(VoxelMesher<ChunkType>::CS - 1) + i * VoxelMesher<ChunkType>::CS];
 		}
 
@@ -89,6 +89,13 @@ struct ChunkData
 
 	typename VoxelMesher<ChunkType>::VoxelColumnData GetPaddedColumnRowBits(int x, int z) const
 	{
+		// Reject completely invalid or corner out-of-bounds accesses
+		assert((x > 0 && z > 0) || x >= 0 || z >= 0 ||
+			(x < VoxelMesher<ChunkType>::CS_P && z < VoxelMesher<ChunkType>::CS_P) ||
+			(x != 0 && z != VoxelMesher<ChunkType>::CS_P - 1) ||
+			(x != VoxelMesher<ChunkType>::CS_P - 1 && z != 0), "Invalid coordinates");
+
+
 		return paddedData[x + z * VoxelMesher<ChunkType>::CS_P];
 	}
 };
