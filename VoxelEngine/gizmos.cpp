@@ -44,7 +44,6 @@ void Gizmos::Init(uint32_t maxInstances)
 
     // Wire Cube (12 edges)
     s_CubeOffset = verts.size();
-    std::cout << s_CubeOffset << std::endl;
 
     glm::vec3 c[8] =
     {
@@ -289,7 +288,7 @@ void Gizmos::_Flush()
 
     glMultiDrawArraysIndirect(
         GL_LINES,
-        s_IndirectBuffer.GetPreviousContents(),
+        s_IndirectBuffer.GetPreviousFrameOffset(),
         s_CommandCount,
         0);
 
