@@ -48,9 +48,6 @@
     <ClCompile Include="gpu_buffer_lock.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="voxel_mesh_writer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="uid_manager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -176,9 +173,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="uid_manager.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="voxel_mesh_writer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="scene.h">

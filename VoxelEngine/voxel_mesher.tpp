@@ -86,11 +86,12 @@ VoxelMesher<ChunkType>::ColorFaceMasksMap VoxelMesher<ChunkType>::_SplitVoxelsBy
 }
 
 template<typename ChunkType>
-template<ChunkProvider<ChunkType> ChunkContainer, VoxelMeshWriter MeshWriter>
-void VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& chunkContainer, const glm::ivec3& chunkLocation, MeshWriter& out)
+template<ChunkProvider<ChunkType> ChunkContainer>
+std::vector<VoxelQuad> VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& chunkContainer, const glm::ivec3& chunkLocation)
 {
 	PROFILE_FUNCTION();
 	ChunkData<ChunkType> chunks;
+	std::vector<VoxelQuad> chunkMesh;
 	{
 		PROFILE_SCOPE("Init");
 
@@ -200,7 +201,7 @@ void VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& chunkContainer, con
 								, axis
 								, type)
 
-								out.Write(quad, type);
+							chunkMesh.push_back({ quad, type });
 
 
 							y += h;
@@ -211,11 +212,13 @@ void VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& chunkContainer, con
 			}
 		}
 	}
+
+	return chunkMesh;
 }
 
 template<typename ChunkType>
-template<ChunkProvider<ChunkType> ChunkContianer, VoxelMeshWriter MeshWriter>
-void VoxelMesher<ChunkType>::MeshChunkGrid(const ChunkContianer& chunkContainer, MeshWriter& out)
+template<ChunkProvider<ChunkType> ChunkContianer>
+std::vector<VoxelQuad>  VoxelMesher<ChunkType>::MeshChunkGrid(const ChunkContianer& chunkContainer)
 {
 	LOG_DEBUG(EngineSystem::VOXEL_MESHER,
 		"Meshing chunk container {}",

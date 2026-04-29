@@ -10,7 +10,6 @@
 
 #include "chunk.h"
 #include "chunk_provider_concept.h"
-#include "voxel_mesh_writer.h"
 #include "types.h"
 #include "helpers.h"
 #include "logger.h"
@@ -107,11 +106,11 @@ class VoxelMesher
 public:
 	VoxelMesher();
 
-	template<ChunkProvider<ChunkType> ChunkContainer, VoxelMeshWriter MeshWriter>
-	void MeshChunk(const ChunkContainer& chunkContainer, const glm::ivec3& chunkLocation, MeshWriter& out);
+	template<ChunkProvider<ChunkType> ChunkContainer>
+	[[nodiscard]] std::vector<VoxelQuad> MeshChunk(const ChunkContainer& chunkContainer, const glm::ivec3& chunkLocation);
 
-	template<ChunkProvider<ChunkType> ChunkContianer, VoxelMeshWriter MeshWriter>
-	void MeshChunkGrid(const ChunkContianer& chunkContainer, MeshWriter& out);
+	template<ChunkProvider<ChunkType> ChunkContianer>
+	[[nodiscard]] std::vector<VoxelQuad> MeshChunkGrid(const ChunkContianer& chunkContainer);
 
 private:
 	static constexpr int CS = ChunkType::Size;

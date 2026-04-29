@@ -169,7 +169,6 @@
     <ClCompile Include="perlin_noise.cpp" />
     <ClCompile Include="profiler.cpp" />
     <ClCompile Include="uid_manager.cpp" />
-    <ClCompile Include="voxel_mesh_writer.cpp" />
     <ClCompile Include="voxel_renderer.tpp" />
     <ClCompile Include="screen.cpp" />
     <ClCompile Include="shader.cpp" />
@@ -217,7 +216,6 @@
     <ClInclude Include="scene.h" />
     <ClInclude Include="uid_manager.h" />
     <ClInclude Include="voxel_math.h" />
-    <ClInclude Include="voxel_mesh_writer.h" />
     <ClInclude Include="voxel_ray_cast.h" />
     <ClInclude Include="voxel_edit.h" />
     <ClInclude Include="chunk_manager.h" />

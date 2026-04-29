@@ -50,8 +50,6 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer, cons
     PROFILE_FUNCTION();
 
     VoxelObjectID chunkUID = UIDManager::Generate(chunkCoords);
-    GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
-
     if (IsCached(chunkUID))
     {
         LOG_DEBUG(EngineSystem::RENDERER,
@@ -61,8 +59,8 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer, cons
             chunkContainer.GetUID());
 
         VoxelObjectID tempUID = UIDManager::Generate();
-        meshWriter.SetTargetObject(tempUID);
-        m_Mesher->MeshChunk(chunkContainer, chunkCoords, meshWriter);
+        std::vector<VoxelQuad> chunkMesh = m_Mesher->MeshChunk(chunkContainer, chunkCoords);
+        m_DataCache.AllocateObject(tempUID, chunkMesh.data(), chunkMesh.size());
 
         m_DataCache.Swap(tempUID, chunkUID);
         //_RefreshFrame();
@@ -76,8 +74,8 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer, cons
             chunkCoords.x, chunkCoords.y, chunkCoords.z,
             chunkContainer.GetUID());
 
-        meshWriter.SetTargetObject(chunkUID);
-        m_Mesher->MeshChunk(chunkContainer, chunkCoords, meshWriter);
+        std::vector<VoxelQuad> chunkMesh = m_Mesher->MeshChunk(chunkContainer, chunkCoords);
+        m_DataCache.AllocateObject(chunkUID, chunkMesh.data(), chunkMesh.size());
     }
 }
 
@@ -88,7 +86,6 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer)
     PROFILE_FUNCTION();
 
     VoxelObjectID containerUID = chunkContainer.GetUID();
-    GPUVoxelMeshCacheWriter meshWriter(m_DataCache);
 
     if (IsCached(containerUID))
     {
@@ -96,8 +93,8 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer)
             "[Frame: {}] ChunkContainerMeshUpdate VoxelObjectHandle={}",
             FrameCounter::Get(), containerUID);
         VoxelObjectID tempUID = UIDManager::Generate();
-        meshWriter.SetTargetObject(tempUID);
-        m_Mesher->MeshChunk(chunkContainer, meshWriter);
+        std::vector<VoxelQuad> chunkMesh = m_Mesher->MeshChunk(chunkContainer);
+        m_DataCache.AllocateObject(tempUID, chunkMesh.data(), chunkMesh.size());
 
         m_DataCache.Swap(tempUID, containerUID);
         //_RefreshFrame();
@@ -109,8 +106,8 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer)
             "[Frame: {}] ChunkContainerMeshNew VoxelObjectHandle={}",
             FrameCounter::Get(), containerUID);
 
-        meshWriter.SetTargetObject(containerUID);
-        m_Mesher->MeshChunkGrid(chunkContainer, meshWriter);
+        std::vector<VoxelQuad> chunkMesh = m_Mesher->MeshChunkGrid(chunkContainer);
+        m_DataCache.AllocateObject(containerUID, chunkMesh.data(), chunkMesh.size());
     }
 
 }
