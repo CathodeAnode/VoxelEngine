@@ -11,6 +11,7 @@
 #include "gpu_buffer_lock.h"
 #include "gpu_cache_policy.h"
 
+
 // TODO: pass thread mode & gpu-visiblity in template params
 template<typename ObjectID, typename Atom, template<typename> typename Policy>
     requires EvictionPolicy<Policy<ObjectID>, ObjectID>
@@ -25,6 +26,7 @@ public:
     void Destroy() noexcept;
 
     void AllocatePages(const ObjectID& obj, uint32_t pageCount);
+    void AllocateObject(const ObjectID& obj, const Atom* data, size_t count);
     void PushBackToObject(const ObjectID& obj, const Atom& data);
     //TODO: make emplace back function for Atom&& (r-value)
 

@@ -96,6 +96,39 @@ void GPUPagedCache<ObjectID, Atom, Policy>::AllocatePages(const ObjectID& obj, u
 
 template<typename ObjectID, typename Atom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
+void GPUPagedCache<ObjectID, Atom, Policy>::AllocateObject(const ObjectID& obj, const Atom* data, size_t count)
+{
+	if (count == 0) return;
+
+	const size_t pageSize = m_PagedBuffer.GetPageSize();
+	const unsigned int pagesNeeded = (count + pageSize - 1) / pageSize;
+
+	AllocatePages(obj, pagesNeeded);
+	ObjectAllocation alloc;
+	m_ObjectPages.Find(obj, alloc);
+
+	uint32_t current = alloc.startPage;
+	size_t remaining = count;
+	size_t index = 0;
+	while (current != PageNode::NULL_PAGE && remaining > 0)
+	{
+		uint32_t next = m_PageNodes[current].next;
+
+		size_t copySize = std::min(remaining, pageSize);
+		memcpy(&m_PagedBuffer[current][0], &data[index], copySize * sizeof(Atom)); // copysize needs to be in bytes?
+		index += copySize;
+		remaining -= copySize;
+
+		current = next;
+	}
+
+	alloc.totalElementCount = count;
+	m_Policy.OnAccess(alloc.policyHandle);
+	m_ObjectPages.Insert(obj, alloc);
+}
+
+template<typename ObjectID, typename Atom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
 void GPUPagedCache<ObjectID, Atom, Policy>::PushBackToObject(const ObjectID& obj, const Atom& data)
 {
 	PROFILE_FUNCTION();
