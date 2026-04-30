@@ -11,6 +11,7 @@ VoxelMesher<ChunkType>::VoxelMesher()
 	PROFILE_FUNCTION();
 	LOG_INFO(EngineSystem::VOXEL_MESHER, "Initializing Greedy Mesher");
 	std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
+	m_ChunkMesh.reserve(CS_2 * 6);
 }
 
 template<typename ChunkType>
@@ -91,7 +92,6 @@ std::vector<VoxelQuad> VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& c
 {
 	PROFILE_FUNCTION();
 	ChunkData<ChunkType> chunks;
-	std::vector<VoxelQuad> chunkMesh;
 	{
 		PROFILE_SCOPE("Init");
 
@@ -103,7 +103,7 @@ std::vector<VoxelQuad> VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& c
 			chunkContainer.GetUID());
 
 		std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
-
+		m_ChunkMesh.clear();
 		
 		chunks.GatherData(chunkContainer, chunkLocation);
 	}
@@ -148,37 +148,41 @@ std::vector<VoxelQuad> VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& c
 				for (uint8_t layer = 0; layer < CS; layer++)
 				{
 					const int bitsLocation = layer * CS;
+					VoxelColumnData* layerPtr = &axisFaceMask[bitsLocation];
 					for (uint8_t row = 0; row < CS; row++)
 					{
-						if (axisFaceMask[row + bitsLocation] == 0) continue;
+						VoxelColumnData rowMask = layerPtr[row];
+						if (rowMask == 0) continue;
 						uint8_t y = 0;
 
 						while (y < CS)
 						{
-							y += GetTrailingZeros(axisFaceMask[row + bitsLocation] >> y);
+							y += GetTrailingZeros(rowMask >> y);
 
 							if (y >= CS) break;
 
-							uint8_t h = GetTrailingOnes(axisFaceMask[row + bitsLocation] >> y);
+							uint8_t h = GetTrailingOnes(rowMask >> y);
 
 							VoxelColumnData hMask = (h >= CS) ? ~VoxelColumnData(0) : ((VoxelColumnData(1) << h) - 1);
 							VoxelColumnData mask = hMask << y;
 
 							uint8_t w = 1;
 
-							while (row + w < CS) {
+							while (row + w < CS)
+							{
 								// fetch bits spanning height, in the next row
-								VoxelColumnData nextRowH = (axisFaceMask[row + w + bitsLocation] >> y) & hMask;
-								if (nextRowH != hMask) {
-									break; // can no longer expand horizontally
-								}
+								VoxelColumnData* nextRowPtr = &layerPtr[row + w];
 
-								axisFaceMask[row + w + bitsLocation] &= ~mask;
+								if (((*nextRowPtr >> y) & hMask) != hMask)
+									break; // can no longer expand horizontally
+
+								*nextRowPtr &= ~mask;
 								w++;
 							}
 
 							QuadMeshData quad;
-							switch (axis) {
+							switch (axis) 
+							{
 							case 0:
 							case 1:
 								quad = _CompressQuadData(row, y, layer, w, h, axis);
@@ -201,7 +205,7 @@ std::vector<VoxelQuad> VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& c
 								, axis
 								, type)
 
-							chunkMesh.push_back({ quad, type });
+							m_ChunkMesh.push_back({ quad, type });
 
 
 							y += h;
@@ -213,7 +217,7 @@ std::vector<VoxelQuad> VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& c
 		}
 	}
 
-	return chunkMesh;
+	return m_ChunkMesh;
 }
 
 template<typename ChunkType>
