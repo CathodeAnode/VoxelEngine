@@ -26,17 +26,19 @@ public:
 	Scene& operator=(const Scene&) = delete;
 
 	void Init(unsigned int renderDistance, const glm::vec3& startingCameraPos);
-	void Update(const glm::vec3& cameraPos);
+	void Update(const glm::vec3& cameraPos, int chunkMeshingTuning);
 	void Render(const Camera& viewCamera, const Camera& cullCamera);
 
 private:
     inline void _UploadLoadedTerrain(const glm::vec3& cameraPos);
+	inline void _MeshChunks();
 
 private:
 	ChunkManager<ChunkType>& m_World;
 	VoxelRenderer<ChunkType>& m_Renderer;
 
 	unsigned int m_RenderDist = 0;
+	int m_MeshChunkPerFrame = 16;
 
 };
 

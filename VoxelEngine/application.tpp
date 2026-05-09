@@ -228,7 +228,7 @@ void Application<ChunkT>::Update()
     {
         camera->Update();
     }
-    m_Scene.Update(mainCamera.pos);
+    m_Scene.Update(mainCamera.pos, 0);
 
     m_AimedRaycastHit = VoxelRayCast<ChunkT>::cast(Ray(mainCamera.pos, mainCamera.front, 10), m_World, m_VoxelAimedAt);
 }

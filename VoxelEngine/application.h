@@ -40,9 +40,10 @@ private:
 
 private:
     // Timing
-    double m_LastFrameTime = 0.0;
-    double m_DeltaTime = 0.0;
+    float m_LastFrameTime = 0.0;
+    float m_DeltaTime = 0.0;
     float  m_FPS = 0.0f;
+    int    m_FPSLimit = 60.0f;
 
     // FPS display helpers
     int   m_CountFPS = 0;
