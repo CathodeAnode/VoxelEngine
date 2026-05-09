@@ -203,7 +203,7 @@ std::vector<VoxelQuad> VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& c
 								, w, h
 								, row, y, layer
 								, axis
-								, type)
+								, type);
 
 							m_ChunkMesh.push_back({ quad, type });
 
