@@ -100,7 +100,11 @@ template<typename ObjectID, typename Atom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
 void GPUPagedCache<ObjectID, Atom, Policy>::AllocateObject(const ObjectID& obj, const Atom* data, size_t count)
 {
-	if (count == 0) return;
+	if (count == 0)
+	{
+		AllocatePages(obj, 1);
+		return;
+	}
 
 	const size_t pageSize = m_PagedBuffer.GetPageSize();
 	const unsigned int pagesNeeded = (count + pageSize - 1) / pageSize;
