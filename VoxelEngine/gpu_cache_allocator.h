@@ -18,6 +18,7 @@ template<typename ObjectID, typename Atom, template<typename> typename Policy>
 class GPUPagedCache
 {
 public:
+    struct ObjectAllocation;
     // TODO pass max objects to constructor
     GPUPagedCache(bool cpuUpdates = true);
     ~GPUPagedCache();
@@ -25,7 +26,7 @@ public:
     bool Create(GLenum target, size_t pageSize, uint32_t pageCount) noexcept;
     void Destroy() noexcept;
 
-    void AllocatePages(const ObjectID& obj, uint32_t pageCount);
+    ObjectAllocation AllocatePages(const ObjectID& obj, uint32_t pageCount);
     void AllocateObject(const ObjectID& obj, const Atom* data, size_t count);
     void PushBackToObject(const ObjectID& obj, const Atom& data);
     //TODO: make emplace back function for Atom&& (r-value)
@@ -90,7 +91,7 @@ private:
     void _AppendPages(ObjectAllocation& alloc, const std::vector<uint32_t>& pages);
     std::unordered_set<uint32_t> _CollectPages(const ObjectAllocation& alloc);
 
-    [[nodiscard]] bool _TryReservePages(const ObjectID& obj, uint32_t pageCount);
+    [[nodiscard]] bool _TryReservePages(const ObjectID& obj, uint32_t pageCount, ObjectAllocation& outAlloc);
     [[nodiscard]] bool _EvictAndTakePages(const ObjectID& obj, ObjectAllocation& targetAlloc, uint32_t requiredPages);
     SplitChain _SplitVictimChain(ObjectAllocation& victim, uint32_t pagesToTake);
     void _AttachPages(const ObjectID& obj, ObjectAllocation& target, uint32_t start, uint32_t end);
