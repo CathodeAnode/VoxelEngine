@@ -72,13 +72,11 @@ void Scene<ChunkType>::_MeshChunks()
 {
 	std::span<const glm::ivec4> uncachedChunkCoords = m_Renderer.GetGPURequestedChunks(); // get frustum culling results from preivous frame (frame n-1)
 
-	if (uncachedChunkCoords.empty()) return;
 
 	//TODO: multi-thread (thread-pool)
-	//TODO: schdule n chunks to be uploaded per frame rather than the entire request buffer per frame
-	for (int i = 0; i < m_MeshChunkPerFrame; ++i)
+	for (int i = 0; i < uncachedChunkCoords.size() && i < m_MeshChunkPerFrame; ++i)
 	{
-		m_Renderer.Upload(m_World, uncachedChunkCoords[i]);
+		m_Renderer.Upload(m_World, glm::ivec3(uncachedChunkCoords[i]));
 	}
 }
 

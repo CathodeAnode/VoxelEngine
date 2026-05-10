@@ -189,6 +189,11 @@ void main()
 {
     //TODO: use shared mem count to write results in batches
 
+    ivec3 dim = ivec3(u_RenderDistance * 2 + 1);
+
+    if (any(greaterThanEqual(ivec3(gl_GlobalInvocationID), dim)))
+        return; // skip out-of-bounds threads
+
     ivec3 offset = ivec3(gl_GlobalInvocationID) - ivec3(u_RenderDistance);
     ivec3 chunkCoord = u_CameraChunkPos + offset;
 
