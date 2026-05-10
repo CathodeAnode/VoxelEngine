@@ -12,7 +12,9 @@ GPUHashMap<K, V, Mode>::GPUHashMap()
 template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
 bool GPUHashMap<K, V, Mode>::Create(size_t cap)
 {
-    if (!m_Table.Create(GL_SHADER_STORAGE_BUFFER, cap, BufferAccess::ReadWrite))
+    size_t actualCap = NextPowerOfTwo(cap);
+
+    if (!m_Table.Create(GL_SHADER_STORAGE_BUFFER, actualCap, BufferAccess::ReadWrite))
         return false;
 
     Entry* table = m_Table.GetContents();
