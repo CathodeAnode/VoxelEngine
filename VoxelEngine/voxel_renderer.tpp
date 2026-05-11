@@ -180,7 +180,7 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     *reinterpret_cast<uint32_t*>(indirectBase) = 0;
 
     GLsync clearCounts = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-    glWaitSync(clearCounts, 0, 1000000000);
+    glWaitSync(clearCounts, 0, GL_TIMEOUT_IGNORED);
     glDeleteSync(clearCounts);
 
     const GLint indirectCmdsLocation = 0;
