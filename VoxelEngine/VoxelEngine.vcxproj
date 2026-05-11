@@ -175,8 +175,8 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="chunk.tpp" />
-    <None Include="gizmos.frag" />
-    <None Include="gizmos.vert" />
+    <None Include="gizmos.frag.glsl" />
+    <None Include="gizmos.vert.glsl" />
     <None Include="scene.tpp" />
     <None Include="terrian_culling_shader.comp.glsl" />
     <None Include="voxel_mesher.tpp" />

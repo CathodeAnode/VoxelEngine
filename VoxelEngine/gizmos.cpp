@@ -25,8 +25,8 @@ void Gizmos::Init(uint32_t maxInstances)
     PROFILE_FUNCTION();
 
     s_Shader = Shader({
-    { "gizmos.vert", GL_VERTEX_SHADER },
-    { "gizmos.frag", GL_FRAGMENT_SHADER }
+    { "gizmos.vert.glsl", GL_VERTEX_SHADER },
+    { "gizmos.frag.glsl", GL_FRAGMENT_SHADER }
         });
 
     s_InstanceBuffer.Create(GL_ARRAY_BUFFER, maxInstances);

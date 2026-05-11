@@ -119,10 +119,10 @@
     <None Include="terrian_culling_shader.comp.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="gizmos.vert">
+    <None Include="gizmos.vert.glsl">
       <Filter>Shaders</Filter>
     </None>
-    <None Include="gizmos.frag">
+    <None Include="gizmos.frag.glsl">
       <Filter>Shaders</Filter>
     </None>
   </ItemGroup>
