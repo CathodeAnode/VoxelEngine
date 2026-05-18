@@ -56,6 +56,8 @@ layout(local_size_x = 8, local_size_y = 4, local_size_z = 8) in; // 256 threads 
 layout(std430, binding = 0) buffer IndirectDrawBuffer
 {
     uint indirectCmdsCount;
+    uint pad_indirect[3];  
+
     DrawArraysIndirectCommand indirectCmds[];
 };
 
@@ -67,6 +69,8 @@ layout(std430, binding = 1) buffer chunkPosBuffer
 layout(std430, binding = 2) buffer UncachedChunks
 {
     uint  count;
+    uint pad_uncached[3];  
+
     ivec4 results[];
 };
 
@@ -189,12 +193,13 @@ void main()
 {
     //TODO: use shared mem count to write results in batches
 
-    ivec3 dim = ivec3(u_RenderDistance * 2 + 1);
+    ivec3 dim = ivec3(u_RenderDistance);
 
-    if (any(greaterThanEqual(ivec3(gl_GlobalInvocationID), dim)))
+    // outside render distance
+    ivec3 offset = ivec3(gl_GlobalInvocationID) - dim;
+    if (any(greaterThan(ivec3(offset), dim)))
         return; // skip out-of-bounds threads
 
-    ivec3 offset = ivec3(gl_GlobalInvocationID) - ivec3(u_RenderDistance);
     ivec3 chunkCoord = u_CameraChunkPos + offset;
 
     // Build AABB
