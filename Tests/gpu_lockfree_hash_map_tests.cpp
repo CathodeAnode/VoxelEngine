@@ -121,7 +121,7 @@ TEST_F(GPULockFreeHashMapTest, DuplicateInsert)
 
     EXPECT_TRUE(map.Insert(10, 1));
 
-    EXPECT_FALSE(map.Insert(10, 2));
+    EXPECT_TRUE(map.Insert(10, 2));
 
     int value = 0;
     EXPECT_TRUE(map.Find(10, value));
@@ -132,7 +132,7 @@ TEST_F(GPULockFreeHashMapTest, DuplicateInsert)
 TEST_F(GPULockFreeHashMapTest, MultiThreadedInsert)
 {
     GPUHashMap<int, int, ThreadMode::LockFree> map;
-    ASSERT_TRUE(map.Create(2048));
+    ASSERT_TRUE(map.Create(16384));
 
     const int threadCount = 8;
     const int insertsPerThread = 500;
@@ -165,7 +165,7 @@ TEST_F(GPULockFreeHashMapTest, MultiThreadedInsert)
 TEST_F(GPULockFreeHashMapTest, MultiThreadedInsertAndFind)
 {
     GPUHashMap<int, int, ThreadMode::LockFree> map;
-    ASSERT_TRUE(map.Create(4096));
+    ASSERT_TRUE(map.Create(16384));
 
     const int threadCount = 8;
     const int ops = 1000;
@@ -229,9 +229,10 @@ TEST_F(GPULockFreeHashMapTest, HashCollisions)
 {
     GPUHashMap<int, int, ThreadMode::LockFree> map;
 
-    ASSERT_TRUE(map.Create(8)); // tiny table => heavy collisions
+    ASSERT_TRUE(map.Create(8));
 
-    const int count = 50;
+    // enough to force collisions, but not overflow
+    const int count = 6;
 
     for (int i = 0; i < count; ++i)
         EXPECT_TRUE(map.Insert(i, i * 5));

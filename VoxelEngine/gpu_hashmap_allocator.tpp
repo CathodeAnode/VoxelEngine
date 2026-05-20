@@ -37,6 +37,8 @@ template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
 bool GPUHashMap<K, V, Mode>::Insert(const K& key, const V& value)
 {
     Entry* table = m_Table.GetContents();
+    assert(table != nullptr);
+
     size_t cap = m_Table.GetSize();
 
     uint32_t start = _Hash(key);
@@ -79,6 +81,8 @@ template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
 bool GPUHashMap<K, V, Mode>::Find(const K& key, V& out) const
 {
     const Entry* table = m_Table.GetContents();
+    assert(table != nullptr);
+
     size_t cap = m_Table.GetSize();
 
     uint32_t start = _Hash(key);
@@ -115,6 +119,8 @@ template<LockFreeKey K, LockFreeValue V, ThreadMode Mode>
 bool GPUHashMap<K, V, Mode>::Erase(const K& key)
 {
     Entry* table = m_Table.GetContents();
+    assert(table != nullptr);
+
     size_t cap = m_Table.GetSize();
 
     uint32_t start = _Hash(key);
@@ -155,6 +161,8 @@ template<typename... Args>
 bool GPUHashMap<K, V, Mode>::Emplace(const K& key, Args&&... args)
 {
     Entry* table = m_Table.GetContents();
+    assert(table != nullptr);
+
     size_t cap = m_Table.GetSize();
 
     uint32_t start = _Hash(key);
