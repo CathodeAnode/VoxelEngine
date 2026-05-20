@@ -608,7 +608,11 @@ void GPUPagedBuffer<Atom, Mode>::Destroy() noexcept
 		m_RawBuffer.GetName());
 
 	m_PageSize = 0;
-	delete[] m_FreePages;
+	if (m_FreePages)
+	{
+		delete[] m_FreePages;
+		m_FreePages = nullptr;
+	}
 
 	m_RawBuffer.Destroy();
 }
