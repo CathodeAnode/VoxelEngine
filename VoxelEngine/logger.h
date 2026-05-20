@@ -52,7 +52,7 @@ private:
 
 };
 
-#if 1
+#if VE_LOGGING_ENABLED
 #define LOG_TRACE(engineSys, ...)		LogManager::GetInstance()->GetLogger(engineSys)->trace(__VA_ARGS__);
 #define LOG_DEBUG(engineSys, ...)		LogManager::GetInstance()->GetLogger(engineSys)->debug(__VA_ARGS__);
 #define LOG_INFO(engineSys, ...)		LogManager::GetInstance()->GetLogger(engineSys)->info(__VA_ARGS__);
