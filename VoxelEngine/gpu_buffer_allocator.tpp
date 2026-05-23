@@ -50,7 +50,7 @@ bool GPUPersistentlyMappedBuffer<Atom, LockManager>::Create(GLenum _target, GLui
 		LOG_WARN(EngineSystem::GPU_BUFFER,
 			"[GPUPersistentlyMappedBuffer|{}] Create called on already-initialized buffer, destroying old buffer",
 			m_Name);
-		Destroy();
+		return false;
 	}
 
 	m_Target = _target;
@@ -521,7 +521,7 @@ template<GPUSafeStruct Atom, ThreadMode Mode>
 inline Atom* GPUPagedBuffer<Atom, Mode>::operator[](Page pageNum)
 {
 	assert(pageNum < GetPageCount());
-	assert(_IsPageReserved(pageNum));
+	assert(IsPageReserved(pageNum));
 	return m_RawBuffer.GetContents() + pageNum * m_PageSize;
 }
 
@@ -529,7 +529,7 @@ template<GPUSafeStruct Atom, ThreadMode Mode>
 const Atom* GPUPagedBuffer<Atom, Mode>::operator[](Page pageNum) const
 {
 	assert(pageNum < GetPageCount());
-	assert(_IsPageReserved(pageNum));
+	assert(IsPageReserved(pageNum));
 	return m_RawBuffer.GetContents() + pageNum * m_PageSize;
 }
 
@@ -738,48 +738,44 @@ bool GPUPagedBuffer<Atom, Mode>::ReserveFirstAvaliblePages(unsigned int n, std::
 	}
 	else if constexpr (Mode == ThreadMode::LockFree)
 	{
-		for (size_t i = 0; i < freePagesArrSize && n > 0; i++)
+		for (size_t i = 0; i < freePagesArrSize && n > 0; ++i)
 		{
 			auto& word = m_FreePages[i];
 
-			while (true)
+			while (n > 0)
 			{
 				uint64_t old = word.load(std::memory_order_relaxed);
 
 				if (old == 0)
 					break;
 
-				uint64_t freeMask = old;
+				// Find first free page (bit == 1)
+				unsigned long bit = GetTrailingZeros(old);
 
-				unsigned long tz = GetTrailingZeros(freeMask);
-				freeMask >>= tz;
+				uint64_t mask = 1ULL << bit;
 
-				unsigned long ones = GetTrailingOnes(freeMask);
-				unsigned long consume = std::min((unsigned long)n, ones);
-
-				uint64_t mask = ((1ULL << consume) - 1ULL) << tz;
+				// Somebody already took it
+				if ((old & mask) == 0)
+					continue;
 
 				uint64_t desired = old & ~mask;
 
 				if (word.compare_exchange_weak(
 					old,
 					desired,
-					std::memory_order_acquire,
+					std::memory_order_acq_rel,
 					std::memory_order_relaxed))
 				{
-					for (unsigned long j = 0; j < consume; j++)
-					{
-						outPages.push_back(i * WORD_BITS + tz + j);
-					}
+					outPages.push_back(
+						static_cast<uint32_t>(i * WORD_BITS + bit));
 
-					n -= consume;
-					break;
+					--n;
 				}
 			}
 		}
 	}
 
-	return  n == 0;
+	return n == 0;
 }
 
 template<GPUSafeStruct Atom, ThreadMode Mode>
@@ -789,7 +785,7 @@ void GPUPagedBuffer<Atom, Mode>::BindBuffer()
 }
 
 template<GPUSafeStruct Atom, ThreadMode Mode>
-bool GPUPagedBuffer<Atom, Mode>::_IsPageReserved(Page pageNum) const noexcept
+bool GPUPagedBuffer<Atom, Mode>::IsPageReserved(Page pageNum) const noexcept
 {
 	const size_t byteIdx = pageNum / WORD_BITS;
 	const size_t bitIdx = pageNum % WORD_BITS;

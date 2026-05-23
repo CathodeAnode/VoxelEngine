@@ -286,6 +286,8 @@ public:
     size_t GetPageCount() const noexcept { return m_RawBuffer.GetSize() / m_PageSize; }
     inline GLuint GetName() const { return m_RawBuffer.GetName(); }
 
+    bool IsPageReserved(Page pageNum) const noexcept;
+
 private:
     using WordType = std::conditional_t<Mode == ThreadMode::LockFree, std::atomic<uint64_t>, uint64_t>;
 
@@ -296,9 +298,6 @@ private:
     size_t m_PageSize;
 
     inline static constexpr size_t WORD_BITS = 64;
-
-private:
-    bool _IsPageReserved(Page pageNum) const noexcept;
 };
 
 #include "gpu_buffer_allocator.tpp"
