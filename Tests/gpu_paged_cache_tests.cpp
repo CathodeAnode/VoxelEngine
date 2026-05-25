@@ -515,23 +515,243 @@ TEST_F(GPUPagedCacheTests, AllocateObjectAfterClearObject)
 // - PushBackToObject fragmented page growth
 
 
-// ClearObject
-// - ClearObject basic
-// - ClearObject empty object
-// - ClearObject non-existing object
+TEST_F(GPUPagedCacheTests, ClearObjectBasic)
+{
+    Cache cache;
 
-// MoveObject
-// - MoveObject basic
-// - MoveObject non-existing source
-// - MoveObject onto existing destination
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 5, 2));
 
+    const int data[] = { 1, 2, 3, 4, 5 };
 
-// Swap
-// - Swap single-page objects
-// - Swap multi-page objects
-// - Swap non-existing object
-// - Swap both non-existing objects
-// - Swap object with itself
+    cache.AllocateObject(1, data, 5);
+
+    ASSERT_TRUE(cache.Has(1));
+
+    cache.ClearObject(1);
+
+    // Object should still exist after clear.
+    ASSERT_TRUE(cache.Has(1));
+}
+
+TEST_F(GPUPagedCacheTests, ClearObjectEmptyObject)
+{
+    Cache cache;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 5, 2));
+
+    const int data[] = { 1, 2, 3 };
+
+    cache.AllocateObject(1, data, 3);
+
+    cache.ClearObject(1);
+
+    ASSERT_TRUE(cache.Has(1));
+
+    // Clearing an already empty object should be safe.
+    cache.ClearObject(1);
+
+    ASSERT_TRUE(cache.Has(1));
+}
+
+TEST_F(GPUPagedCacheTests, ClearObjectNonExistingObject)
+{
+    Cache cache;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 5, 2));
+
+    // Should not throw/crash.
+    cache.ClearObject(999);
+
+    ASSERT_FALSE(cache.Has(999));
+}
+
+TEST_F(GPUPagedCacheTests, MoveObjectBasic)
+{
+    Cache cache;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 5, 2));
+
+    std::vector<int> data = { 1, 2, 3, 4, 5 };
+
+    cache.AllocateObject(1, data.data(), data.size());
+
+    ASSERT_TRUE(cache.Has(1));
+    ASSERT_FALSE(cache.Has(2));
+
+    cache.MoveObject(1, 2);
+
+    ASSERT_FALSE(cache.Has(1));
+    ASSERT_TRUE(cache.Has(2));
+
+    auto movedData = Inspector::ReadObjectData(cache, 2);
+
+    ASSERT_EQ(movedData, data);
+}
+
+TEST_F(GPUPagedCacheTests, MoveObjectNonExistingSource)
+{
+    Cache cache;
+
+    const size_t pageCount = 2;
+    const size_t pageSize = 5;
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, pageSize, pageCount));
+
+    cache.MoveObject(123, 456);
+
+    ASSERT_FALSE(cache.Has(123));
+    ASSERT_FALSE(cache.Has(456));
+
+    auto freePages = Inspector::GetFreePagesCount(cache);
+
+    ASSERT_EQ(pageCount, freePages);
+}
+
+TEST_F(GPUPagedCacheTests, MoveObjectOntoExistingDestination)
+{
+    Cache cache;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 5, 3));
+
+    std::vector<int> srcData = { 1, 2, 3, 4, 5 };
+    std::vector<int> dstData = { 9, 8, 7 };
+
+    cache.AllocateObject(1, srcData.data(), srcData.size());
+    cache.AllocateObject(2, dstData.data(), dstData.size());
+
+    ASSERT_TRUE(cache.Has(1));
+    ASSERT_TRUE(cache.Has(2));
+
+    cache.MoveObject(1, 2);
+
+    // Source should no longer exist.
+    ASSERT_FALSE(cache.Has(1));
+
+    // Destination should still exist and now own moved allocation.
+    ASSERT_TRUE(cache.Has(2));
+
+    auto movedData = Inspector::ReadObjectData(cache, 2);
+
+    ASSERT_EQ(movedData, srcData);
+}
+
+TEST_F(GPUPagedCacheTests, SwapSinglePageObjects)
+{
+    Cache cache;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 5, 2));
+
+    std::vector<int> data1 = { 1, 2, 3, 4, 5 };
+    std::vector<int> data2 = { 9, 8, 7 };
+
+    cache.AllocateObject(1, data1.data(), data1.size());
+    cache.AllocateObject(2, data2.data(), data2.size());
+
+    ASSERT_TRUE(cache.Has(1));
+    ASSERT_TRUE(cache.Has(2));
+
+    cache.Swap(1, 2);
+
+    auto swapped1 = Inspector::ReadObjectData(cache, 1);
+    auto swapped2 = Inspector::ReadObjectData(cache, 2);
+
+    ASSERT_EQ(swapped1, data2);
+    ASSERT_EQ(swapped2, data1);
+}
+
+TEST_F(GPUPagedCacheTests, SwapMultiPageObjects)
+{
+    Cache cache;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 5, 6));
+
+    std::vector<int> data1(10, 1); // 2 pages
+    std::vector<int> data2(15, 2); // 3 pages
+
+    cache.AllocateObject(1, data1.data(), data1.size());
+    cache.AllocateObject(2, data2.data(), data2.size());
+
+    ASSERT_TRUE(cache.Has(1));
+    ASSERT_TRUE(cache.Has(2));
+
+    cache.Swap(1, 2);
+
+    auto swapped1 = Inspector::ReadObjectData(cache, 1);
+    auto swapped2 = Inspector::ReadObjectData(cache, 2);
+
+    ASSERT_EQ(swapped1, data2);
+    ASSERT_EQ(swapped2, data1);
+}
+
+TEST_F(GPUPagedCacheTests, SwapNonExistingObject)
+{
+    Cache cache;
+
+    const size_t pageCount = 3;
+    const size_t pageSize = 5;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, pageSize, pageCount));
+
+    std::vector<int> data = { 1, 2, 3, 4, 5 };
+
+    cache.AllocateObject(1, data.data(), data.size());
+
+    ASSERT_TRUE(cache.Has(1));
+    ASSERT_FALSE(cache.Has(999));
+
+    cache.Swap(1, 999);
+
+    // Existing object should remain unchanged.
+    ASSERT_TRUE(cache.Has(1));
+    ASSERT_FALSE(cache.Has(999));
+
+    auto objectData = Inspector::ReadObjectData(cache, 1);
+
+    ASSERT_EQ(objectData, data);
+
+    auto freePages = Inspector::GetFreePagesCount(cache);
+
+    ASSERT_EQ(freePages, pageCount - 1);
+}
+
+TEST_F(GPUPagedCacheTests, SwapBothNonExistingObjects)
+{
+    Cache cache;
+
+    const size_t pageCount = 2;
+    const size_t pageSize = 5;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, pageSize, pageCount));
+
+    cache.Swap(111, 222);
+
+    ASSERT_FALSE(cache.Has(111));
+    ASSERT_FALSE(cache.Has(222));
+
+    auto freePages = Inspector::GetFreePagesCount(cache);
+
+    ASSERT_EQ(freePages, pageCount);
+}
+
+TEST_F(GPUPagedCacheTests, SwapObjectWithItself)
+{
+    Cache cache;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 5, 2));
+
+    std::vector<int> data = { 1, 2, 3, 4, 5 };
+
+    cache.AllocateObject(1, data.data(), data.size());
+
+    ASSERT_TRUE(cache.Has(1));
+
+    cache.Swap(1, 1);
+
+    ASSERT_TRUE(cache.Has(1));
+
+    auto objectData = Inspector::ReadObjectData(cache, 1);
+
+    ASSERT_EQ(objectData, data);
+}
 
 
 // GetObjectBufferRanges
@@ -541,9 +761,6 @@ TEST_F(GPUPagedCacheTests, AllocateObjectAfterClearObject)
 // - GetObjectBufferRanges consecutive pages
 // - GetObjectBufferRanges fragmented pages
 // - GetObjectBufferRanges mixed contiguous and fragmented pages
-
-
-// Eviction Clock Policy Behavior
 
 
 // Stress / Randomized Tests
