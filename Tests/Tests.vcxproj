@@ -44,6 +44,7 @@
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
@@ -51,6 +52,7 @@
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <EnableASAN>false</EnableASAN>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -146,6 +148,7 @@
     <ClCompile Include="..\VoxelEngine\profiler.cpp" />
     <ClCompile Include="..\VoxelEngine\screen.cpp" />
     <ClCompile Include="..\VoxelEngine\shader.cpp" />
+    <ClCompile Include="gpu_paged_cache_tests.cpp" />
     <ClCompile Include="gpu_lockfree_hash_map_tests.cpp" />
     <ClCompile Include="test_main.cpp" />
   </ItemGroup>
@@ -153,6 +156,9 @@
     <ProjectReference Include="..\VoxelEngine\VoxelEngine.vcxproj">
       <Project>{fa83f63e-3e3e-4db3-b340-daa795a0d07b}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Helpers\gpu_cache_inspector.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
