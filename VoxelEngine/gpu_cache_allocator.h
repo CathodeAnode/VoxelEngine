@@ -13,15 +13,21 @@
 
 
 // TODO: pass thread mode & gpu-visiblity in template params
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-    requires EvictionPolicy<Policy<ObjectID>, ObjectID>
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+    requires EvictionPolicy<Policy<TObjectID>, TObjectID>
 class GPUPagedCache
 {
+public:
+    using ObjectID = TObjectID;
+    using Atom = TAtom;
+
 public:
     struct ObjectAllocation;
     // TODO pass max objects to constructor
     GPUPagedCache(bool cpuUpdates = true);
     ~GPUPagedCache();
+    GPUPagedCache(const GPUPagedCache&) = delete;
+    GPUPagedCache& operator=(const GPUPagedCache&) = delete;
 
     bool Create(GLenum target, size_t pageSize, uint32_t pageCount) noexcept;
     void Destroy() noexcept;
@@ -45,6 +51,9 @@ public:
     inline GLuint GetName() const { return m_PagedBuffer.GetName(); }
 
 private:
+    template<typename Cache>
+    friend class GPUPagedCacheInspector; // for validation, debugging, and unit testing
+
     struct ObjectAllocation
     {
         uint32_t totalElementCount = 0;
@@ -89,7 +98,7 @@ private:
     void _FreeChain(uint32_t startPage);
     void _BuildPageChain(ObjectAllocation& alloc, const std::vector<uint32_t>& pages);
     void _AppendPages(ObjectAllocation& alloc, const std::vector<uint32_t>& pages);
-    std::unordered_set<uint32_t> _CollectPages(const ObjectAllocation& alloc);
+    std::unordered_set<uint32_t> _CollectPages(const ObjectAllocation& alloc) const;
 
     [[nodiscard]] bool _TryReservePages(const ObjectID& obj, uint32_t pageCount, ObjectAllocation& outAlloc);
     [[nodiscard]] bool _EvictAndTakePages(const ObjectID& obj, ObjectAllocation& targetAlloc, uint32_t requiredPages);

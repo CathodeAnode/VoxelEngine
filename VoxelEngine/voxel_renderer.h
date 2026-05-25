@@ -57,7 +57,7 @@ private:
 	static constexpr int k_TripleBuffer = 3;
 	GLsizei m_MaxIndirectCommands;
 
-	GPUPagedCache<VoxelObjectID, VoxelQuad, ClockPolicy> m_DataCache;
+	GPUPagedCache<VoxelObjectID, VoxelQuad, FIFOPolicy> m_DataCache;
 	GPUOrphanBuffer<glm::vec4, k_TripleBuffer> m_PositionSSBO;
 	GPUOrphanBuffer<std::byte, k_TripleBuffer> m_IndirectCommandBuffer;
 	GPUOrphanBuffer<std::byte, k_TripleBuffer> m_UncachedChunks; // TODO figure out sizing

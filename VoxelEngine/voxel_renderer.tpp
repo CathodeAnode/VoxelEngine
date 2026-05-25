@@ -202,7 +202,7 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     unsigned int groupZ = (dimension + localSize.z - 1) / localSize.z;
 
     m_FrustumCullingShader.Dispatch(groupX, groupY, groupZ);
-    m_FrustumCullingShader.Wait(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT); // TODO: TEMP REMOVE LATER
+    //m_FrustumCullingShader.Wait(GL_SHADER_STORAGE_BARRIER_BIT | GL_COMMAND_BARRIER_BIT); // TODO: TEMP REMOVE LATER
 
     LOG_DEBUG(EngineSystem::RENDERER,
         "[Frame: {}] VoxelRenderer Dispatched Frustum Cull Pass",

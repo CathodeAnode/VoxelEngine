@@ -3,9 +3,9 @@
 
 #include "gpu_cache_allocator.h"
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-GPUPagedCache<ObjectID, Atom, Policy>::GPUPagedCache(bool cpuUpdates)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+GPUPagedCache<TObjectID, TAtom, Policy>::GPUPagedCache(bool cpuUpdates)
 	: m_PagedBuffer(cpuUpdates)
 	, m_PageNodes(cpuUpdates)
 	, m_Policy(10000)
@@ -13,20 +13,21 @@ GPUPagedCache<ObjectID, Atom, Policy>::GPUPagedCache(bool cpuUpdates)
 	PROFILE_FUNCTION();
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-GPUPagedCache<ObjectID, Atom, Policy>::~GPUPagedCache()
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+GPUPagedCache<TObjectID, TAtom, Policy>::~GPUPagedCache()
 {
 	Destroy();
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-bool GPUPagedCache<ObjectID, Atom, Policy>::Create(GLenum target, size_t pageSize, uint32_t pageCount) noexcept
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+bool GPUPagedCache<TObjectID, TAtom, Policy>::Create(GLenum target, size_t pageSize, uint32_t pageCount) noexcept
 {
 	PROFILE_FUNCTION();
 
-	assert(pageCount <= PageNode::NULL_PAGE - 1);
+	if (pageCount > PageNode::NULL_PAGE - 1 || pageSize <= 0 || pageCount <= 0) 
+		return false;
 
 	GLint maxSizeBytes = 0;
 	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxSizeBytes);
@@ -46,9 +47,9 @@ bool GPUPagedCache<ObjectID, Atom, Policy>::Create(GLenum target, size_t pageSiz
 	constexpr float MAX_LOAD = 0.5f;
 
 	bool result = m_PagedBuffer.Create(target, pageSize, pageCount);
-	result |= m_PageNodes.Create(GL_SHADER_STORAGE_BUFFER, pageCount, BufferAccess::ReadWrite); // GL_UNIFORM_BUFFER
-	result |= m_ObjectPages.Create(pageCount / MAX_LOAD);
-	result |= m_Policy.Create();
+	result &= m_PageNodes.Create(GL_SHADER_STORAGE_BUFFER, pageCount, BufferAccess::ReadWrite); // GL_UNIFORM_BUFFER
+	result &= m_ObjectPages.Create(pageCount / MAX_LOAD);
+	result &= m_Policy.Create();
 
 	PageNode initValue{ .next = PageNode::NULL_PAGE };
 	std::fill_n(m_PageNodes.GetContents(), pageCount, initValue);
@@ -58,14 +59,14 @@ bool GPUPagedCache<ObjectID, Atom, Policy>::Create(GLenum target, size_t pageSiz
 	LOG_INFO(EngineSystem::GPU_BUFFER,
 		"[GPUPagedCache|{}] reserved {:.2f} Mb of VRAM",
 		m_PagedBuffer.GetName(),
-		((sizeof(Atom) * pageCount * pageSize) / 1000000.0f));
+		((sizeof(TAtom) * pageCount * pageSize) / 1000000.0f));
 
 	return result;
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::Destroy() noexcept
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::Destroy() noexcept
 {
 	PROFILE_FUNCTION();
 
@@ -78,9 +79,9 @@ void GPUPagedCache<ObjectID, Atom, Policy>::Destroy() noexcept
 	m_PageNodes.Destroy();
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-GPUPagedCache<ObjectID, Atom, Policy>::ObjectAllocation GPUPagedCache<ObjectID, Atom, Policy>::AllocatePages(const ObjectID& obj, uint32_t pageCount)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+GPUPagedCache<TObjectID, TAtom, Policy>::ObjectAllocation GPUPagedCache<TObjectID, TAtom, Policy>::AllocatePages(const TObjectID& obj, uint32_t pageCount)
 {
 	PROFILE_FUNCTION();
 	
@@ -100,9 +101,9 @@ GPUPagedCache<ObjectID, Atom, Policy>::ObjectAllocation GPUPagedCache<ObjectID, 
 	return targetAlloc;
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::AllocateObject(const ObjectID& obj, const Atom* data, size_t count)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::AllocateObject(const TObjectID& obj, const TAtom* data, size_t count)
 {
 	if (count == 0)
 	{
@@ -124,7 +125,7 @@ void GPUPagedCache<ObjectID, Atom, Policy>::AllocateObject(const ObjectID& obj, 
 		uint32_t next = m_PageNodes[current].next;
 
 		size_t copySize = std::min(remaining, pageSize);
-		memcpy(&m_PagedBuffer[current][0], &data[index], copySize * sizeof(Atom)); // copysize needs to be in bytes?
+		memcpy(&m_PagedBuffer[current][0], &data[index], copySize * sizeof(TAtom)); // copysize needs to be in bytes?
 		index += copySize;
 		remaining -= copySize;
 
@@ -136,9 +137,9 @@ void GPUPagedCache<ObjectID, Atom, Policy>::AllocateObject(const ObjectID& obj, 
 	m_ObjectPages.Insert(obj, alloc);
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::PushBackToObject(const ObjectID& obj, const Atom& data)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::PushBackToObject(const TObjectID& obj, const TAtom& data)
 {
 	PROFILE_FUNCTION();
 
@@ -172,9 +173,9 @@ void GPUPagedCache<ObjectID, Atom, Policy>::PushBackToObject(const ObjectID& obj
 	m_ObjectPages.Insert(obj, objAlloc);
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::MoveObject(const ObjectID& src, const ObjectID& dst)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::MoveObject(const TObjectID& src, const TObjectID& dst)
 {
 	PROFILE_FUNCTION();
 
@@ -204,11 +205,11 @@ void GPUPagedCache<ObjectID, Atom, Policy>::MoveObject(const ObjectID& src, cons
 	m_Policy.OnAccess(dstObj.policyHandle);
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::Swap(const ObjectID& obj1, const ObjectID& obj2)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::Swap(const TObjectID& obj1, const TObjectID& obj2)
 {
-	// NOTE: This swap is not atomic.
+	// NOTE: This swap is not TAtomic.
 	// There is a brief window where one entry is updated before the other,
 	// so concurrent readers may observe a temporary inconsistent state
 
@@ -231,9 +232,9 @@ void GPUPagedCache<ObjectID, Atom, Policy>::Swap(const ObjectID& obj1, const Obj
 	m_Policy.OnAccess(tmp2.policyHandle);
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::DeallocateObject(const ObjectID& obj)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::DeallocateObject(const TObjectID& obj)
 {
 	PROFILE_FUNCTION();
 
@@ -246,9 +247,9 @@ void GPUPagedCache<ObjectID, Atom, Policy>::DeallocateObject(const ObjectID& obj
 	m_ObjectPages.Erase(obj);
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::ClearObject(const ObjectID& obj)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::ClearObject(const TObjectID& obj)
 {
 	PROFILE_FUNCTION();
 
@@ -261,9 +262,9 @@ void GPUPagedCache<ObjectID, Atom, Policy>::ClearObject(const ObjectID& obj)
 	m_Policy.OnAccess(alloc.policyHandle);
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-std::vector<GPUBufferRange> GPUPagedCache<ObjectID, Atom, Policy>::GetObjectBufferRanges(const ObjectID& obj)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+std::vector<GPUBufferRange> GPUPagedCache<TObjectID, TAtom, Policy>::GetObjectBufferRanges(const TObjectID& obj)
 {
 	PROFILE_FUNCTION();
 
@@ -304,25 +305,25 @@ std::vector<GPUBufferRange> GPUPagedCache<ObjectID, Atom, Policy>::GetObjectBuff
 	return result;
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::BindCacheData()
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::BindCacheData()
 {
 	m_PagedBuffer.BindBuffer();
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::BindCacheLookup(GLint hashMapLocation, GLint nodesLocation, GLint policyLocation)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::BindCacheLookup(GLint hashMapLocation, GLint nodesLocation, GLint policyLocation)
 {
 	m_ObjectPages.BindBuffer(hashMapLocation);
 	m_PageNodes.BindBufferBase(nodesLocation);
 	m_Policy.BindBuffers(policyLocation);
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::_FreeObject(const ObjectID& obj)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::_FreeObject(const TObjectID& obj)
 {
 	assert(m_ObjectPages.Contains(obj));
 
@@ -350,9 +351,9 @@ void GPUPagedCache<ObjectID, Atom, Policy>::_FreeObject(const ObjectID& obj)
 	m_ObjectPages.Insert(obj, alloc);
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::_FreeChain(uint32_t startPage)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::_FreeChain(uint32_t startPage)
 {
 	if (startPage == PageNode::NULL_PAGE)
 		return;
@@ -369,9 +370,9 @@ void GPUPagedCache<ObjectID, Atom, Policy>::_FreeChain(uint32_t startPage)
 	}
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::_BuildPageChain(ObjectAllocation& alloc, const std::vector<uint32_t>& pages)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::_BuildPageChain(ObjectAllocation& alloc, const std::vector<uint32_t>& pages)
 {
 	PROFILE_FUNCTION();
 
@@ -386,9 +387,9 @@ void GPUPagedCache<ObjectID, Atom, Policy>::_BuildPageChain(ObjectAllocation& al
 	m_PageNodes[pages.back()].next = PageNode::NULL_PAGE;
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::_AppendPages(ObjectAllocation& alloc, const std::vector<uint32_t>& pages)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::_AppendPages(ObjectAllocation& alloc, const std::vector<uint32_t>& pages)
 {
 	PROFILE_FUNCTION();
 
@@ -403,9 +404,9 @@ void GPUPagedCache<ObjectID, Atom, Policy>::_AppendPages(ObjectAllocation& alloc
 	alloc.endPage = pages.back();
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-std::unordered_set<uint32_t> GPUPagedCache<ObjectID, Atom, Policy>::_CollectPages(const ObjectAllocation& alloc)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+std::unordered_set<uint32_t> GPUPagedCache<TObjectID, TAtom, Policy>::_CollectPages(const ObjectAllocation& alloc) const
 {
 	PROFILE_FUNCTION();
 
@@ -428,9 +429,9 @@ std::unordered_set<uint32_t> GPUPagedCache<ObjectID, Atom, Policy>::_CollectPage
 	return objPages;
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-bool GPUPagedCache<ObjectID, Atom, Policy>::_TryReservePages(const ObjectID& obj, uint32_t pageCount, ObjectAllocation& outAlloc)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+bool GPUPagedCache<TObjectID, TAtom, Policy>::_TryReservePages(const TObjectID& obj, uint32_t pageCount, ObjectAllocation& outAlloc)
 {
 	PROFILE_FUNCTION();
 
@@ -438,8 +439,11 @@ bool GPUPagedCache<ObjectID, Atom, Policy>::_TryReservePages(const ObjectID& obj
 	allocatedPages.reserve(pageCount);
 
 	bool pagesReservedStatus = m_PagedBuffer.ReserveFirstAvaliblePages(pageCount, allocatedPages);
+	bool inCache = m_ObjectPages.Find(obj, outAlloc);
 
-	if (m_ObjectPages.Find(obj, outAlloc))
+	if (allocatedPages.empty()) return false;
+
+	if (inCache)
 	{
 		LOG_DEBUG(EngineSystem::GPU_BUFFER,
 			"[GPUPagedCache|{}] allocating {} pages for existing object {}",
@@ -463,13 +467,13 @@ bool GPUPagedCache<ObjectID, Atom, Policy>::_TryReservePages(const ObjectID& obj
 	return pagesReservedStatus;
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-bool GPUPagedCache<ObjectID, Atom, Policy>::_EvictAndTakePages(const ObjectID& obj, ObjectAllocation& targetAlloc, uint32_t requiredPages)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+bool GPUPagedCache<TObjectID, TAtom, Policy>::_EvictAndTakePages(const TObjectID& obj, ObjectAllocation& targetAlloc, uint32_t requiredPages)
 {
 	PROFILE_FUNCTION();
 
-	ObjectID victimID = m_Policy.SelectVictim();
+	TObjectID victimID = m_Policy.SelectVictim();
 	const unsigned int pageSize = m_PagedBuffer.GetPageSize();
 
 	ObjectAllocation victimAlloc;
@@ -497,12 +501,12 @@ bool GPUPagedCache<ObjectID, Atom, Policy>::_EvictAndTakePages(const ObjectID& o
 	m_Policy.OnRemove(victimAlloc.policyHandle);
 	m_ObjectPages.Erase(victimID);
 
-	return pagesNeeded > victimAlloc.GetPageCount(pageSize);
+	return pagesToTake <= pagesNeeded;
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-GPUPagedCache<ObjectID, Atom, Policy>::SplitChain GPUPagedCache<ObjectID, Atom, Policy>::_SplitVictimChain(ObjectAllocation& victim, uint32_t pagesToTake)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+GPUPagedCache<TObjectID, TAtom, Policy>::SplitChain GPUPagedCache<TObjectID, TAtom, Policy>::_SplitVictimChain(ObjectAllocation& victim, uint32_t pagesToTake)
 {
 	PROFILE_FUNCTION();
 
@@ -528,9 +532,9 @@ GPUPagedCache<ObjectID, Atom, Policy>::SplitChain GPUPagedCache<ObjectID, Atom, 
 	};
 }
 
-template<typename ObjectID, typename Atom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<ObjectID>, ObjectID>
-void GPUPagedCache<ObjectID, Atom, Policy>::_AttachPages(const ObjectID& obj, ObjectAllocation& target, uint32_t start, uint32_t end)
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+void GPUPagedCache<TObjectID, TAtom, Policy>::_AttachPages(const TObjectID& obj, ObjectAllocation& target, uint32_t start, uint32_t end)
 {
 	PROFILE_FUNCTION();
 

@@ -20,7 +20,7 @@ struct ChunkAABB
 
 struct ClockPolicyHandle
 {
-    uint index;
+    uint64_t objID;
 };
 
 struct ObjectAllocation
@@ -82,11 +82,6 @@ layout(std430, binding = 3) readonly buffer CacheObjTable
 layout(std430, binding = 4) readonly buffer PageNodesBuffer
 {
     PageNode pageNodes[];
-};
-
-layout(std430, binding = 5) buffer ClockPolicyState
-{
-    uint policyObjectState[];
 };
 
 
@@ -184,11 +179,6 @@ void DrawChunk(ObjectAllocation alloc, ivec3 chunkPos)
     }
 }
 
-void PolicyTouch(ObjectAllocation alloc)
-{
-    atomicOr(policyObjectState[alloc.policyHandle.index], REF_BIT);
-}
-
 void main()
 {
     //TODO: use shared mem count to write results in batches
@@ -220,7 +210,6 @@ void main()
         if(IsCached(chunkID, alloc))
         {
             DrawChunk(alloc, chunkCoord);
-            PolicyTouch(alloc);
         }
         else
         {

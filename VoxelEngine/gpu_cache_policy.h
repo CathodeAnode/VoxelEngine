@@ -171,129 +171,181 @@ private:
 };
 
 template<typename ObjectID>
-class ClockPolicy
+class FIFOPolicy
 {
 public:
     struct Handle
     {
-        uint32_t index;
+        ObjectID id{};
     };
 
-    explicit ClockPolicy(int cap)
-        : m_Capacity(cap)
-        , m_ObjectIDs(cap)
-        , m_State(true)
-    {}
+private:
+    struct Slot
+    {
+        std::atomic<size_t> sequence;
+        ObjectID value;
+    };
+
+public:
+    explicit FIFOPolicy(size_t capacity)
+        : m_Capacity(NextPowerOfTwo(capacity)),
+        m_Mask(m_Capacity - 1),
+        m_Slots(m_Capacity)
+    {
+        for (size_t i = 0; i < m_Capacity; ++i)
+        {
+            m_Slots[i].sequence.store(i, std::memory_order_relaxed);
+        }
+    }
 
     bool Create()
     {
-        bool sucess = m_State.Create(GL_SHADER_STORAGE_BUFFER, m_Capacity, BufferAccess::ReadWrite);
-        for (size_t i = 0; i < m_Capacity; ++i)
-        {
-            std::atomic_ref<uint32_t>(m_State[i]).store(0, std::memory_order_relaxed);
-        }
-        return sucess;
+        return true;
     }
 
-    void OnAccess(Handle& h) noexcept
+    void OnAccess(Handle&) noexcept
     {
-        if (h.index < m_Capacity)
-        {
-            auto state = std::atomic_ref<uint32_t>(m_State[h.index]);
-            state.fetch_or(REF_BIT, std::memory_order_relaxed);
-        }
+        // FIFO ignores accesses
     }
 
-    Handle OnInsert(const ObjectID& id) noexcept
+    Handle OnInsert(const ObjectID& objectID) noexcept
     {
-        // simple probe starting from thread-local hand
-        size_t start = LocalHand();
-
-        for (size_t n = 0; n < m_Capacity; ++n)
-        {
-            uint32_t i = (start + n) % m_Capacity;
-            auto state = std::atomic_ref<uint32_t>(m_State[i]);
-
-            uint32_t expected = 0;
-            if (state.compare_exchange_strong(expected, VALID_BIT | REF_BIT,
-                std::memory_order_acq_rel))
-            {
-                m_ObjectIDs[i] = id;
-                return Handle{ i };
-            }
-        }
-
-        return Handle{};
+        _Enqueue(objectID);
+        return Handle{ objectID };
     }
 
-    void OnRemove(Handle& h) noexcept
+    void OnRemove(Handle&) noexcept
     {
-        if (h.index < m_Capacity)
-        {
-            auto state = std::atomic_ref<uint32_t>(m_State[h.index]);
-            state.store(0, std::memory_order_release);
-        }
+        // nothing required
     }
 
-    [[nodiscard]] ObjectID SelectVictim() noexcept
+    ObjectID SelectVictim() noexcept
     {
-        size_t& hand = LocalHand();
+        ObjectID result{};
 
-        while (true)
+        while (!_Dequeue(result))
         {
-            size_t idx = hand;
-            hand = (hand + 1) % m_Capacity;
-
-            auto state = std::atomic_ref<uint32_t>(m_State[idx]);
-            uint32_t s = state.load(std::memory_order_acquire);
-
-            if (!(s & VALID_BIT))
-                continue;
-
-            if (!(s & REF_BIT))
-            {
-                uint32_t expected = VALID_BIT;
-                if (state.compare_exchange_strong(expected, 0,
-                    std::memory_order_acq_rel))
-                {
-                    return m_ObjectIDs[idx];
-                }
-            }
-            else
-            {
-                // second chance
-                state.fetch_and(~REF_BIT, std::memory_order_relaxed);
-            }
+            // queue empty
+            // optionally spin/yield here
         }
+
+        return result;
     }
 
-    void BindBuffers(GLint bufferLocation)
+    void BindBuffers(GLint)
     {
-        m_State.BindBufferBase(bufferLocation);
+        // no-op
     }
 
 private:
-    static constexpr uint32_t VALID_BIT = 1 << 0;
-    static constexpr uint32_t REF_BIT = 1 << 1;
-
-    int m_Capacity;
-
-    // thread-local clock hand
-    static size_t& LocalHand() noexcept
+    static size_t NextPowerOfTwo(size_t n)
     {
-        thread_local size_t hand = InitHand();
-        return hand;
+        size_t p = 1;
+        while (p < n)
+            p <<= 1;
+        return p;
     }
 
-    static size_t InitHand() noexcept
+    bool _Enqueue(const ObjectID& value) noexcept
     {
-        // spread threads across the ring (cheap hashing)
-        auto tid = std::hash<std::thread::id>{}(std::this_thread::get_id());
-        return tid;
+        Slot* slot;
+        size_t pos = m_tail.load(std::memory_order_relaxed);
+
+        for (;;)
+        {
+            slot = &m_Slots[pos & m_Mask];
+
+            size_t seq =
+                slot->sequence.load(std::memory_order_acquire);
+
+            intptr_t diff =
+                static_cast<intptr_t>(seq) -
+                static_cast<intptr_t>(pos);
+
+            if (diff == 0)
+            {
+                if (m_tail.compare_exchange_weak(
+                    pos,
+                    pos + 1,
+                    std::memory_order_relaxed))
+                {
+                    break;
+                }
+            }
+            else if (diff < 0)
+            {
+                // queue full
+                return false;
+            }
+            else
+            {
+                pos = m_tail.load(std::memory_order_relaxed);
+            }
+        }
+
+        slot->value = value;
+
+        slot->sequence.store(
+            pos + 1,
+            std::memory_order_release);
+
+        return true;
     }
 
-    GPUPersistentlyMappedBuffer<uint32_t> m_State;
-    std::vector<ObjectID> m_ObjectIDs;
+    bool _Dequeue(ObjectID& value) noexcept
+    {
+        Slot* slot;
+        size_t pos = m_head.load(std::memory_order_relaxed);
+
+        for (;;)
+        {
+            slot = &m_Slots[pos & m_Mask];
+
+            size_t seq =
+                slot->sequence.load(std::memory_order_acquire);
+
+            intptr_t diff =
+                static_cast<intptr_t>(seq) -
+                static_cast<intptr_t>(pos + 1);
+
+            if (diff == 0)
+            {
+                if (m_head.compare_exchange_weak(
+                    pos,
+                    pos + 1,
+                    std::memory_order_relaxed))
+                {
+                    break;
+                }
+            }
+            else if (diff < 0)
+            {
+                // queue empty
+                return false;
+            }
+            else
+            {
+                pos = m_head.load(std::memory_order_relaxed);
+            }
+        }
+
+        value = slot->value;
+
+        slot->sequence.store(
+            pos + m_Capacity,
+            std::memory_order_release);
+
+        return true;
+    }
+
+private:
+    const size_t m_Capacity;
+    const size_t m_Mask;
+
+    std::vector<Slot> m_Slots;
+
+    alignas(64) std::atomic<size_t> m_head{ 0 };
+    alignas(64) std::atomic<size_t> m_tail{ 0 };
 };
 
 #endif
