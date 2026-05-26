@@ -52,8 +52,8 @@ private:
 
     GPUPersistentlyMappedBuffer<Entry> m_Table; // TODO split into two GPUPersistentlyMappedBuffer, one for key and other for value
 
-    static constexpr K EMPTY_KEY = std::numeric_limits<K>::max();;
-    static constexpr K TOMBSTONE_KEY = std::numeric_limits<K>::min();;
+    static constexpr K EMPTY_KEY = std::numeric_limits<K>::max();
+    static constexpr K TOMBSTONE_KEY = std::numeric_limits<K>::max() - 1;
 
 
 private:

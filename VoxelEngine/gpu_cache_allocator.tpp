@@ -88,15 +88,23 @@ GPUPagedCache<TObjectID, TAtom, Policy>::ObjectAllocation GPUPagedCache<TObjectI
 	assert(pageCount > 0);
 
 	ObjectAllocation targetAlloc;
+	bool isCached = m_ObjectPages.Find(obj, targetAlloc);
 
 	const unsigned int pageSize = m_PagedBuffer.GetPageSize();
 
-	bool fullyReserved = _TryReservePages(obj, pageCount, targetAlloc);
+	uint32_t allocatedPages = _TryReservePages(obj, pageCount, targetAlloc);
 
-	while (!fullyReserved)
+	while (allocatedPages < pageCount)
 	{
-		fullyReserved = _EvictAndTakePages(obj, targetAlloc, pageCount);
+		allocatedPages += _EvictAndTakePages(obj, targetAlloc, pageCount - allocatedPages);
 	}
+
+	if (isCached)
+		m_Policy.OnAccess(targetAlloc.policyHandle);
+	else
+		targetAlloc.policyHandle = m_Policy.OnInsert(obj);
+
+	m_ObjectPages.Insert(obj, targetAlloc);
 
 	return targetAlloc;
 }
@@ -105,6 +113,11 @@ template<typename TObjectID, typename TAtom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
 void GPUPagedCache<TObjectID, TAtom, Policy>::AllocateObject(const TObjectID& obj, const TAtom* data, size_t count)
 {
+	if (Has(obj))
+	{
+		ClearObject(obj);
+	}
+
 	if (count == 0)
 	{
 		AllocatePages(obj, 1);
@@ -133,7 +146,6 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::AllocateObject(const TObjectID& ob
 	}
 
 	alloc.totalElementCount = count;
-	m_Policy.OnAccess(alloc.policyHandle);
 	m_ObjectPages.Insert(obj, alloc);
 }
 
@@ -196,7 +208,7 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::MoveObject(const TObjectID& src, c
 			m_PagedBuffer.GetName(),
 			dst,
 			src);
-		_FreeObject(dst);
+		_FreeChain(dstObj.startPage);
 	}
 
 	m_ObjectPages.Insert(dst, srcObj);
@@ -242,7 +254,7 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::DeallocateObject(const TObjectID& 
 	if (!m_ObjectPages.Find(obj, alloc))
 		return;
 
-	_FreeObject(obj);
+	_FreeChain(alloc.startPage);
 	m_Policy.OnRemove(alloc.policyHandle);
 	m_ObjectPages.Erase(obj);
 }
@@ -260,6 +272,7 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::ClearObject(const TObjectID& obj)
 
 	alloc.totalElementCount = 0;
 	m_Policy.OnAccess(alloc.policyHandle);
+	m_ObjectPages.Insert(obj, alloc);
 }
 
 template<typename TObjectID, typename TAtom, template<typename> typename Policy>
@@ -319,36 +332,6 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::BindCacheLookup(GLint hashMapLocat
 	m_ObjectPages.BindBuffer(hashMapLocation);
 	m_PageNodes.BindBufferBase(nodesLocation);
 	m_Policy.BindBuffers(policyLocation);
-}
-
-template<typename TObjectID, typename TAtom, template<typename> typename Policy>
-	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
-void GPUPagedCache<TObjectID, TAtom, Policy>::_FreeObject(const TObjectID& obj)
-{
-	assert(m_ObjectPages.Contains(obj));
-
-	ObjectAllocation alloc;
-	m_ObjectPages.Find(obj, alloc);
-
-	if (alloc.startPage == PageNode::NULL_PAGE)
-		return;
-
-	uint32_t current = alloc.startPage;
-
-	while (current != PageNode::NULL_PAGE)
-	{
-		uint32_t next = m_PageNodes[current].next;
-
-		m_PagedBuffer.FreePage(current);
-
-		current = next;
-	}
-
-	// unnessary to clear object alloc data, but done for safety
-	alloc.startPage = PageNode::NULL_PAGE;
-	alloc.endPage = PageNode::NULL_PAGE;
-	alloc.totalElementCount = 0;
-	m_ObjectPages.Insert(obj, alloc);
 }
 
 template<typename TObjectID, typename TAtom, template<typename> typename Policy>
@@ -431,45 +414,40 @@ std::unordered_set<uint32_t> GPUPagedCache<TObjectID, TAtom, Policy>::_CollectPa
 
 template<typename TObjectID, typename TAtom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
-bool GPUPagedCache<TObjectID, TAtom, Policy>::_TryReservePages(const TObjectID& obj, uint32_t pageCount, ObjectAllocation& outAlloc)
+uint32_t GPUPagedCache<TObjectID, TAtom, Policy>::_TryReservePages(const TObjectID& obj, uint32_t pageCount, ObjectAllocation& outAlloc)
 {
 	PROFILE_FUNCTION();
 
 	std::vector<uint32_t> allocatedPages;
 	allocatedPages.reserve(pageCount);
 
-	bool pagesReservedStatus = m_PagedBuffer.ReserveFirstAvaliblePages(pageCount, allocatedPages);
-	bool inCache = m_ObjectPages.Find(obj, outAlloc);
+	m_PagedBuffer.ReserveFirstAvaliblePages(pageCount, allocatedPages);
 
-	if (allocatedPages.empty()) return false;
+	if (allocatedPages.empty()) return 0;
 
-	if (inCache)
+	if (outAlloc.startPage != PageNode::NULL_PAGE)
 	{
-		LOG_DEBUG(EngineSystem::GPU_BUFFER,
+		LOG_TRACE(EngineSystem::GPU_BUFFER,
 			"[GPUPagedCache|{}] allocating {} pages for existing object {}",
 			m_PagedBuffer.GetName(), pageCount, obj);
 
 		_AppendPages(outAlloc, allocatedPages);
-		m_Policy.OnAccess(outAlloc.policyHandle);
 	}
 	else
 	{
-		LOG_DEBUG(EngineSystem::GPU_BUFFER,
+		LOG_TRACE(EngineSystem::GPU_BUFFER,
 			"[GPUPagedCache|{}] allocating {} pages for new object {}",
 			m_PagedBuffer.GetName(), pageCount, obj);
 
 		_BuildPageChain(outAlloc, allocatedPages);
-
-		outAlloc.policyHandle = m_Policy.OnInsert(obj);
-		m_ObjectPages.Insert(obj, outAlloc);
 	}
-
-	return pagesReservedStatus;
+	
+	return allocatedPages.size();
 }
 
 template<typename TObjectID, typename TAtom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
-bool GPUPagedCache<TObjectID, TAtom, Policy>::_EvictAndTakePages(const TObjectID& obj, ObjectAllocation& targetAlloc, uint32_t requiredPages)
+uint32_t GPUPagedCache<TObjectID, TAtom, Policy>::_EvictAndTakePages(const TObjectID& obj, ObjectAllocation& targetAlloc, uint32_t pagesNeeded)
 {
 	PROFILE_FUNCTION();
 
@@ -477,21 +455,24 @@ bool GPUPagedCache<TObjectID, TAtom, Policy>::_EvictAndTakePages(const TObjectID
 	const unsigned int pageSize = m_PagedBuffer.GetPageSize();
 
 	ObjectAllocation victimAlloc;
-	m_ObjectPages.Find(victimID, victimAlloc);
-	assert(m_ObjectPages.Contains(victimID));
+	if (!m_ObjectPages.Find(victimID, victimAlloc))
+		return 0;
 
-	size_t pagesNeeded = requiredPages - targetAlloc.GetPageCount(pageSize);
-	size_t pagesToTake = std::min(
-		static_cast<size_t>(victimAlloc.GetPageCount(pageSize)),
+	uint32_t victimPages = victimAlloc.GetPageCount(pageSize);
+	uint32_t pagesToTake = std::min(
+		victimPages,
 		pagesNeeded
 	);
 
 	LOG_DEBUG(EngineSystem::GPU_BUFFER,
-		"[GPUPagedLRUCache|{}] Evicting object {} (take={}, free={})",
+		"[GPUPagedLRUCache|{}] Evicting victim={} for requester={} "
+		"(victimPages={}, reclaiming={}, freedPages={})",
 		m_PagedBuffer.GetName(),
 		victimID,
+		obj,
+		victimPages,
 		pagesToTake,
-		victimAlloc.GetPageCount(pageSize) - pagesToTake);
+		victimPages - pagesToTake);
 
 	auto splitChain = _SplitVictimChain(victimAlloc, pagesToTake);
 
@@ -501,14 +482,16 @@ bool GPUPagedCache<TObjectID, TAtom, Policy>::_EvictAndTakePages(const TObjectID
 	m_Policy.OnRemove(victimAlloc.policyHandle);
 	m_ObjectPages.Erase(victimID);
 
-	return pagesToTake <= pagesNeeded;
+	return pagesToTake;
 }
 
 template<typename TObjectID, typename TAtom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
-GPUPagedCache<TObjectID, TAtom, Policy>::SplitChain GPUPagedCache<TObjectID, TAtom, Policy>::_SplitVictimChain(ObjectAllocation& victim, uint32_t pagesToTake)
+GPUPagedCache<TObjectID, TAtom, Policy>::SplitChain GPUPagedCache<TObjectID, TAtom, Policy>::_SplitVictimChain(const ObjectAllocation& victim, uint32_t pagesToTake)
 {
 	PROFILE_FUNCTION();
+
+	assert(pagesToTake > 0);
 
 	uint32_t takeStart = victim.startPage;
 	uint32_t current = takeStart;
@@ -547,7 +530,6 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::_AttachPages(const TObjectID& obj,
 		m_PageNodes[target.endPage].next = start;
 	}
 	target.endPage = end;
-	m_ObjectPages.Insert(obj, target);
 }
 
 #endif

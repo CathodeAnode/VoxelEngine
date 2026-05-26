@@ -37,16 +37,15 @@
 // current TODOs:
 // - (feat) gizmo to draw cube around camera of loaded chunk distance
 // - (feat) adjusting scene's chunks to be meshed tunning parameter at runtime (increase/decrease depending on how long last frame took)
-// - (feat) implement multi-threading class (thread pool) to handle chunk generation, chunk meshing & chunk uploading to gpu
+// - (feat) complete/redesign voxel edit pipeline
 // - (perf) gpu frustum culling shared varaibles optimizations
 // - (perf) configure opengl face culling
-// - (feat) complete/redesign voxel edit pipeline
+// - (feat/perf) multi-thread chunk meshing using thread pool system
 // - (fix) rendering with chunksize 16, 32 (recent bug, make a single source of truth for chunk sizing)
 //		- current known areas where chunk size is set to const 8:
 //			1. terrian_culling compute shader
 //			2. voxel math helper funcs? (note: ideally change helper functions to take size as template param rather than function param)
 // - (test) write unit tests for gpu cache (test with clock policy, currently unknow if algo correct)
-// - (fix)  cache clock eviction does not work?
 
 // future TODOs:
 // - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
@@ -86,7 +85,7 @@ int main()
 	LogManager::Initialize();
 	constexpr unsigned int SCREEN_WIDTH = 800, SCREEN_HEIGHT = 600;
 
-	LogManager::GetInstance()->GetLogger(EngineSystem::RENDERER)->set_level(spdlog::level::debug);
+	LogManager::GetInstance()->GetLogger(EngineSystem::GPU_BUFFER)->set_level(spdlog::level::debug);
 
 	PROFILE_BEGIN_SESSION("Startup", "../Profile-Startup.json");
 	auto* app = new Application<Chunk8>(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");

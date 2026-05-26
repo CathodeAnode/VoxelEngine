@@ -223,11 +223,8 @@ public:
     {
         ObjectID result{};
 
-        while (!_Dequeue(result))
-        {
-            // queue empty
-            // optionally spin/yield here
-        }
+        bool success = _Dequeue(result);
+        assert(success && "SelectVictim() failed: eviction queue was empty or dequeue operation failed");
 
         return result;
     }

@@ -64,7 +64,8 @@ private:
 
         inline unsigned int GetPageCount(unsigned int pageSize) const noexcept
         {
-            return (totalElementCount + pageSize - 1) / pageSize;
+            assert(pageSize > 0);
+            return ((totalElementCount + pageSize - 1) / pageSize) + (totalElementCount == 0);
         }
 
         inline bool IsEmpty() const noexcept
@@ -94,15 +95,14 @@ private:
     GPUHashMap<ObjectID, ObjectAllocation, ThreadMode::LockFree> m_ObjectPages;
 
 private:
-    void _FreeObject(const ObjectID& obj);
     void _FreeChain(uint32_t startPage);
     void _BuildPageChain(ObjectAllocation& alloc, const std::vector<uint32_t>& pages);
     void _AppendPages(ObjectAllocation& alloc, const std::vector<uint32_t>& pages);
     std::unordered_set<uint32_t> _CollectPages(const ObjectAllocation& alloc) const;
 
-    [[nodiscard]] bool _TryReservePages(const ObjectID& obj, uint32_t pageCount, ObjectAllocation& outAlloc);
-    [[nodiscard]] bool _EvictAndTakePages(const ObjectID& obj, ObjectAllocation& targetAlloc, uint32_t requiredPages);
-    SplitChain _SplitVictimChain(ObjectAllocation& victim, uint32_t pagesToTake);
+    [[nodiscard]] uint32_t _TryReservePages(const ObjectID& obj, uint32_t pageCount, ObjectAllocation& outAlloc);
+    [[nodiscard]] uint32_t _EvictAndTakePages(const ObjectID& obj, ObjectAllocation& targetAlloc, uint32_t pagesNeeded);
+    SplitChain _SplitVictimChain(const ObjectAllocation& victim, uint32_t pagesToTake);
     void _AttachPages(const ObjectID& obj, ObjectAllocation& target, uint32_t start, uint32_t end);
 
 

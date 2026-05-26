@@ -290,13 +290,30 @@ TEST_F(GPUPagedCacheTests, AllocateObjectSinglePage)
 
     std::vector<int> result = Inspector::ReadObjectData(cache, objectID);
 
-    ASSERT_EQ(result.size(), data.size());
+    ASSERT_EQ(result, data);
+}
 
-    for (size_t i = 0; i < data.size(); ++i)
-    {
-        ASSERT_EQ(result[i], data[i])
-            << "Mismatch at index " << i;
-    }
+TEST_F(GPUPagedCacheTests, AllocateObjectTwice)
+{
+    Cache cache;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 5, 10));
+
+    constexpr uint32_t objectID = 1;
+
+    std::vector<int> data = { 1, 2, 3 };
+
+    cache.AllocateObject(objectID, data.data(), data.size());
+    ASSERT_TRUE(cache.Has(objectID));
+    std::vector<int> result = Inspector::ReadObjectData(cache, objectID);
+    ASSERT_EQ(result, data);
+
+    data.push_back(4);
+
+    cache.AllocateObject(objectID, data.data(), data.size());
+    ASSERT_TRUE(cache.Has(objectID));
+    result = Inspector::ReadObjectData(cache, objectID);
+    ASSERT_EQ(result, data);
 }
 
 TEST_F(GPUPagedCacheTests, AllocateObjectExactPageBoundary)
@@ -435,7 +452,7 @@ TEST_F(GPUPagedCacheTests, AllocateObjectCausesMultipleEvictions)
     survivors += cache.Has(3) ? 1 : 0;
 
     // Only one old object should remain.
-    ASSERT_EQ(survivors, 2u);
+    ASSERT_EQ(survivors, 1u);
 }
 
 TEST_F(GPUPagedCacheTests, AllocateObjectAfterObjectDeallocationReusesFreedPages)
@@ -487,33 +504,6 @@ TEST_F(GPUPagedCacheTests, AllocateObjectAfterClearObject)
 
     ASSERT_EQ(ranges.size(), 1u);
 }
-
-
-// AllocatePages
-// - AllocatePages single page
-// - AllocatePages exact remaining capacity
-// - AllocatePages exceed cache page count
-// - AllocatePages with 0
-// - AllocatePages causes single eviction
-// - AllocatePages causes multiple evictions
-// - AllocatePages eviction order follows policy
-// - AllocatePages fragmented allocation
-// - AllocatePages contiguous allocation
-// - AllocatePages after deallocation reuses pages
-// - AllocatePages append to existing allocation
-
-
-// PushBackToObject
-// - PushBackToObject existing object
-// - PushBackToObject non-existing object
-// - PushBackToObject into partially filled page
-// - PushBackToObject filling page exactly
-// - PushBackToObject causing new page allocation
-// - PushBackToObject causing single eviction
-// - PushBackToObject after ClearObject
-// - PushBackToObject repeated append stress test
-// - PushBackToObject fragmented page growth
-
 
 TEST_F(GPUPagedCacheTests, ClearObjectBasic)
 {
@@ -753,6 +743,69 @@ TEST_F(GPUPagedCacheTests, SwapObjectWithItself)
     ASSERT_EQ(objectData, data);
 }
 
+TEST_F(GPUPagedCacheTests, FullCacheChurnStressTest)
+{
+    Cache cache;
+
+    constexpr size_t pageSize = 4;
+    constexpr size_t pageCount = 32;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, pageSize, pageCount));
+
+    std::mt19937 rng(555);
+
+    for (int cycle = 0; cycle < 100; ++cycle)
+    {
+        for (int i = 0; i < 64; ++i)
+        {
+            std::vector<int> data((rng() % 8) + 1);
+
+            for (auto& v : data)
+            {
+                v = static_cast<int>(rng());
+            }
+
+            cache.AllocateObject(i, data.data(), data.size());
+
+            ASSERT_TRUE(cache.Has(i));
+        }
+
+        for (int i = 0; i < 64; ++i)
+        {
+            cache.DeallocateObject(i);
+
+            ASSERT_FALSE(cache.Has(i));
+        }
+
+        auto freePages = Inspector::GetFreePagesCount(cache);
+
+        ASSERT_EQ(freePages, pageCount);
+    }
+}
+
+// AllocatePages
+// - AllocatePages single page
+// - AllocatePages exact remaining capacity
+// - AllocatePages exceed cache page count
+// - AllocatePages with 0
+// - AllocatePages causes single eviction
+// - AllocatePages causes multiple evictions
+// - AllocatePages fragmented allocation
+// - AllocatePages contiguous allocation
+// - AllocatePages after deallocation reuses pages
+// - AllocatePages append to existing allocation
+
+
+// PushBackToObject
+// - PushBackToObject existing object
+// - PushBackToObject non-existing object
+// - PushBackToObject into partially filled page
+// - PushBackToObject filling page exactly
+// - PushBackToObject causing new page allocation
+// - PushBackToObject causing single eviction
+// - PushBackToObject after ClearObject
+// - PushBackToObject repeated append stress test
+// - PushBackToObject fragmented page growth
 
 // GetObjectBufferRanges
 // - GetObjectBufferRanges empty object
@@ -761,14 +814,3 @@ TEST_F(GPUPagedCacheTests, SwapObjectWithItself)
 // - GetObjectBufferRanges consecutive pages
 // - GetObjectBufferRanges fragmented pages
 // - GetObjectBufferRanges mixed contiguous and fragmented pages
-
-
-// Stress / Randomized Tests
-// - Random allocate/deallocate operations
-// - Random push back operations
-// - Random move/swap operations
-// - Random eviction scenarios
-// - Long-running allocation stress test
-// - Full cache churn stress test
-// - Repeated fragmentation/reuse stress test
-// - Large object churn stress test

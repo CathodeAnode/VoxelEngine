@@ -38,6 +38,7 @@ bool GPUHashMap<K, V, Mode>::Insert(const K& key, const V& value)
 {
     Entry* table = m_Table.GetContents();
     assert(table != nullptr);
+    assert(key != TOMBSTONE_KEY && key != EMPTY_KEY);
 
     size_t cap = m_Table.GetSize();
 
@@ -82,6 +83,8 @@ bool GPUHashMap<K, V, Mode>::Find(const K& key, V& out) const
 {
     const Entry* table = m_Table.GetContents();
     assert(table != nullptr);
+    assert(key != TOMBSTONE_KEY && key != EMPTY_KEY);
+
 
     size_t cap = m_Table.GetSize();
 
@@ -120,6 +123,7 @@ bool GPUHashMap<K, V, Mode>::Erase(const K& key)
 {
     Entry* table = m_Table.GetContents();
     assert(table != nullptr);
+    assert(key != TOMBSTONE_KEY && key != EMPTY_KEY);
 
     size_t cap = m_Table.GetSize();
 
@@ -162,6 +166,7 @@ bool GPUHashMap<K, V, Mode>::Emplace(const K& key, Args&&... args)
 {
     Entry* table = m_Table.GetContents();
     assert(table != nullptr);
+    assert(key != TOMBSTONE_KEY && key != EMPTY_KEY);
 
     size_t cap = m_Table.GetSize();
 
