@@ -65,7 +65,7 @@ private:
         inline unsigned int GetPageCount(unsigned int pageSize) const noexcept
         {
             assert(pageSize > 0);
-            return ((totalElementCount + pageSize - 1) / pageSize) + (totalElementCount == 0);
+            return ((totalElementCount + pageSize - 1) / pageSize) + (totalElementCount == 0 && startPage != PageNode::NULL_PAGE);
         }
 
         inline bool IsEmpty() const noexcept

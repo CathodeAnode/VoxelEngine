@@ -25,25 +25,25 @@ public:
         if (alloc.totalElementCount == 0 || alloc.IsEmpty())
             return result;
 
-        std::unordered_set<uint32_t> pages = cache._CollectPages(alloc);
-
         result.reserve(alloc.totalElementCount);
 
         const size_t pageSize = cache.m_PagedBuffer.GetPageSize();
 
         size_t remaining = alloc.totalElementCount;
 
-        for (uint32_t page : pages)
+        uint32_t current = alloc.startPage;
+
+        while (current != Cache::PageNode::NULL_PAGE && remaining > 0)
         {
-            const Atom* pageData = cache.m_PagedBuffer[page];
+            const Atom* pageData = cache.m_PagedBuffer[current];
+
             const size_t count = std::min(pageSize, remaining);
 
-            result.insert(result.end(),pageData, pageData + count);
+            result.insert(result.end(), pageData, pageData + count);
 
             remaining -= count;
 
-            if (remaining == 0)
-                break;
+            current = cache.m_PageNodes[current].next;
         }
 
         return result;

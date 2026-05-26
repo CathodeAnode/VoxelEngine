@@ -115,7 +115,7 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::AllocateObject(const TObjectID& ob
 {
 	if (Has(obj))
 	{
-		ClearObject(obj);
+		DeallocateObject(obj);
 	}
 
 	if (count == 0)
@@ -347,6 +347,8 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::_FreeChain(uint32_t startPage)
 	{
 		uint32_t next = m_PageNodes[current].next;
 
+		m_PageNodes[current].next = PageNode::NULL_PAGE;
+
 		m_PagedBuffer.FreePage(current);
 
 		current = next;
@@ -452,6 +454,9 @@ uint32_t GPUPagedCache<TObjectID, TAtom, Policy>::_EvictAndTakePages(const TObje
 	PROFILE_FUNCTION();
 
 	TObjectID victimID = m_Policy.SelectVictim();
+	if (victimID == obj)
+		return 0;
+
 	const unsigned int pageSize = m_PagedBuffer.GetPageSize();
 
 	ObjectAllocation victimAlloc;
@@ -459,7 +464,7 @@ uint32_t GPUPagedCache<TObjectID, TAtom, Policy>::_EvictAndTakePages(const TObje
 		return 0;
 
 	uint32_t victimPages = victimAlloc.GetPageCount(pageSize);
-	uint32_t pagesToTake = std::min(
+	uint32_t numPagesToTake = std::min(
 		victimPages,
 		pagesNeeded
 	);
@@ -471,10 +476,10 @@ uint32_t GPUPagedCache<TObjectID, TAtom, Policy>::_EvictAndTakePages(const TObje
 		victimID,
 		obj,
 		victimPages,
-		pagesToTake,
-		victimPages - pagesToTake);
+		numPagesToTake,
+		victimPages - numPagesToTake);
 
-	auto splitChain = _SplitVictimChain(victimAlloc, pagesToTake);
+	auto splitChain = _SplitVictimChain(victimAlloc, numPagesToTake);
 
 	_AttachPages(obj, targetAlloc, splitChain.takeStart, splitChain.takeEnd);
 
@@ -482,7 +487,7 @@ uint32_t GPUPagedCache<TObjectID, TAtom, Policy>::_EvictAndTakePages(const TObje
 	m_Policy.OnRemove(victimAlloc.policyHandle);
 	m_ObjectPages.Erase(victimID);
 
-	return pagesToTake;
+	return numPagesToTake;
 }
 
 template<typename TObjectID, typename TAtom, template<typename> typename Policy>
@@ -521,6 +526,8 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::_AttachPages(const TObjectID& obj,
 {
 	PROFILE_FUNCTION();
 
+	assert(end != PageNode::NULL_PAGE);
+
 	if (target.IsEmpty())
 	{
 		target.startPage = start;
@@ -530,6 +537,7 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::_AttachPages(const TObjectID& obj,
 		m_PageNodes[target.endPage].next = start;
 	}
 	target.endPage = end;
+	m_PageNodes[end].next = PageNode::NULL_PAGE;
 }
 
 #endif

@@ -783,6 +783,94 @@ TEST_F(GPUPagedCacheTests, FullCacheChurnStressTest)
     }
 }
 
+TEST_F(GPUPagedCacheTests, RepeatedFragmentationReuseStressTest)
+{
+    Cache cache;
+
+    constexpr size_t pageSize = 8;
+    constexpr size_t pageCount = 64;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, pageSize, pageCount));
+
+    std::mt19937 rng(777);
+
+    for (int iteration = 0; iteration < 1000; ++iteration)
+    {
+        int objectID = rng() % 128;
+
+        if ((rng() % 3) == 0)
+        {
+            cache.DeallocateObject(objectID);
+
+            ASSERT_FALSE(cache.Has(objectID));
+        }
+        else
+        {
+            size_t count = (rng() % (pageSize * 5)) + 1;
+
+            std::vector<int> data(count);
+
+            for (auto& v : data)
+            {
+                v = static_cast<int>(rng());
+            }
+
+            cache.AllocateObject(objectID, data.data(), data.size());
+
+            ASSERT_TRUE(cache.Has(objectID));
+
+            auto objectData = Inspector::ReadObjectData(cache, objectID);
+
+            ASSERT_EQ(objectData, data);
+        }
+    }
+
+    auto freePages = Inspector::GetFreePagesCount(cache);
+
+    ASSERT_LE(freePages, pageCount);
+}
+
+TEST_F(GPUPagedCacheTests, LargeObjectChurnStressTest)
+{
+    Cache cache;
+
+    constexpr size_t pageSize = 64;
+    constexpr size_t pageCount = 256;
+
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, pageSize, pageCount));
+
+    std::mt19937 rng(9001);
+
+    for (int iteration = 0; iteration < 1000; ++iteration)
+    {
+        int objectID = iteration % 32;
+
+        size_t count = pageSize * ((rng() % 16) + 1);
+
+        std::vector<int> data(count);
+
+        for (auto& v : data)
+        {
+            v = static_cast<int>(rng());
+        }
+
+        cache.AllocateObject(objectID, data.data(), data.size());
+
+        ASSERT_TRUE(cache.Has(objectID));
+
+        auto objectData = Inspector::ReadObjectData(cache, objectID);
+
+        ASSERT_EQ(objectData, data);
+
+        if ((iteration % 3) == 0)
+        {
+            cache.DeallocateObject(objectID);
+
+            ASSERT_FALSE(cache.Has(objectID));
+        }
+    }
+}
+
 // AllocatePages
 // - AllocatePages single page
 // - AllocatePages exact remaining capacity
