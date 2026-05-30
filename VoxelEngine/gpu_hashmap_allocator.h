@@ -7,6 +7,7 @@
 #include <type_traits>
 
 #include "gpu_buffer_allocator.h"
+#include "voxel_math.h"
 
 template<typename T>
 concept AtomicCompatible = std::is_trivially_copyable_v<T>;
@@ -57,20 +58,6 @@ private:
 
 
 private:
-    static size_t NextPowerOfTwo(size_t n)
-    {
-        if (n == 0) return 1;
-        n--;
-        n |= n >> 1;
-        n |= n >> 2;
-        n |= n >> 4;
-        n |= n >> 8;
-        n |= n >> 16;
-        if constexpr (sizeof(size_t) == 8)
-            n |= n >> 32;
-        return n + 1;
-    }
-
     static inline uint64_t Hash64(uint64_t x)
     {
         x ^= x >> 33;

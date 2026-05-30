@@ -44,5 +44,19 @@ inline glm::ivec3 VoxelToLocal(const glm::ivec3& voxelCoords, int chunkSize)
     );
 }
 
+inline size_t NextPowerOfTwo(size_t n)
+{
+    if (n == 0) return 1;
+    n--;
+    n |= n >> 1;
+    n |= n >> 2;
+    n |= n >> 4;
+    n |= n >> 8;
+    n |= n >> 16;
+    if constexpr (sizeof(size_t) == 8)
+        n |= n >> 32;
+    return n + 1;
+}
+
 #endif 
 

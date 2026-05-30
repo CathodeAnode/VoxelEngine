@@ -2,6 +2,7 @@
 #define GPU_CACHE_POLICY_H
 
 #include "gpu_buffer_allocator.h"
+#include "voxel_math.h"
 
 #include <concepts>
 
@@ -235,14 +236,6 @@ public:
     }
 
 private:
-    static size_t NextPowerOfTwo(size_t n)
-    {
-        size_t p = 1;
-        while (p < n)
-            p <<= 1;
-        return p;
-    }
-
     bool _Enqueue(const ObjectID& value) noexcept
     {
         Slot* slot;
