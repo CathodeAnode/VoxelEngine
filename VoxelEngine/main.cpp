@@ -35,7 +35,6 @@
 #include "application.h"
 
 // current TODOs:
-// - (feat) gizmo to draw cube around camera of loaded chunk distance
 // - (feat) adjusting scene's chunks to be meshed tunning parameter at runtime (increase/decrease depending on how long last frame took)
 // - (feat) complete/redesign voxel edit pipeline
 // - (perf) gpu frustum culling shared varaibles optimizations
@@ -45,11 +44,11 @@
 //		- current known areas where chunk size is set to const 8:
 //			1. terrian_culling compute shader
 //			2. voxel math helper funcs? (note: ideally change helper functions to take size as template param rather than function param)
-// - (test) write unit tests for gpu cache (test with clock policy, currently unknow if algo correct)
+// - (chore): seperation between voxel engine library & application [Note: This will allow for mutliple applications for testing and showcasing purposes]
+
 
 // future TODOs:
 // - terrain height map generator to generate locations from real world map data (https://tangrams.github.io/heightmapper/)
-// - seperation between voxel engine lib and generation strat application, single umbrella engine header (UnityEngine-style) that has core engine component includes
 // - region-based world generation. Each region maps with user-defined chunk generation strategy, and chunks are generated according to the strategy defined for that region
 // - build config file for logger, chunktype, asserts
 // - python script engine for terrian generation
@@ -59,7 +58,7 @@
 // - namespacing
 // - PCH file
 // - Cmake /w chunk size param
-// - define a macro for compiling out logging & profiling instead of using #if 1
+// - better logging
 
 // Futures: 
 // - region-based file saving system to save voxels/chunks of world (fixed sized files for regions of the world, i.e. 1 file save a volume of 16x16x16 chunks & multiple files for regions in world)

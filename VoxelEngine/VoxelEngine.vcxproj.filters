@@ -241,5 +241,8 @@
     <ClInclude Include="frame_counter.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="view_ring_buffer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

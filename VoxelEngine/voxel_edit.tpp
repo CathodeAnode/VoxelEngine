@@ -4,10 +4,19 @@
 #include "voxel_edit.h"
 
 template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
-VoxelEdit<ChunkType, ChunkContainer>::VoxelEdit(ChunkContainer& chunkContainer, VoxelRenderer<ChunkType>& renderer)
+VoxelEdit<ChunkType, ChunkContainer>::VoxelEdit(ChunkContainer& chunkContainer, unsigned int cap)
 	: m_ChunkContainer(chunkContainer)
-	, m_Renderer(renderer)
-{}
+	, m_DirtyChunks(cap)
+{
+}
+
+template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
+ViewRingBuffer<glm::ivec3>::Range VoxelEdit<ChunkType, ChunkContainer>::GetDirtyChunks(unsigned int budget)
+{
+	ViewRingBuffer<glm::ivec3>::Range view = m_DirtyChunks.View(budget);
+	m_DirtyChunks.Consume(view.Size());
+	return view;
+}
 
 template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
 void VoxelEdit<ChunkType, ChunkContainer>::SetVoxel(const glm::ivec3& coords, RGBAColor color)
@@ -30,22 +39,7 @@ void VoxelEdit<ChunkType, ChunkContainer>::SetVoxel(const glm::ivec3& coords, RG
 	chunkOpaqueData[ChunkType::OpaqueDataIndexAt(localVoxelCoords.x, localVoxelCoords.z)] |= (1 << localVoxelCoords.y);
 	chunkColorData[ChunkType::ColorDataIndexAt(localVoxelCoords.x, localVoxelCoords.y, localVoxelCoords.z)] = color;
 
-	m_Renderer.Upload(m_ChunkContainer, chunkCoords);
-
-	for (int axis = 0; axis < 3; axis++)
-	{
-		glm::ivec3 offset{ 0 };
-		if (localVoxelCoords[axis] == 0)
-		{
-			offset[axis] = -1;
-			m_Renderer.Upload(m_ChunkContainer, chunkCoords + offset);
-		}
-		else if (localVoxelCoords[axis] == ChunkType::Size - 1)
-		{
-			offset[axis] = 1;
-			m_Renderer.Upload(m_ChunkContainer, chunkCoords + offset);
-		}
-	}
+	m_DirtyChunks.Push(chunkCoords);
 }
 
 template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
@@ -66,22 +60,7 @@ void VoxelEdit<ChunkType, ChunkContainer>::RemoveVoxel(const glm::ivec3& coords)
 	auto chunkOpaqueData = chunk->GetOpaqueSpan();
 	chunkOpaqueData[ChunkType::OpaqueDataIndexAt(localVoxelCoords.x, localVoxelCoords.z)] &= ~(1 << localVoxelCoords.y);
 
-	m_Renderer.Upload(m_ChunkContainer, chunkCoords);
-
-	for (int axis = 0; axis < 3; axis++)
-	{
-		glm::ivec3 offset{ 0 };
-		if (localVoxelCoords[axis] == 0)
-		{
-			offset[axis] = -1;
-			m_Renderer.Upload(m_ChunkContainer, chunkCoords + offset);
-		}
-		else if (localVoxelCoords[axis] == ChunkType::Size - 1)
-		{
-			offset[axis] = 1;
-			m_Renderer.Upload(m_ChunkContainer, chunkCoords + offset);
-		}
-	}
+	m_DirtyChunks.Push(chunkCoords);
 
 }
 

@@ -32,7 +32,7 @@ Application<ChunkT>::Application(unsigned int width, unsigned int height, const 
     , m_Screen(width, height, title)
     , m_World(startingWorldPos, LOADED_CHUNK_DISTANCE, std::make_unique<Simple3DPerlinNoiseGeneration<ChunkT>>())
     , m_Renderer(std::make_unique<MesherT>())
-    , m_VoxelEdit(m_World, m_Renderer)
+    , m_VoxelEdit(m_World, 1024)
     , m_Scene(m_World, m_Renderer)
     , m_DebuggingRenderer(ChunkT::Size)
 {

@@ -213,6 +213,7 @@
     <ClInclude Include="mouse_codes.h" />
     <ClInclude Include="perlin_noise.h" />
     <ClInclude Include="profiler.h" />
+    <ClInclude Include="view_ring_buffer.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="uid_manager.h" />
     <ClInclude Include="voxel_math.h" />
