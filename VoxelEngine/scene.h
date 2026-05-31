@@ -2,11 +2,10 @@
 #define SCENE_H
 
 #include <glm/glm.hpp>
-#include <iostream>
-#include <chrono>
 
 #include "chunk.h"
 #include "voxel_math.h"
+#include "chunk_provider_concept.h"
 
 class Camera;
 
@@ -16,11 +15,15 @@ class ChunkManager;
 template<typename ChunkType>
 class VoxelRenderer;
 
+template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
+class VoxelEdit;
+
+//TODO: multi-thread (thread-pool) chunk meshing/uploading
 template<typename ChunkType>
 class Scene
 {
 public:
-	Scene(ChunkManager<ChunkType>& world, VoxelRenderer<ChunkType>& renderer); // add DI for models/character container in the future
+	Scene(ChunkManager<ChunkType>& world, VoxelRenderer<ChunkType>& renderer, VoxelEdit<ChunkType, ChunkManager<ChunkType>>& voxelEdit); // add DI for models/character container in the future
 	
 	Scene(const Scene&) = delete;
 	Scene& operator=(const Scene&) = delete;
@@ -31,14 +34,17 @@ public:
 
 private:
     inline void _UploadLoadedTerrain(const glm::vec3& cameraPos);
-	inline void _MeshChunks();
+	inline void _ProcessDirtyChunks();
+	inline void _UploadRequestedChunks();
 
 private:
 	ChunkManager<ChunkType>& m_World;
 	VoxelRenderer<ChunkType>& m_Renderer;
+	VoxelEdit<ChunkType, ChunkManager<ChunkType>>& m_VoxelEdit;
+
 
 	unsigned int m_RenderDist = 0;
-	int m_MeshChunkPerFrame = 16;
+	unsigned int m_UploadBudgetPerFrame = 16;
 
 };
 

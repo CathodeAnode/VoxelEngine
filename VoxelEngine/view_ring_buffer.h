@@ -5,6 +5,7 @@
 #include <cstddef>
 #include <memory>
 #include <ranges>
+#include <utility>
 #include <algorithm>
 
 #include "voxel_math.h"
@@ -22,6 +23,8 @@ public:
 
     ViewRingBuffer(const ViewRingBuffer&) = delete;
     ViewRingBuffer& operator=(const ViewRingBuffer&) = delete;
+    ViewRingBuffer(ViewRingBuffer&&) = delete;
+    ViewRingBuffer& operator=(ViewRingBuffer&&) = delete;
 
     class Range
     {
@@ -116,6 +119,9 @@ public:
 
     bool Push(const T& value)
     {
+        assert(m_Capacity > 0);
+        assert(m_Data != nullptr);
+
         if (m_Tail - m_Head >= m_Capacity)
             return false;
 
@@ -125,11 +131,18 @@ public:
         return true;
     }
 
-    void Unsafe_Push(const T& value)
+    bool Push(T&& value)
     {
-        m_Data[_Index(m_Tail)] = value;
+        assert(m_Capacity > 0);
+        assert(m_Data != nullptr);
 
-        m_Tail++;
+        if (m_Tail - m_Head >= m_Capacity)
+            return false;
+
+        m_Data[_Index(m_Tail)] = std::move(value);
+
+        ++m_Tail;
+        return true;
     }
 
     bool Pop(T& out)
@@ -165,11 +178,12 @@ public:
 
     Range View(size_t count = SIZE_MAX)
     {
+        assert(m_Data != nullptr);
         return Range(
             m_Data.get(),
             m_Capacity,
-            _Index(m_Head),
-            count);
+            m_Head,
+            std::min(count, Size()));
     }
 
     inline size_t Size() const

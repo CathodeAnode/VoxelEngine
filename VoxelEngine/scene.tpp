@@ -5,9 +5,12 @@
 #include "profiler.h"
 
 template<typename ChunkType>
-Scene<ChunkType>::Scene(ChunkManager<ChunkType>& world, VoxelRenderer<ChunkType>& renderer)
+Scene<ChunkType>::Scene(ChunkManager<ChunkType>& world, 
+	VoxelRenderer<ChunkType>& renderer, VoxelEdit<ChunkType, 
+	ChunkManager<ChunkType>>& voxelEdit)
     : m_World(world)
     , m_Renderer(renderer)
+	, m_VoxelEdit(voxelEdit)
 {
 
 }
@@ -26,9 +29,10 @@ template<typename ChunkType>
 void Scene<ChunkType>::Update(const glm::vec3& cameraPos, int chunkMeshingTuning)
 {
 	PROFILE_FUNCTION();
-	m_MeshChunkPerFrame += chunkMeshingTuning;
+	m_UploadBudgetPerFrame += chunkMeshingTuning;
 
-	_MeshChunks();
+	_ProcessDirtyChunks();
+	_UploadRequestedChunks();
 
 	m_World.Update(cameraPos);
 }
@@ -68,13 +72,31 @@ inline void Scene<ChunkType>::_UploadLoadedTerrain(const glm::vec3& cameraPos)
 }
 
 template<typename ChunkType>
-void Scene<ChunkType>::_MeshChunks()
+void Scene<ChunkType>::_ProcessDirtyChunks()
 {
+	PROFILE_FUNCTION();
+
+	auto dirtyChunks = m_VoxelEdit.GetDirtyChunks(m_UploadBudgetPerFrame);
+
+	for (const auto& chunkCoord : dirtyChunks)
+	{
+		m_Renderer.Upload(m_World, chunkCoord);
+	}
+
+	const unsigned int uploadedCount = dirtyChunks.Size();
+
+	m_UploadBudgetPerFrame -= uploadedCount;
+	m_VoxelEdit.FlushDirtyChunks(uploadedCount);
+}
+
+template<typename ChunkType>
+inline void Scene<ChunkType>::_UploadRequestedChunks()
+{
+	PROFILE_FUNCTION();
+
 	std::span<const glm::ivec4> uncachedChunkCoords = m_Renderer.GetGPURequestedChunks(); // get frustum culling results from preivous frame (frame n-1)
 
-
-	//TODO: multi-thread (thread-pool)
-	for (int i = 0; i < uncachedChunkCoords.size() && i < m_MeshChunkPerFrame; ++i)
+	for (int i = 0; i < uncachedChunkCoords.size() && i < m_UploadBudgetPerFrame; ++i)
 	{
 		m_Renderer.Upload(m_World, glm::ivec3(uncachedChunkCoords[i]));
 	}

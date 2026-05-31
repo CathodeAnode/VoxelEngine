@@ -13,9 +13,13 @@ VoxelEdit<ChunkType, ChunkContainer>::VoxelEdit(ChunkContainer& chunkContainer, 
 template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
 ViewRingBuffer<glm::ivec3>::Range VoxelEdit<ChunkType, ChunkContainer>::GetDirtyChunks(unsigned int budget)
 {
-	ViewRingBuffer<glm::ivec3>::Range view = m_DirtyChunks.View(budget);
-	m_DirtyChunks.Consume(view.Size());
-	return view;
+	return m_DirtyChunks.View(budget);
+}
+
+template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
+void VoxelEdit<ChunkType, ChunkContainer>::FlushDirtyChunks(unsigned int viewSize)
+{
+	m_DirtyChunks.Consume(viewSize);
 }
 
 template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
@@ -26,10 +30,8 @@ void VoxelEdit<ChunkType, ChunkContainer>::SetVoxel(const glm::ivec3& coords, RG
 		, coords.x, coords.y, coords.z
 		, color);
 
-	const glm::ivec3 chunkCoords = WorldToChunk(coords, ChunkType::Size);
+	glm::ivec3 chunkCoords = WorldToChunk(coords, ChunkType::Size);
 	std::shared_ptr<ChunkType> chunk = m_ChunkContainer.GetChunk(chunkCoords);
-
-	assert(chunk->GetUID() != 0);
 
 	const glm::ivec3 localVoxelCoords = VoxelToLocal(coords, ChunkType::Size);
 
@@ -39,7 +41,7 @@ void VoxelEdit<ChunkType, ChunkContainer>::SetVoxel(const glm::ivec3& coords, RG
 	chunkOpaqueData[ChunkType::OpaqueDataIndexAt(localVoxelCoords.x, localVoxelCoords.z)] |= (1 << localVoxelCoords.y);
 	chunkColorData[ChunkType::ColorDataIndexAt(localVoxelCoords.x, localVoxelCoords.y, localVoxelCoords.z)] = color;
 
-	m_DirtyChunks.Push(chunkCoords);
+	m_DirtyChunks.Push(std::move(chunkCoords));
 }
 
 template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
@@ -50,17 +52,15 @@ void VoxelEdit<ChunkType, ChunkContainer>::RemoveVoxel(const glm::ivec3& coords)
 		, coords.x, coords.y, coords.z);
 
 
-	const glm::ivec3 chunkCoords = WorldToChunk(coords, ChunkType::Size);
+	glm::ivec3 chunkCoords = WorldToChunk(coords, ChunkType::Size);
 	std::shared_ptr<ChunkType> chunk = m_ChunkContainer.GetChunk(chunkCoords);
-
-	assert(chunk->GetUID() != 0);
 
 	const glm::ivec3 localVoxelCoords = VoxelToLocal(coords, ChunkType::Size);
 
 	auto chunkOpaqueData = chunk->GetOpaqueSpan();
 	chunkOpaqueData[ChunkType::OpaqueDataIndexAt(localVoxelCoords.x, localVoxelCoords.z)] &= ~(1 << localVoxelCoords.y);
 
-	m_DirtyChunks.Push(chunkCoords);
+	m_DirtyChunks.Push(std::move(chunkCoords));
 
 }
 

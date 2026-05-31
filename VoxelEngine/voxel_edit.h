@@ -1,6 +1,8 @@
 #ifndef __VE_VOXEL_EDIT_H
 #define __VE_VOXEL_EDIT_H
 
+#include <algorithm>
+
 #include <glm/glm.hpp>
 
 #include "view_ring_buffer.h"
@@ -20,6 +22,7 @@ public:
 	explicit VoxelEdit(ChunkContainer& chunkContainer, unsigned int cap);
 
 	ViewRingBuffer<glm::ivec3>::Range GetDirtyChunks(unsigned int budget);
+	void FlushDirtyChunks(unsigned int viewSize);
 
 	void SetVoxel(const glm::ivec3& coords, RGBAColor color);
 	void RemoveVoxel(const glm::ivec3& coords);
