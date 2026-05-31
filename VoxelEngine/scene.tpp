@@ -30,6 +30,7 @@ void Scene<ChunkType>::Update(const glm::vec3& cameraPos, int chunkMeshingTuning
 {
 	PROFILE_FUNCTION();
 	m_UploadBudgetPerFrame += chunkMeshingTuning;
+	m_RemainingUploadBudget = m_UploadBudgetPerFrame;
 
 	_ProcessDirtyChunks();
 	_UploadRequestedChunks();
@@ -76,7 +77,7 @@ void Scene<ChunkType>::_ProcessDirtyChunks()
 {
 	PROFILE_FUNCTION();
 
-	auto dirtyChunks = m_VoxelEdit.GetDirtyChunks(m_UploadBudgetPerFrame);
+	auto dirtyChunks = m_VoxelEdit.GetDirtyChunks(m_RemainingUploadBudget);
 
 	for (const auto& chunkCoord : dirtyChunks)
 	{
@@ -85,8 +86,7 @@ void Scene<ChunkType>::_ProcessDirtyChunks()
 
 	const unsigned int uploadedCount = dirtyChunks.Size();
 
-	m_UploadBudgetPerFrame -= uploadedCount;
-	m_VoxelEdit.FlushDirtyChunks(uploadedCount);
+	m_RemainingUploadBudget -= uploadedCount;
 }
 
 template<typename ChunkType>
@@ -96,7 +96,7 @@ inline void Scene<ChunkType>::_UploadRequestedChunks()
 
 	std::span<const glm::ivec4> uncachedChunkCoords = m_Renderer.GetGPURequestedChunks(); // get frustum culling results from preivous frame (frame n-1)
 
-	for (int i = 0; i < uncachedChunkCoords.size() && i < m_UploadBudgetPerFrame; ++i)
+	for (int i = 0; i < uncachedChunkCoords.size() && i < m_RemainingUploadBudget; ++i)
 	{
 		m_Renderer.Upload(m_World, glm::ivec3(uncachedChunkCoords[i]));
 	}

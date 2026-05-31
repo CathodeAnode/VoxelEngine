@@ -285,12 +285,6 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
     glBindBuffer(GL_PARAMETER_BUFFER, 0);
 }
 
-template <typename ChunkType>
-void VoxelRenderer<ChunkType>::_RefreshFrame()
-{
-    std::cerr << "_RefreshFrame Not Implemented yet.\n";
-}
-
 template<typename ChunkType>
 void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size_t cachePageSize, size_t cachePages)
 {

@@ -45,6 +45,7 @@ private:
 
 	unsigned int m_RenderDist = 0;
 	unsigned int m_UploadBudgetPerFrame = 16;
+	unsigned int m_RemainingUploadBudget = m_UploadBudgetPerFrame;
 
 };
 

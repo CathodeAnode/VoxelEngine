@@ -76,8 +76,6 @@ private:
 	};
 
 private:
-	// this function will clear the objects queued to be rendered on the next frame
-	void _RefreshFrame();
 	inline void _CreateGPUBuffers(size_t indirectBufferSize, size_t cachePageSize, size_t cachePages);
 	inline void _CompileShaders();
 	inline void _EnableOpenGLFeatures();

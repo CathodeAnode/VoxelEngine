@@ -13,13 +13,9 @@ VoxelEdit<ChunkType, ChunkContainer>::VoxelEdit(ChunkContainer& chunkContainer, 
 template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
 ViewRingBuffer<glm::ivec3>::Range VoxelEdit<ChunkType, ChunkContainer>::GetDirtyChunks(unsigned int budget)
 {
-	return m_DirtyChunks.View(budget);
-}
-
-template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
-void VoxelEdit<ChunkType, ChunkContainer>::FlushDirtyChunks(unsigned int viewSize)
-{
-	m_DirtyChunks.Consume(viewSize);
+	auto view = m_DirtyChunks.View(budget);
+	m_DirtyChunks.Consume(view.Size());
+	return view;
 }
 
 template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
