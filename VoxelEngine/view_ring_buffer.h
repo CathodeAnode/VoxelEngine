@@ -16,15 +16,78 @@ class ViewRingBuffer
 public:
     explicit ViewRingBuffer(size_t capacity)
         : m_Capacity(NextPowerOfTwo(capacity))
-        , m_Data(std::make_unique<T[]>(m_Capacity))
     {
         assert(capacity > 0);
+
+        m_Data = new T[m_Capacity];
     }
 
-    ViewRingBuffer(const ViewRingBuffer&) = delete;
-    ViewRingBuffer& operator=(const ViewRingBuffer&) = delete;
-    ViewRingBuffer(ViewRingBuffer&&) = delete;
-    ViewRingBuffer& operator=(ViewRingBuffer&&) = delete;
+    ~ViewRingBuffer()
+    {
+        if (m_Data)
+        {
+            delete[] m_Data;
+            m_Data = nullptr;
+        }
+    }
+
+    ViewRingBuffer(const ViewRingBuffer& other)
+        : m_Capacity(other.m_Capacity)
+        , m_Head(other.m_Head)
+        , m_Tail(other.m_Tail)
+    {
+        m_Data = new T[m_Capacity];
+        std::memcpy(m_Data, other.m_Data, m_Capacity * sizeof(T));
+    }
+
+    ViewRingBuffer& operator=(const ViewRingBuffer& other)
+    {
+        if (this != &other)
+        {
+            delete[] m_Data;
+
+            m_Capacity = other.m_Capacity;
+            m_Head = other.m_Head;
+            m_Tail = other.m_Tail;
+
+            std::memcpy(m_Data, other.m_Data, m_Capacity * sizeof(T));
+        }
+
+        return *this;
+    }
+
+    ViewRingBuffer(ViewRingBuffer&& other)
+        : m_Capacity(other.m_Capacity)
+        , m_Head(other.m_Head)
+        , m_Tail(other.m_Tail)
+    {
+        m_Data = std::move(other.m_Data);
+
+        other.m_Data = nullptr;
+        other.m_Capacity = 0;
+        other.m_Head = 0;
+        other.m_Tail = 0;
+    }
+
+    ViewRingBuffer& operator=(ViewRingBuffer&& other)
+    {
+        if (this != &other)
+        {
+            delete[] m_Data;
+
+            m_Capacity = other.m_Capacity;
+            m_Head = other.m_Head;
+            m_Tail = other.m_Tail;
+            m_Data = std::move(other.m_Data);
+
+            other.m_Data = nullptr;
+            other.m_Capacity = 0;
+            other.m_Head = 0;
+            other.m_Tail = 0;
+        }
+
+        return *this;
+    }
 
     class Range
     {
@@ -180,7 +243,7 @@ public:
     {
         assert(m_Data != nullptr);
         return Range(
-            m_Data.get(),
+            m_Data,
             m_Capacity,
             m_Head,
             std::min(count, Size()));
@@ -208,9 +271,9 @@ private:
     }
 
 private:
-    std::unique_ptr<T[]> m_Data;
+    T* m_Data = nullptr;
 
-    size_t m_Capacity;
+    size_t m_Capacity = 0;
 
     size_t m_Head = 0;
     size_t m_Tail = 0;
