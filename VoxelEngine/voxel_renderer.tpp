@@ -50,33 +50,17 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer, cons
     PROFILE_FUNCTION();
 
     VoxelObjectID chunkUID = UIDManager::Generate(chunkCoords);
-    if (IsCached(chunkUID))
-    {
-        LOG_DEBUG(EngineSystem::RENDERER,
-            "[Frame: {}] ChunkMeshUpdate chunk VoxelObjectHandle={} coords=({},{},{}) container VoxelObjectHandle={}",
-            FrameCounter::Get(), chunkUID,
-            chunkCoords.x, chunkCoords.y, chunkCoords.z,
-            chunkContainer.GetUID());
 
-        VoxelObjectID tempUID = UIDManager::Generate();
-        std::vector<VoxelQuad> chunkMesh = m_Mesher->MeshChunk(chunkContainer, chunkCoords);
-        m_DataCache.AllocateObject(tempUID, chunkMesh.data(), chunkMesh.size());
+    LOG_DEBUG(EngineSystem::RENDERER,
+        "[Frame: {}] {} chunk VoxelObjectHandle={} coords=({},{},{}) container VoxelObjectHandle={}",
+        FrameCounter::Get(),
+        (IsCached(chunkUID) ? "ChunkMeshUpdate" : "ChunkMeshNew"),
+        chunkUID,
+        chunkCoords.x, chunkCoords.y, chunkCoords.z,
+        chunkContainer.GetUID());
 
-        m_DataCache.Swap(tempUID, chunkUID);
-        //_RefreshFrame();
-        m_DataCache.DeallocateObject(tempUID);
-    }
-    else
-    {
-        LOG_DEBUG(EngineSystem::RENDERER,
-            "[Frame: {}] ChunkMeshNew chunk VoxelObjectHandle={} coords=({},{},{}) container VoxelObjectHandle={}",
-            FrameCounter::Get(), chunkUID,
-            chunkCoords.x, chunkCoords.y, chunkCoords.z,
-            chunkContainer.GetUID());
-
-        std::vector<VoxelQuad> chunkMesh = m_Mesher->MeshChunk(chunkContainer, chunkCoords);
-        m_DataCache.AllocateObject(chunkUID, chunkMesh.data(), chunkMesh.size());
-    }
+    std::vector<VoxelQuad> chunkMesh = m_Mesher->MeshChunk(chunkContainer, chunkCoords);
+    m_DataCache.AllocateObject(chunkUID, chunkMesh.data(), chunkMesh.size());
 }
 
 template<typename ChunkType>
@@ -87,29 +71,14 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer)
 
     VoxelObjectID containerUID = chunkContainer.GetUID();
 
-    if (IsCached(containerUID))
-    {
-        LOG_DEBUG(EngineSystem::RENDERER,
-            "[Frame: {}] ChunkContainerMeshUpdate VoxelObjectHandle={}",
-            FrameCounter::Get(), containerUID);
-        VoxelObjectID tempUID = UIDManager::Generate();
-        std::vector<VoxelQuad> chunkMesh = m_Mesher->MeshChunk(chunkContainer);
-        m_DataCache.AllocateObject(tempUID, chunkMesh.data(), chunkMesh.size());
+    LOG_DEBUG(EngineSystem::RENDERER,
+        "[Frame: {}] {} VoxelObjectHandle={}",
+        FrameCounter::Get(),
+        (IsCached(containerUID) ? "ChunkContainerMeshUpdate" : "ChunkContainerMeshNew"),
+        containerUID);
 
-        m_DataCache.Swap(tempUID, containerUID);
-        //_RefreshFrame();
-        m_DataCache.DeallocateObject(tempUID);
-    }
-    else
-    {
-        LOG_DEBUG(EngineSystem::RENDERER,
-            "[Frame: {}] ChunkContainerMeshNew VoxelObjectHandle={}",
-            FrameCounter::Get(), containerUID);
-
-        std::vector<VoxelQuad> chunkMesh = m_Mesher->MeshChunkGrid(chunkContainer);
-        m_DataCache.AllocateObject(containerUID, chunkMesh.data(), chunkMesh.size());
-    }
-
+    std::vector<VoxelQuad> chunkMesh = m_Mesher->MeshChunkGrid(chunkContainer);
+    m_DataCache.AllocateObject(containerUID, chunkMesh.data(), chunkMesh.size());
 }
 
 template <typename ChunkType>
