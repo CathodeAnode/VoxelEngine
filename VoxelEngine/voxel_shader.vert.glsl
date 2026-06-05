@@ -47,53 +47,66 @@ VoxelQuad unpackVoxelQuad(uint data)
 void main() 
 {
     VoxelQuad q = unpackVoxelQuad(aData);
-    vec3 quadPos = aPos;
-  
 
-    if(q.direction == 1u) 
-    {
-        // -z face
-        quadPos = quadPos + vec3(0.0f, 0.0, 1.0f);
-        quadPos.xy *= vec2(q.width, q.height);
-        quadPos += vec3(q.x,q.y,q.z);
-    }
-    else if(q.direction == 0u) 
-    {
-        // +z face
-        quadPos.xy *= vec2(q.width, q.height);
-        quadPos += vec3(q.x,q.y,q.z);
-    }
-    else if(q.direction == 3u) 
-    {
-        // -x face
-        quadPos = quadPos.zyx;
-        quadPos.yz *= vec2(q.height, q.width);
-        quadPos += vec3(q.x,q.y,q.z);
+    float u = aPos.x;
+    float v = aPos.y;
 
-    }
-    else if(q.direction == 2u) 
+    vec3 origin;
+    vec3 right;
+    vec3 up;
+
+    switch(q.direction)
     {
-        // +x face
-        quadPos = quadPos.zyx;
-        quadPos.yz *= vec2(q.height, q.width);
-        quadPos += vec3(q.x,q.y,q.z);
-        quadPos.x += 1.0f;
+        case 0u: // +Z
+            origin = vec3(q.x, q.y, q.z);
+            right  = vec3(1.0, 0.0, 0.0);
+            up     = vec3(0.0, 1.0, 0.0);
+            right *= float(q.width);
+            up    *= float(q.height);
+            break;
+
+        case 1u: // -Z
+            origin = vec3(q.x + q.width, q.y, q.z + 1);
+            right  = vec3(-1.0, 0.0, 0.0);
+            up     = vec3(0.0, 1.0, 0.0);
+            right *= float(q.width);
+            up    *= float(q.height);
+            break;
+
+        case 2u: // +X
+            origin = vec3(q.x + 1, q.y, q.z);
+            right  = vec3(0,0,1);
+            up     = vec3(0,1,0);
+            right *= float(q.width);
+            up    *= float(q.height);
+            break;
+
+        case 3u: // -X
+            origin = vec3(q.x, q.y, q.z + q.width);
+            right  = vec3(0,0,-1);
+            up     = vec3(0,1,0);
+            right *= float(q.width);
+            up    *= float(q.height);
+            break;
+
+        case 4u: // +Y
+            origin = vec3(q.x, q.y + 1, q.z);
+            right  = vec3(1.0, 0.0, 0.0);
+            up     = vec3(0.0, 0.0, 1.0);
+            right *= float(q.width);
+            up    *= float(q.height);
+            break;
+
+        default: // 5u (-Y)
+            origin = vec3(q.x, q.y, q.z + q.height);
+            right  = vec3(1.0, 0.0, 0.0);
+            up     = vec3(0.0, 0.0, -1.0);
+            right *= float(q.width);
+            up    *= float(q.height);
+            break;
     }
-    else if(q.direction == 4u) 
-    {
-        // +y face
-        quadPos = quadPos.xzy;
-        quadPos.xz *= vec2(q.width, q.height);
-        quadPos += vec3(q.x,q.y,q.z);
-        quadPos.y += 1.0f;
-    }
-    else if(q.direction == 5u) 
-    {
-        // -y face
-        quadPos = quadPos.xzy;
-        quadPos.xz *= vec2(q.width, q.height);
-        quadPos += vec3(q.x,q.y,q.z);
-    }
+
+    vec3 quadPos = origin + right * u + up * v;
     
     
     quadPos += positions[gl_DrawID].xyz;
