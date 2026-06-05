@@ -36,12 +36,12 @@ struct ChunkData
 		center = chunkContainer.GetChunk(chunkLocation);
 
 		// X neighbors
-		std::shared_ptr<const ChunkType> xPos = chunkContainer.GetChunk(chunkLocation + glm::ivec3(1, 0, 0));  // right
-		std::shared_ptr<const ChunkType> xNeg = chunkContainer.GetChunk(chunkLocation + glm::ivec3(-1, 0, 0)); // left
+		std::shared_ptr<const ChunkType> xPos = chunkContainer.GetChunk(chunkLocation + glm::ivec3(-1, 0, 0));  // right
+		std::shared_ptr<const ChunkType> xNeg = chunkContainer.GetChunk(chunkLocation + glm::ivec3(1, 0, 0)); // left
 
 		// Z neighbors
-		std::shared_ptr<const ChunkType> zPos = chunkContainer.GetChunk(chunkLocation + glm::ivec3(0, 0, 1));  // forward
-		std::shared_ptr<const ChunkType> zNeg = chunkContainer.GetChunk(chunkLocation + glm::ivec3(0, 0, -1)); // backward
+		std::shared_ptr<const ChunkType> zPos = chunkContainer.GetChunk(chunkLocation + glm::ivec3(0, 0, -1));  // forward
+		std::shared_ptr<const ChunkType> zNeg = chunkContainer.GetChunk(chunkLocation + glm::ivec3(0, 0, 1)); // backward
 
 		// Y neighbors
 		yPos = chunkContainer.GetChunk(chunkLocation + glm::ivec3(0, 1, 0));  // above
