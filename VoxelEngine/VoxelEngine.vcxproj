@@ -116,7 +116,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>vepch.h</PrecompiledHeaderFile>
@@ -139,7 +139,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>vepch.h</PrecompiledHeaderFile>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
       <FavorSizeOrSpeed>Speed</FavorSizeOrSpeed>
     </ClCompile>
@@ -170,6 +170,7 @@
     <ClCompile Include="mouse.cpp" />
     <ClCompile Include="perlin_noise.cpp" />
     <ClCompile Include="profiler.cpp" />
+    <ClCompile Include="thread_pool.cpp" />
     <ClCompile Include="uid_manager.cpp" />
     <ClCompile Include="voxel_renderer.tpp" />
     <ClCompile Include="screen.cpp" />
@@ -215,6 +216,7 @@
     <ClInclude Include="mouse_codes.h" />
     <ClInclude Include="perlin_noise.h" />
     <ClInclude Include="profiler.h" />
+    <ClInclude Include="thread_pool.h" />
     <ClInclude Include="view_ring_buffer.h" />
     <ClInclude Include="scene.h" />
     <ClInclude Include="uid_manager.h" />
