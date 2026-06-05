@@ -127,7 +127,6 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::AllocateObject(const TObjectID& ob
 	const size_t pageSize = m_PagedBuffer.GetPageSize();
 	const unsigned int pagesNeeded = (count + pageSize - 1) / pageSize;
 
-	
 	ObjectAllocation alloc = AllocatePages(obj, pagesNeeded);
 
 	uint32_t current = alloc.startPage;

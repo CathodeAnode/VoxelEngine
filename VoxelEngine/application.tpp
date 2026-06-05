@@ -30,10 +30,10 @@ template<typename ChunkT>
 Application<ChunkT>::Application(unsigned int width, unsigned int height, const char* title, const glm::vec3& startingWorldPos)
     : m_MainJoystick(0)
     , m_Screen(width, height, title)
-    , m_World(startingWorldPos, LOADED_CHUNK_DISTANCE, std::make_unique<Simple3DPerlinNoiseGeneration<ChunkT>>())
+    , m_World(startingWorldPos, LOADED_CHUNK_DISTANCE, std::make_unique<FlatChunkGeneration<ChunkT>>(0))
     , m_Renderer(std::make_unique<MesherT>())
     , m_VoxelEdit(m_World, 1024)
-    , m_Scene(m_World, m_Renderer)
+    , m_Scene(m_World, m_Renderer, m_VoxelEdit)
     , m_DebuggingRenderer(ChunkT::Size)
 {
     const float camNear = 0.1f;

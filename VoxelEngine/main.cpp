@@ -36,7 +36,6 @@
 
 // current TODOs:
 // - (feat) adjusting scene's chunks to be meshed tunning parameter at runtime (increase/decrease depending on how long last frame took)
-// - (feat) complete/redesign voxel edit pipeline
 // - (perf) gpu frustum culling shared varaibles optimizations
 // - (perf) configure opengl face culling
 // - (feat/perf) multi-thread chunk meshing using thread pool system
@@ -84,7 +83,7 @@ int main()
 	LogManager::Initialize();
 	constexpr unsigned int SCREEN_WIDTH = 800, SCREEN_HEIGHT = 600;
 
-	LogManager::GetInstance()->GetLogger(EngineSystem::GPU_BUFFER)->set_level(spdlog::level::debug);
+	//LogManager::GetInstance()->GetLogger(EngineSystem::RENDERER)->set_level(spdlog::level::debug);
 
 	PROFILE_BEGIN_SESSION("Startup", "../Profile-Startup.json");
 	auto* app = new Application<Chunk8>(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");

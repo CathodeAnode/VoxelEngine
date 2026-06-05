@@ -36,6 +36,9 @@ public:
 private:
 	ViewRingBuffer<glm::ivec3> m_DirtyChunks;
 	ChunkContainer& m_ChunkContainer;
+
+private:
+	void _MarkDirtyChunksForVoxel(const glm::ivec3& chunkCoords, const glm::ivec3& localVoxelCoords);
 };
 
 #include "voxel_edit.tpp"

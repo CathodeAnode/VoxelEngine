@@ -37,7 +37,7 @@ void VoxelEdit<ChunkType, ChunkContainer>::SetVoxel(const glm::ivec3& coords, RG
 	chunkOpaqueData[ChunkType::OpaqueDataIndexAt(localVoxelCoords.x, localVoxelCoords.z)] |= (1 << localVoxelCoords.y);
 	chunkColorData[ChunkType::ColorDataIndexAt(localVoxelCoords.x, localVoxelCoords.y, localVoxelCoords.z)] = color;
 
-	m_DirtyChunks.Push(std::move(chunkCoords));
+	_MarkDirtyChunksForVoxel(chunkCoords, localVoxelCoords);
 }
 
 template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
@@ -56,8 +56,34 @@ void VoxelEdit<ChunkType, ChunkContainer>::RemoveVoxel(const glm::ivec3& coords)
 	auto chunkOpaqueData = chunk->GetOpaqueSpan();
 	chunkOpaqueData[ChunkType::OpaqueDataIndexAt(localVoxelCoords.x, localVoxelCoords.z)] &= ~(1 << localVoxelCoords.y);
 
-	m_DirtyChunks.Push(std::move(chunkCoords));
+	_MarkDirtyChunksForVoxel(chunkCoords, localVoxelCoords);
 
+}
+
+template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
+void VoxelEdit<ChunkType, ChunkContainer>::_MarkDirtyChunksForVoxel(const glm::ivec3& chunkCoords, const glm::ivec3& localVoxelCoords)
+{
+	m_DirtyChunks.Push(chunkCoords);
+
+	constexpr int S = ChunkType::Size;
+
+	if (localVoxelCoords.x == 0)
+		m_DirtyChunks.Push(chunkCoords + glm::ivec3(-1, 0, 0));
+
+	if (localVoxelCoords.x == S - 1)
+		m_DirtyChunks.Push(chunkCoords + glm::ivec3(1, 0, 0));
+
+	if (localVoxelCoords.y == 0)
+		m_DirtyChunks.Push(chunkCoords + glm::ivec3(0, -1, 0));
+
+	if (localVoxelCoords.y == S - 1)
+		m_DirtyChunks.Push(chunkCoords + glm::ivec3(0, 1, 0));
+
+	if (localVoxelCoords.z == 0)
+		m_DirtyChunks.Push(chunkCoords + glm::ivec3(0, 0, -1));
+
+	if (localVoxelCoords.z == S - 1)
+		m_DirtyChunks.Push(chunkCoords + glm::ivec3(0, 0, 1));
 }
 
 #endif
