@@ -100,7 +100,7 @@ struct ChunkData
 };
 
 
-template<typename ChunkType> 
+template<typename ChunkType>
 class VoxelMesher
 {
 public:
@@ -127,12 +127,8 @@ private:
 	using ColorFaceMasksMap = std::unordered_map<RGBAColor, FaceVisibilityMasks>;
 
 private:
-	FaceVisibilityMasks m_FaceMasks;    // TODO: make thread_local
-	std::vector<VoxelQuad> m_ChunkMesh; // TODO: make thread_local
-
-private:
 	inline static QuadMeshData _CompressQuadData(uint8_t x, uint8_t y, uint8_t z, uint8_t w, uint8_t h, uint8_t dir);
-	inline ColorFaceMasksMap _SplitVoxelsByColor(uint8_t axis, std::shared_ptr<const ChunkType> chunk);
+	inline ColorFaceMasksMap _SplitVoxelsByColor(uint8_t axis, std::shared_ptr<const ChunkType> chunk, FaceVisibilityMasks& faceMasks);
 };
 
 

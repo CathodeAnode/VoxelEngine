@@ -10,8 +10,6 @@ VoxelMesher<ChunkType>::VoxelMesher()
 {
 	PROFILE_FUNCTION();
 	LOG_INFO(EngineSystem::VOXEL_MESHER, "Initializing Greedy Mesher");
-	std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
-	m_ChunkMesh.reserve(CS_2 * 6);
 }
 
 template<typename ChunkType>
@@ -33,7 +31,7 @@ QuadMeshData VoxelMesher<ChunkType>::_CompressQuadData(uint8_t x, uint8_t y, uin
 }
 
 template<typename ChunkType>
-VoxelMesher<ChunkType>::ColorFaceMasksMap VoxelMesher<ChunkType>::_SplitVoxelsByColor(uint8_t axis, std::shared_ptr<const ChunkType> chunk)
+VoxelMesher<ChunkType>::ColorFaceMasksMap VoxelMesher<ChunkType>::_SplitVoxelsByColor(uint8_t axis, std::shared_ptr<const ChunkType> chunk, FaceVisibilityMasks& faceMasks)
 {
 	PROFILE_FUNCTION();
 
@@ -46,7 +44,7 @@ VoxelMesher<ChunkType>::ColorFaceMasksMap VoxelMesher<ChunkType>::_SplitVoxelsBy
 
 		for (uint8_t row = 0; row < CS; row++)
 		{
-			VoxelColumnData& col = m_FaceMasks[row + bitsLocation];
+			VoxelColumnData& col = faceMasks[row + bitsLocation];
 
 			while (col != 0)
 			{
@@ -91,133 +89,130 @@ template<ChunkProvider<ChunkType> ChunkContainer>
 std::vector<VoxelQuad> VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& chunkContainer, const glm::ivec3& chunkLocation)
 {
 	PROFILE_FUNCTION();
+	FaceVisibilityMasks faceMasks;
+	std::vector<VoxelQuad> chunkMesh;
+	std::fill(faceMasks.begin(), faceMasks.end(), 0);
+	chunkMesh.reserve(CS_2 * 6);
+
 	ChunkData<ChunkType> chunks;
-	{
-		PROFILE_SCOPE("Init");
+	LOG_DEBUG(EngineSystem::VOXEL_MESHER,
+		"Meshing chunk at ({}, {}, {}) in container {}",
+		chunkLocation.x,
+		chunkLocation.y,
+		chunkLocation.z,
+		chunkContainer.GetUID());
 
-		LOG_DEBUG(EngineSystem::VOXEL_MESHER,
-			"Meshing chunk at ({}, {}, {}) in container {}",
-			chunkLocation.x,
-			chunkLocation.y,
-			chunkLocation.z,
-			chunkContainer.GetUID());
+	std::fill(faceMasks.begin(), faceMasks.end(), 0);
+	chunkMesh.clear();
 
-		std::fill(m_FaceMasks.begin(), m_FaceMasks.end(), 0);
-		m_ChunkMesh.clear();
-		
-		chunks.GatherData(chunkContainer, chunkLocation);
-	}
-	{
-		PROFILE_SCOPE("Hull");
-		// face hulling
-		for (int a = 1; a < CS_P - 1; a++) {
-			for (int b = 1; b < CS_P - 1; b++) {
-				const VoxelColumnData columnBits = chunks.GetPaddedColumnRowBits(b, a);
-				const int baIndex = (b - 1) + (a - 1) * CS;
-				const int abIndex = (a - 1) + (b - 1) * CS;
+	chunks.GatherData(chunkContainer, chunkLocation);
+
+	// face hulling
+	for (int a = 1; a < CS_P - 1; a++) {
+		for (int b = 1; b < CS_P - 1; b++) {
+			const VoxelColumnData columnBits = chunks.GetPaddedColumnRowBits(b, a);
+			const int baIndex = (b - 1) + (a - 1) * CS;
+			const int abIndex = (a - 1) + (b - 1) * CS;
 
 
-				// +ve, -ve z
-				m_FaceMasks[baIndex + 0 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b, a - 1));
-				m_FaceMasks[baIndex + 1 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b, a + 1));
+			// +ve, -ve z
+			faceMasks[baIndex + 0 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b, a - 1));
+			faceMasks[baIndex + 1 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b, a + 1));
 
-				// +ve, -ve x
-				m_FaceMasks[abIndex + 2 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b + 1, a));
-				m_FaceMasks[abIndex + 3 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b - 1, a));
+			// +ve, -ve x
+			faceMasks[abIndex + 2 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b + 1, a));
+			faceMasks[abIndex + 3 * CS_2] = (columnBits & ~chunks.GetPaddedColumnRowBits(b - 1, a));
 
-				//TODO optimize and cleanup
-				// +ve, -ve y
-				VoxelColumnData postiveYMask = ~(chunks.yPos->GetColumnRow(b - 1, a - 1) & VoxelColumnData(1) << CS - 1);
-				VoxelColumnData negitveYMask = ~(chunks.yNeg->GetColumnRow(b - 1, a - 1) & (VoxelColumnData(1) << CS - 1) >> CS - 1);
+			// +ve, -ve y
+			const VoxelColumnData postiveBottomBit = chunks.yPos->GetColumnRow(b - 1, a - 1) & VoxelColumnData(1);
+			const VoxelColumnData negitiveTopBit = chunks.yNeg->GetColumnRow(b - 1, a - 1) & (VoxelColumnData(1) << (CS - 1));
+			VoxelColumnData postiveYMask = ~(postiveBottomBit << (CS - 1));
+			VoxelColumnData negitveYMask = ~(negitiveTopBit >> (CS - 1));
 
-				m_FaceMasks[baIndex + 4 * CS_2] = columnBits & ~(columnBits >> 1) & postiveYMask;
-				m_FaceMasks[baIndex + 5 * CS_2] = columnBits & ~(columnBits << 1) & negitveYMask;
-			}
+			faceMasks[baIndex + 4 * CS_2] = (columnBits & ~(columnBits >> 1)) & postiveYMask;
+			faceMasks[baIndex + 5 * CS_2] = (columnBits & ~(columnBits << 1)) & negitveYMask;
 		}
 	}
 
+	// Greedy Meshing
+	for (uint8_t axis = 0; axis < 6; axis++)
 	{
-		PROFILE_SCOPE("Mesh");
-		// Greedy Meshing
-		for (uint8_t axis = 0; axis < 6; axis++)
+		ColorFaceMasksMap data = _SplitVoxelsByColor(axis, chunks.center, faceMasks);
+
+		for (auto& [type, axisFaceMask] : data)
 		{
-			ColorFaceMasksMap data = _SplitVoxelsByColor(axis, chunks.center);
-
-			for (auto& [type, axisFaceMask] : data)
+			for (uint8_t layer = 0; layer < CS; layer++)
 			{
-				for (uint8_t layer = 0; layer < CS; layer++)
+				const int bitsLocation = layer * CS;
+				VoxelColumnData* layerPtr = &axisFaceMask[bitsLocation];
+				for (uint8_t row = 0; row < CS; row++)
 				{
-					const int bitsLocation = layer * CS;
-					VoxelColumnData* layerPtr = &axisFaceMask[bitsLocation];
-					for (uint8_t row = 0; row < CS; row++)
+					VoxelColumnData rowMask = layerPtr[row];
+					if (rowMask == 0) continue;
+					uint8_t y = 0;
+
+					while (y < CS)
 					{
-						VoxelColumnData rowMask = layerPtr[row];
-						if (rowMask == 0) continue;
-						uint8_t y = 0;
+						y += GetTrailingZeros(rowMask >> y);
 
-						while (y < CS)
+						if (y >= CS) break;
+
+						uint8_t h = GetTrailingOnes(rowMask >> y);
+
+						VoxelColumnData hMask = (h >= CS) ? ~VoxelColumnData(0) : ((VoxelColumnData(1) << h) - 1);
+						VoxelColumnData mask = hMask << y;
+
+						uint8_t w = 1;
+
+						while (row + w < CS)
 						{
-							y += GetTrailingZeros(rowMask >> y);
+							// fetch bits spanning height, in the next row
+							VoxelColumnData* nextRowPtr = &layerPtr[row + w];
 
-							if (y >= CS) break;
+							if (((*nextRowPtr >> y) & hMask) != hMask)
+								break; // can no longer expand horizontally
 
-							uint8_t h = GetTrailingOnes(rowMask >> y);
-
-							VoxelColumnData hMask = (h >= CS) ? ~VoxelColumnData(0) : ((VoxelColumnData(1) << h) - 1);
-							VoxelColumnData mask = hMask << y;
-
-							uint8_t w = 1;
-
-							while (row + w < CS)
-							{
-								// fetch bits spanning height, in the next row
-								VoxelColumnData* nextRowPtr = &layerPtr[row + w];
-
-								if (((*nextRowPtr >> y) & hMask) != hMask)
-									break; // can no longer expand horizontally
-
-								*nextRowPtr &= ~mask;
-								w++;
-							}
-
-							QuadMeshData quad;
-							switch (axis) 
-							{
-							case 0:
-							case 1:
-								quad = _CompressQuadData(row, y, layer, w, h, axis);
-								break;
-							case 2:
-							case 3:
-								quad = _CompressQuadData(layer, y, row, w, h, axis);
-								break;
-							case 4:
-							case 5:
-								quad = _CompressQuadData(y, layer, row, h, w, axis);
-								break;
-							}
-
-							LOG_TRACE(EngineSystem::VOXEL_MESHER,
-								"Chunk quad upload -> chunk=({},{},{}), size={}x{}, pos=({},{},{}), axis={}, color=0x{:08X}"
-								, chunkLocation.x, chunkLocation.y, chunkLocation.z
-								, w, h
-								, row, y, layer
-								, axis
-								, type);
-
-							m_ChunkMesh.push_back({ quad, type });
-
-
-							y += h;
-
+							*nextRowPtr &= ~mask;
+							w++;
 						}
+
+						QuadMeshData quad;
+						switch (axis)
+						{
+						case 0:
+						case 1:
+							quad = _CompressQuadData(row, y, layer, w, h, axis);
+							break;
+						case 2:
+						case 3:
+							quad = _CompressQuadData(layer, y, row, w, h, axis);
+							break;
+						case 4:
+						case 5:
+							quad = _CompressQuadData(y, layer, row, h, w, axis);
+							break;
+						}
+
+						LOG_TRACE(EngineSystem::VOXEL_MESHER,
+							"Chunk quad upload -> chunk=({},{},{}), size={}x{}, pos=({},{},{}), axis={}, color=0x{:08X}"
+							, chunkLocation.x, chunkLocation.y, chunkLocation.z
+							, w, h
+							, row, y, layer
+							, axis
+							, type);
+
+						chunkMesh.push_back({ quad, type });
+
+
+						y += h;
+
 					}
 				}
 			}
 		}
 	}
 
-	return m_ChunkMesh;
+	return chunkMesh;
 }
 
 template<typename ChunkType>

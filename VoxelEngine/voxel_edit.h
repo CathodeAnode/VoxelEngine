@@ -31,6 +31,16 @@ public:
 
 	void SetSphere(glm::ivec3 coords, uint16_t radius, RGBAColor color);
 	void RemoveSphere(glm::ivec3 coords, uint16_t radius);
+	
+	// TODO: implement methods for a unified edit
+	//	- methods to being the unified edit, such as BeginEdit and EndEdit
+	//	- methods to manipulate chunk data without appending chunks to dirty chunk container
+
+	// High-level concept:
+	// - user begins edit with BeginEdit, state is reset and new edit is begun
+	// - user manipulates chunk data with methods, dirty chunks are added to an unordered set
+	// - user ends edit with EndEdit, all the chunks marked as dirty in unordered set
+	//   during unified edit is added to m_DirtyChunks container
 
 
 private:

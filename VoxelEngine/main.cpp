@@ -1,7 +1,3 @@
-#define VE_LOGGING_ENABLED 1
-#define VE_PROFILING_ENABLED 1
-
-
 #include <glad\glad.h>
 #include <GLFW\glfw3.h>
 #include <glm/glm.hpp>
@@ -37,7 +33,6 @@
 // current TODOs:
 // - (feat) adjusting scene's chunks to be meshed tunning parameter at runtime (increase/decrease depending on how long last frame took)
 // - (perf) gpu frustum culling shared varaibles optimizations
-// - (perf) configure opengl face culling
 // - (feat/perf) multi-thread chunk meshing using thread pool system
 // - (fix) rendering with chunksize 16, 32 (recent bug, make a single source of truth for chunk sizing)
 //		- current known areas where chunk size is set to const 8:

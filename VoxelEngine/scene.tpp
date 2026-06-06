@@ -5,12 +5,14 @@
 #include "profiler.h"
 
 template<typename ChunkType>
-Scene<ChunkType>::Scene(ChunkManager<ChunkType>& world, 
+Scene<ChunkType>::Scene(unsigned int numThreads,
+	ChunkManager<ChunkType>& world, 
 	VoxelRenderer<ChunkType>& renderer, VoxelEdit<ChunkType, 
 	ChunkManager<ChunkType>>& voxelEdit)
     : m_World(world)
     , m_Renderer(renderer)
 	, m_VoxelEdit(voxelEdit)
+	, m_ThreadPool(numThreads)
 {
 
 }
@@ -66,7 +68,7 @@ inline void Scene<ChunkType>::_UploadLoadedTerrain(const glm::vec3& cameraPos)
 			{
 				
 				glm::ivec3 chunkCoords = cameraChunkCoords + glm::ivec3(x, y, z);
-				m_Renderer.Upload(m_World, chunkCoords);
+				_MeshNUploadChunk(chunkCoords);
 			}
 		}
 	}
@@ -81,7 +83,7 @@ void Scene<ChunkType>::_ProcessDirtyChunks()
 
 	for (const auto& chunkCoord : dirtyChunks)
 	{
-		m_Renderer.Upload(m_World, chunkCoord);
+		_MeshNUploadChunk(chunkCoord);
 	}
 
 	const unsigned int uploadedCount = dirtyChunks.Size();
@@ -98,8 +100,20 @@ inline void Scene<ChunkType>::_UploadRequestedChunks()
 
 	for (int i = 0; i < uncachedChunkCoords.size() && i < m_RemainingUploadBudget; ++i)
 	{
-		m_Renderer.Upload(m_World, glm::ivec3(uncachedChunkCoords[i]));
+		_MeshNUploadChunk(glm::ivec3(uncachedChunkCoords[i]));
 	}
+}
+
+template<typename ChunkType>
+inline void Scene<ChunkType>::_MeshNUploadChunk(const glm::ivec3& chunkCoords)
+{
+	m_ThreadPool.AddTask(
+		[&renderer = m_Renderer,
+		&world = m_World,
+		chunkCoords]()
+		{
+			renderer.Upload(world, chunkCoords);
+		});
 }
 
 #endif
