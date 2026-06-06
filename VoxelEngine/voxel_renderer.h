@@ -20,8 +20,6 @@
 #include "shader.h"
 #include "camera.h"
 #include "voxel_math.h"
-#include "types.h"
-
 
 template<typename ChunkType> 
 class VoxelMesher;

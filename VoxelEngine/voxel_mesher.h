@@ -53,7 +53,7 @@ struct ChunkData
 		{
 			std::memcpy(&paddedData[1 + ((i+1) * VoxelMesher<ChunkType>::CS_P)],
 				&data[0 + (i * VoxelMesher<ChunkType>::CS)],
-				VoxelMesher<ChunkType>::CS);
+				VoxelMesher<ChunkType>::CS * sizeof(ChunkType::ValueType));
 		}
 
 		// copy neighbour z-chunks opaque data
@@ -61,13 +61,13 @@ struct ChunkData
 		data = zPos->GetOpaqueData();
 		std::memcpy(&paddedData[1],
 			&data[0 + (VoxelMesher<ChunkType>::CS - 1) * VoxelMesher<ChunkType>::CS],
-			VoxelMesher<ChunkType>::CS);
+			VoxelMesher<ChunkType>::CS * sizeof(ChunkType::ValueType));
 
 		// z negative
 		data = zNeg->GetOpaqueData();
 		std::memcpy(&paddedData[1 + (VoxelMesher<ChunkType>::CS_P - 1) * VoxelMesher<ChunkType>::CS_P],
 			&data[0],
-			VoxelMesher<ChunkType>::CS);
+			VoxelMesher<ChunkType>::CS * sizeof(ChunkType::ValueType));
 
 		// x postive
 		data = xPos->GetOpaqueData();

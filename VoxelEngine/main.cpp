@@ -33,12 +33,11 @@
 // current TODOs:
 // - (feat) adjusting scene's chunks to be meshed tunning parameter at runtime (increase/decrease depending on how long last frame took)
 // - (perf) gpu frustum culling shared varaibles optimizations
-// - (feat/perf) multi-thread chunk meshing using thread pool system
-// - (fix) rendering with chunksize 16, 32 (recent bug, make a single source of truth for chunk sizing)
-//		- current known areas where chunk size is set to const 8:
-//			1. terrian_culling compute shader
-//			2. voxel math helper funcs? (note: ideally change helper functions to take size as template param rather than function param)
-// - (chore): seperation between voxel engine library & application [Note: This will allow for mutliple applications for testing and showcasing purposes]
+// - (fix) rendering with chunksize 32, quad cannot be packed into 5 bits each for xyzwh, need extra 5 extra bits
+// - (feat): seperation between voxel engine library & application [Note: This will allow for mutliple applications for testing and showcasing purposes]
+// - (fix): more robust frame buffers sizing, indirect buffer, chunk position buffer, gpu chunk requests buffer
+// - (fix): fix program crashing when render distance is too high (likely cache sizing issues, need more robust cache sizing)
+// - (build): cmake build system with chunk size param, logging param, profiling param (current infrastructure supports this)
 
 
 // future TODOs:
@@ -78,10 +77,10 @@ int main()
 	LogManager::Initialize();
 	constexpr unsigned int SCREEN_WIDTH = 800, SCREEN_HEIGHT = 600;
 
-	//LogManager::GetInstance()->GetLogger(EngineSystem::RENDERER)->set_level(spdlog::level::debug);
+	//LogManager::GetInstance()->GetLogger(EngineSystem::VOXEL_MESHER)->set_level(spdlog::level::trace);
 
 	PROFILE_BEGIN_SESSION("Startup", "../Profile-Startup.json");
-	auto* app = new Application<Chunk8>(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
+	auto* app = new Application<Chunk16>(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
 	app->Init();
 	PROFILE_END_SESSION();
 

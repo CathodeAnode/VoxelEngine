@@ -8,7 +8,6 @@
 
 const uint NULL_PAGE = 0xFFFFFFFFU;
 const uint CACHE_PAGE_SIZE = 400;
-const uint CHUNK_SIZE = 8;
 const uint64_t EMPTY_KEY = 0xFFFFFFFFFFFFFFFFUL;
 const uint REF_BIT = 2; // 0b10
 
@@ -170,7 +169,7 @@ void DrawChunk(ObjectAllocation alloc, ivec3 chunkPos)
             indirectCmds[index].instanceCount = (current - start) * CACHE_PAGE_SIZE;
 
             indirectCmds[index].instanceCount += uint(current == alloc.endPage) * alloc.totalElementCount; // Branchless addition
-            chunkPositions[index] = vec4(chunkPos, 0) * CHUNK_SIZE;
+            chunkPositions[index] = vec4(chunkPos, 0) * u_ChunkSize;
 
             start = next;
         }

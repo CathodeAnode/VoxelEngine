@@ -36,6 +36,12 @@ Application<ChunkT>::Application(unsigned int width, unsigned int height, const 
     , m_Scene(8, m_World, m_Renderer, m_VoxelEdit)
     , m_DebuggingRenderer(ChunkT::Size)
 {
+    LOG_INFO(EngineSystem::VOXEL_ENGINE,
+        "Voxel engine configuration: chunk={}x{}x{}",
+        ChunkT::Size,
+        sizeof(ChunkT::ValueType) * 8,
+        ChunkT::Size);
+
     const float camNear = 0.1f;
     const float camFar = 1000.0f;
 
@@ -203,7 +209,7 @@ void Application<ChunkT>::ProcessInput()
 
     double scroll = Mouse::getScrollDY();
     if (scroll != 0.0)
-        camera.UpdateCameraZoom(scroll);
+        camera.speed += scroll * 3;
 
     if (Mouse::buttonUp(MouseKey::ButtonLeft))
     {

@@ -9,7 +9,6 @@ out vec2 TextCoord;
 flat out uint face;
 flat out uint color;
 
-uniform mat4 model;
 uniform mat4 view;
 uniform mat4 projection;
 
@@ -110,7 +109,6 @@ void main()
     
     
     quadPos += positions[gl_DrawID].xyz;
-    //quadPos += vec3(positions[gl_DrawID].x, positions[gl_DrawID].y, -positions[gl_DrawID].z);
 
 	gl_Position = projection * view * vec4(quadPos, 1.0f);
     face = q.direction;
