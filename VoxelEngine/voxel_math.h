@@ -2,6 +2,7 @@
 #define VOXEL_MATH_H
 
 #include <glm/glm.hpp>
+#include <cmath>
 
 /// <summary>
 /// mod that returns [0, divisor)
@@ -15,6 +16,18 @@ inline int PositiveMod(int val, int div)
 }
 
 /// <summary>
+/// Integer floor division (works correctly for negative numbers)
+/// </summary>
+inline int FloorDiv(int val, int div) 
+{
+    int q = val / div;
+    int r = val % div;
+
+    // if val < 0 and r != 0, subtract 1
+    return q - ((r != 0) & (val < 0));
+}
+
+/// <summary>
 /// Convert world voxel coords to local chunk coords
 /// </summary>
 /// <param name="worldPos"></param>
@@ -23,9 +36,9 @@ inline int PositiveMod(int val, int div)
 inline glm::ivec3 WorldToChunk(const glm::ivec3& worldPos, int chunkSize)
 {
     return glm::ivec3(
-        worldPos.x < 0 ? static_cast<int>(std::floor(worldPos.x / chunkSize)) - 1 : static_cast<int>(std::floor(worldPos.x / chunkSize)),
-        worldPos.y < 0 ? static_cast<int>(std::floor(worldPos.y / chunkSize)) - 1 : static_cast<int>(std::floor(worldPos.y / chunkSize)),
-        worldPos.z < 0 ? static_cast<int>(std::floor(worldPos.z / chunkSize)) - 1 : static_cast<int>(std::floor(worldPos.z / chunkSize))
+        FloorDiv(worldPos.x, chunkSize),
+        FloorDiv(worldPos.y, chunkSize),
+        FloorDiv(worldPos.z, chunkSize)
     );
 }
 
