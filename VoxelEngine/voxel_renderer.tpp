@@ -235,6 +235,7 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
     m_VoxelShader.Use();
     m_VoxelShader.SetMat4("view", camera.GetViewMatrix());
     m_VoxelShader.SetMat4("projection", camera.GetProjMatrix());
+    m_VoxelShader.SetVec3("lightDir", glm::normalize(glm::vec3(-0.3f, -1.0f, -0.2f)));
 
     glBindVertexArray(m_VAO);
     glBindBuffer(GL_DRAW_INDIRECT_BUFFER, m_IndirectCommandBuffer.GetName());

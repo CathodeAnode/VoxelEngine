@@ -323,6 +323,11 @@ void Shader::SetIVec3(const char* name, const glm::ivec3& val) const
 	glUniform3iv(GetVarLocation(name), 1, glm::value_ptr(val));
 }
 
+void Shader::SetVec3(const char* name, const glm::vec3& value) const
+{
+	glUniform3fv(GetVarLocation(name), 1, glm::value_ptr(value));
+}
+
 void Shader::SetBool(const char* name, bool value) const
 {
 	glUniform1i(GetVarLocation(name), (int)value);

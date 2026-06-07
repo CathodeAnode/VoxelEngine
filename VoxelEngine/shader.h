@@ -56,6 +56,7 @@ public:
 	void SetVec4(const char* name, const glm::vec4& value) const;
 	void SetVec4Array(const char* name, const glm::vec4* values, unsigned int count) const;
 	void SetIVec3(const char* name, const glm::ivec3& value) const;
+	void SetVec3(const char* name, const glm::vec3& value) const;
 
 	void SetBool(const char* name, bool value) const;
 	void SetInt(const char* name, int value) const;

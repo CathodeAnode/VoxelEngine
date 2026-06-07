@@ -6,7 +6,7 @@ layout (location=2) in uint aData;
 layout (location=3) in uint aColor;
 
 out vec2 TextCoord;
-flat out uint face;
+flat out vec3 normal;
 flat out uint color;
 
 uniform mat4 view;
@@ -62,6 +62,7 @@ void main()
             up     = vec3(0.0, 1.0, 0.0);
             right *= float(q.width);
             up    *= float(q.height);
+            normal = vec3(0, 0, 1);
             break;
 
         case 1u: // -Z
@@ -70,6 +71,7 @@ void main()
             up     = vec3(0.0, 1.0, 0.0);
             right *= float(q.width);
             up    *= float(q.height);
+            normal = vec3(0, 0, -1);
             break;
 
         case 2u: // +X
@@ -78,6 +80,7 @@ void main()
             up     = vec3(0,1,0);
             right *= float(q.width);
             up    *= float(q.height);
+            normal = vec3(1, 0, 0);
             break;
 
         case 3u: // -X
@@ -86,6 +89,7 @@ void main()
             up     = vec3(0,1,0);
             right *= float(q.width);
             up    *= float(q.height);
+            normal = vec3(-1, 0, 0);
             break;
 
         case 4u: // +Y
@@ -94,6 +98,7 @@ void main()
             up     = vec3(0.0, 0.0, 1.0);
             right *= float(q.width);
             up    *= float(q.height);
+            normal = vec3(0, 1, 0);
             break;
 
         default: // 5u (-Y)
@@ -102,6 +107,7 @@ void main()
             up     = vec3(0.0, 0.0, -1.0);
             right *= float(q.width);
             up    *= float(q.height);
+            normal = vec3(0, -1, 0);
             break;
     }
 
@@ -111,6 +117,5 @@ void main()
     quadPos += positions[gl_DrawID].xyz;
 
 	gl_Position = projection * view * vec4(quadPos, 1.0f);
-    face = q.direction;
     color = aColor;
 }
