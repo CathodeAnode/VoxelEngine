@@ -80,7 +80,7 @@ int main()
 	//LogManager::GetInstance()->GetLogger(EngineSystem::VOXEL_MESHER)->set_level(spdlog::level::trace);
 
 	PROFILE_BEGIN_SESSION("Startup", "../Profile-Startup.json");
-	auto* app = new Application<Chunk16>(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
+	auto* app = new Application<Chunk8>(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
 	app->Init();
 	PROFILE_END_SESSION();
 

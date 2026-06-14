@@ -51,7 +51,7 @@ private:
 	ThreadPool m_ThreadPool;
 
 	unsigned int m_RenderDist = 0;
-	unsigned int m_UploadBudgetPerFrame = 64;
+	unsigned int m_UploadBudgetPerFrame = 200;
 	unsigned int m_RemainingUploadBudget = m_UploadBudgetPerFrame;
 
 };

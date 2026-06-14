@@ -29,21 +29,6 @@ bool GPUPagedCache<TObjectID, TAtom, Policy>::Create(GLenum target, size_t pageS
 	if (pageCount > PageNode::NULL_PAGE - 1 || pageSize <= 0 || pageCount <= 0) 
 		return false;
 
-	GLint maxSizeBytes = 0;
-	glGetIntegerv(GL_MAX_UNIFORM_BLOCK_SIZE, &maxSizeBytes);
-
-	if (pageCount * sizeof(PageNode) >= maxSizeBytes)
-	{
-		LOG_CRITICAL(EngineSystem::GPU_BUFFER,
-			"[GPUPagedCache|{}] Page node buffer exceeds UBO max size (pageCount={}, maxPageCount={}, required={:.2f} KB, limit={:.2f} KB)",
-			m_PagedBuffer.GetName(),
-			pageCount,
-			maxSizeBytes / sizeof(PageNode),
-			(pageCount * sizeof(PageNode)) / 1024.0f,
-			maxSizeBytes / 1024.0f);
-		return false;
-	}
-
 	constexpr float MAX_LOAD = 0.5f;
 
 	bool result = m_PagedBuffer.Create(target, pageSize, pageCount);

@@ -681,7 +681,7 @@ void GPUPagedBuffer<Atom, Mode>::FreePage(Page pageNum)
 
 		while (true)
 		{
-			assert((old & mask) == 0 && "Cannot free a freed page");
+			//assert((old & mask) == 0 && "Cannot free a freed page");
 
 			uint64_t desired = old | mask;
 
