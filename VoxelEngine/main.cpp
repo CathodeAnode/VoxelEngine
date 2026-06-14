@@ -36,7 +36,6 @@
 // - (fix) rendering with chunksize 32, quad cannot be packed into 5 bits each for xyzwh, need extra 5 extra bits
 // - (feat): seperation between voxel engine library & application [Note: This will allow for mutliple applications for testing and showcasing purposes]
 // - (fix): more robust frame buffers sizing, indirect buffer, chunk position buffer, gpu chunk requests buffer
-// - (fix): fix program crashing when render distance is too high (likely cache sizing issues, need more robust cache sizing)
 // - (build): cmake build system with chunk size param, logging param, profiling param (current infrastructure supports this)
 
 

@@ -136,7 +136,7 @@ namespace ProfilerUtils {
 }
 
 
-#if VE_PROFILING_ENABLED
+#ifdef VE_PROFILING_ENABLED
 // TODO: move to macros header file
 #if defined(__GNUC__) || (defined(__MWERKS__) && (__MWERKS__ >= 0x3000)) || (defined(__ICC) && (__ICC >= 600)) || defined(__ghs__)
 #define FUNC_SIG __PRETTY_FUNCTION__
