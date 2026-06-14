@@ -62,14 +62,20 @@
 
 // Future Future:
 // - physics system
+// - ECS https://github.com/skypjack/entt
+// - character/npc model rendering (non-voxel)
 // - audio system
 // - animation system
 // - pathfinding system
 // - networking system
+// - resource manager/loader https://giordi91.github.io/post/resourcesystem/
+
 
 extern "C" {
 	__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 }
+
+using ChunkType = Chunk8;
 
 int main() 
 {
@@ -79,7 +85,15 @@ int main()
 	//LogManager::GetInstance()->GetLogger(EngineSystem::VOXEL_MESHER)->set_level(spdlog::level::trace);
 
 	PROFILE_BEGIN_SESSION("Startup", "../Profile-Startup.json");
-	auto* app = new Application<Chunk8>(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine");
+
+	//TODO: clean this up, so it is simpler to use. Ideally user would not have to use a unique ptr to define generation stratgy
+	std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generationStratgy = std::make_unique<
+		HeightmapChunkGeneration<ChunkType>>("Grand_Canyon.png", 
+											800.0f // max height
+			);
+	/*std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generationStratgy = std::make_unique<
+		Simple3DPerlinNoiseGeneration<ChunkType>>();*/
+	auto* app = new Application<ChunkType>(SCREEN_WIDTH, SCREEN_HEIGHT, "VoxelEngine", std::move(generationStratgy));
 	app->Init();
 	PROFILE_END_SESSION();
 

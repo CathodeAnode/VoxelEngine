@@ -114,7 +114,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>VE_LOGGING_ENABLED,VE_PROFILING_ENABLED</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VE_LOGGING_ENABLED;VE_PROFILING_ENABLED</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
@@ -137,7 +137,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>VE_LOGGING_ENABLED,VE_PROFILING_ENABLED</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VE_LOGGING_ENABLED;VE_PROFILING_ENABLED</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>vepch.h</PrecompiledHeaderFile>
@@ -176,6 +176,7 @@
     <ClCompile Include="mouse.cpp" />
     <ClCompile Include="perlin_noise.cpp" />
     <ClCompile Include="profiler.cpp" />
+    <ClCompile Include="stb_image_impl.cpp" />
     <ClCompile Include="thread_pool.cpp" />
     <ClCompile Include="uid_manager.cpp" />
     <ClCompile Include="voxel_renderer.tpp" />
@@ -222,6 +223,7 @@
     <ClInclude Include="mouse_codes.h" />
     <ClInclude Include="perlin_noise.h" />
     <ClInclude Include="profiler.h" />
+    <ClInclude Include="stb_image.h" />
     <ClInclude Include="thread_pool.h" />
     <ClInclude Include="view_ring_buffer.h" />
     <ClInclude Include="scene.h" />
@@ -237,6 +239,9 @@
     <ClInclude Include="shader.h" />
     <ClInclude Include="types.h" />
     <ClInclude Include="chunk_grid.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Grand_Canyon.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

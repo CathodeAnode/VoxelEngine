@@ -31,6 +31,7 @@ public:
 	bool IsEmpty() const;
 	void ToggleBit(int x, int y, int z);
 	void SetVoxel(int x, int y, int z, RGBAColor color);
+	void ClearVoxel(int x, int y, int z);
 
 	inline RGBAColor GetVoxelColorAt(int x, int y, int z) const { return m_ColorData[ColorDataIndexAt(x, y, z)]; }
 	inline RGBAColor GetVoxelColorAt(glm::ivec3 coords) const { return GetVoxelColorAt(coords.x, coords.y, coords.z); }

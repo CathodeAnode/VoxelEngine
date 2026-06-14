@@ -43,6 +43,21 @@ inline glm::ivec3 WorldToChunk(const glm::ivec3& worldPos, int chunkSize)
 }
 
 /// <summary>
+/// Convert chunk coordinates to world voxel origin (min corner of chunk in world space)
+/// </summary>
+/// <param name="chunkCoords">Chunk coordinate in chunk-space</param>
+/// <param name="chunkSize">Size of one chunk in voxels</param>
+/// <returns>World-space voxel coordinate of chunk origin</returns>
+inline glm::ivec3 ChunkToWorldOrigin(const glm::ivec3& chunkCoords, int chunkSize)
+{
+    return glm::ivec3(
+        chunkCoords.x * chunkSize,
+        chunkCoords.y * chunkSize,
+        chunkCoords.z * chunkSize
+    );
+}
+
+/// <summary>
 /// Convert world voxel coords to local voxel coords inside chunk
 /// </summary>
 /// <param name="voxelCoords"></param>

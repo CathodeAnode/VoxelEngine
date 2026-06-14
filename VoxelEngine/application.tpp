@@ -27,10 +27,10 @@
 
 // TODO make loadedChunkDistance & terrian generation strargy user defiend
 template<typename ChunkT>
-Application<ChunkT>::Application(unsigned int width, unsigned int height, const char* title, const glm::vec3& startingWorldPos)
+Application<ChunkT>::Application(unsigned int width, unsigned int height, const char* title, std::unique_ptr<ChunkGeneratorStrategy<ChunkT>> generator, const glm::vec3& startingWorldPos)
     : m_MainJoystick(0)
     , m_Screen(width, height, title)
-    , m_World(startingWorldPos, LOADED_CHUNK_DISTANCE, std::make_unique<Simple3DPerlinNoiseGeneration<ChunkT>>())
+    , m_World(startingWorldPos, LOADED_CHUNK_DISTANCE, std::move(generator))
     , m_Renderer(std::make_unique<MesherT>())
     , m_VoxelEdit(m_World, 1024)
     , m_Scene(8, m_World, m_Renderer, m_VoxelEdit)

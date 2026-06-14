@@ -25,7 +25,7 @@ public:
     using SceneT = Scene<ChunkT>;
 
 public:
-    Application(unsigned int width, unsigned int height, const char* title, const glm::vec3& startingWorldPos=glm::vec3(1));
+    Application(unsigned int width, unsigned int height, const char* title, std::unique_ptr<ChunkGeneratorStrategy<ChunkT>> generator, const glm::vec3& startingWorldPos=glm::vec3(1));
     ~Application();
 
     bool Init();

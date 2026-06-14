@@ -118,5 +118,11 @@ void Chunk<T, ChunkSize>::SetVoxel(int x, int y, int z, RGBAColor color)
 	m_ColorData[ColorDataIndexAt(x, y, z)] = color;
 }
 
+template<typename T, unsigned int ChunkSize>
+void Chunk<T, ChunkSize>::ClearVoxel(int x, int y, int z)
+{
+	m_OpaqueData[OpaqueDataIndexAt(x, z)] |= (T(0) << y);
+}
+
 
 #endif
