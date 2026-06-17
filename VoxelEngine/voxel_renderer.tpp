@@ -51,7 +51,7 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer, cons
 
     VoxelObjectID chunkUID = UIDManager::Generate(chunkCoords);
 
-    LOG_DEBUG(EngineSystem::RENDERER,
+    LOG_TRACE(EngineSystem::RENDERER,
         "[Frame: {}] {} chunk VoxelObjectHandle={} coords=({},{},{}) container VoxelObjectHandle={}",
         FrameCounter::Get(),
         (IsCached(chunkUID) ? "ChunkMeshUpdate" : "ChunkMeshNew"),
@@ -71,7 +71,7 @@ void VoxelRenderer<ChunkType>::Upload(const ChunkContainer& chunkContainer)
 
     VoxelObjectID containerUID = chunkContainer.GetUID();
 
-    LOG_DEBUG(EngineSystem::RENDERER,
+    LOG_TRACE(EngineSystem::RENDERER,
         "[Frame: {}] {} VoxelObjectHandle={}",
         FrameCounter::Get(),
         (IsCached(containerUID) ? "ChunkContainerMeshUpdate" : "ChunkContainerMeshNew"),
@@ -141,7 +141,7 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     m_FrustumCullingShader.SetUInt("u_RenderDistance", renderDistance);
     m_FrustumCullingShader.SetUInt("u_ChunkSize", static_cast<unsigned int>(ChunkType::Size));
     m_FrustumCullingShader.SetIVec3("u_CameraChunkPos", WorldToChunk(glm::ivec3(camera.pos), static_cast<unsigned int>(ChunkType::Size)));
-
+        
     std::byte* uncachedBase = m_UncachedChunks.GetCurrentContents();
     std::byte* indirectBase = m_IndirectCommandBuffer.GetCurrentContents();
 

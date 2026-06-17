@@ -2,6 +2,7 @@
 #define SCENE_TPP
 
 #include "scene.h"
+#include "logger.h"
 #include "profiler.h"
 
 template<typename ChunkType>
@@ -21,6 +22,10 @@ template<typename ChunkType>
 void Scene<ChunkType>::Init(unsigned int renderDistance, const glm::vec3& startingCameraPos)
 {
 	PROFILE_FUNCTION();
+
+	LOG_INFO(EngineSystem::VOXEL_ENGINE,
+		"Scene initialized: render distance = {}, mesh upload budget = {} chunks/frame",
+		renderDistance, m_UploadBudgetPerFrame);
 
 	m_RenderDist = renderDistance;
 

@@ -16,7 +16,6 @@ template<typename ChunkType>
 void ChunkManager<ChunkType>::InitializeStartingChunks()
 {
 	PROFILE_FUNCTION();
-	//assert(loadedChunksDistance % 2 != 0, "loaded chunks distance must be odd");
 
 	// pre-allocate all chunks in memory
 	const int halfLoadedDist = m_LoadedChunks.GetLength() / 2;
@@ -33,7 +32,7 @@ void ChunkManager<ChunkType>::InitializeStartingChunks()
 	}
 
 	LOG_INFO(EngineSystem::CHUNK,
-		"ChunkManager starting Chunks initialized. "
+		"ChunkManager Initialized. "
 		"VoxelObjectHandle={}, PlayerChunk=({}, {}, {}), LoadDist={}, GeneratorStrategy={}",
 		k_Uid,
 		m_LastPlayerGridCoords.x,
@@ -123,7 +122,7 @@ bool ChunkManager<ChunkType>::Update(const glm::vec3& playerWorldCoords)
 template<typename ChunkType>
 VoxelObjectID ChunkManager<ChunkType>::GetChunkID(const glm::ivec3& chunkCoords)
 {
-	return m_LoadedChunks.GetChunkID(chunkCoords);
+	return k_Uid;
 }
 
 template<typename ChunkType>

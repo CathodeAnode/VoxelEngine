@@ -19,10 +19,11 @@
 
 // Cache configuration
 #define CACHE_PAGE_SIZE 400
-#define CACHE_NUM_OF_PAGES 31250
-#define AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK 3
+#define CACHE_NUM_OF_PAGES 15625
+#define AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK 5
 
 #define LOADED_CHUNK_DISTANCE 15
+#define RENDER_CHUNK_DISTANCE 15
 
 
 // TODO make loadedChunkDistance & terrian generation strargy user defiend
@@ -74,6 +75,16 @@ Application<ChunkT>::~Application()
 template<typename ChunkT>
 bool Application<ChunkT>::Init()
 {
+    if (LOADED_CHUNK_DISTANCE > RENDER_CHUNK_DISTANCE)
+    {
+        LOG_WARN(
+            EngineSystem::VOXEL_ENGINE,
+            "Loaded chunk distance ({}) exceeds render distance ({}). Some loaded chunks will not be rendered.",
+            LOADED_CHUNK_DISTANCE,
+            RENDER_CHUNK_DISTANCE
+        );
+    }
+
     if (!m_Screen.init())
     {
         LOG_CRITICAL(EngineSystem::CORE, "Screen initialization failed");
@@ -96,13 +107,13 @@ bool Application<ChunkT>::Init()
     m_Renderer.Init(
         CACHE_NUM_OF_PAGES,
         CACHE_PAGE_SIZE,
-        static_cast<size_t>(AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(LOADED_CHUNK_DISTANCE, 3))
+        static_cast<size_t>(AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(RENDER_CHUNK_DISTANCE, 3))
     );
 
     Gizmos::Init();
 
     m_World.InitializeStartingChunks();
-    m_Scene.Init(LOADED_CHUNK_DISTANCE, m_CameraManager.GetActiveCamera().pos);
+    m_Scene.Init(RENDER_CHUNK_DISTANCE, m_CameraManager.GetActiveCamera().pos);
 
     return true;
 }

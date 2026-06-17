@@ -9,7 +9,6 @@
 const uint NULL_PAGE = 0xFFFFFFFFU;
 const uint CACHE_PAGE_SIZE = 400;
 const uint64_t EMPTY_KEY = 0xFFFFFFFFFFFFFFFFUL;
-const uint REF_BIT = 2; // 0b10
 
 struct ChunkAABB
 {
