@@ -65,6 +65,11 @@ public:
 
         return freePages;
     }
+
+    static uint32_t CountAllocatedPages(const Cache& cache, const ObjectAllocation& alloc)
+    {
+        return cache._CountAllocatedPages(alloc);
+    }
 };
 
 #endif

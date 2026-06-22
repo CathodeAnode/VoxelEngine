@@ -99,6 +99,127 @@ TEST_F(GPUPagedCacheTests, DestroyPopulatedCache)
     ASSERT_DEBUG_DEATH(cache.Has(objectID), "table != nullptr");
 }
 
+TEST_F(GPUPagedCacheTests, AllocatePagesSinglePage)
+{
+    Cache cache;
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 4, 32));
+
+    auto alloc = cache.AllocatePages(1, 1);
+
+    ASSERT_EQ(alloc.startPage, alloc.endPage);
+    ASSERT_EQ(Inspector::GetFreePagesCount(cache), 31);
+}
+
+TEST_F(GPUPagedCacheTests, AllocatePagesExactRemainingCapacity)
+{
+    Cache cache;
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 4, 4));
+
+    // Allocate all 4 pages
+    auto alloc = cache.AllocatePages(1, 4);
+
+    ASSERT_EQ(Inspector::GetFreePagesCount(cache), 0);
+    ASSERT_EQ(Inspector::CountAllocatedPages(cache, alloc), 4);
+}
+
+TEST_F(GPUPagedCacheTests, AllocatePagesSingleEviction)
+{
+    Cache cache;
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 4, 4));
+
+    // Fill cache
+    cache.AllocatePages(1, 2);
+    cache.AllocatePages(2, 2);
+
+    ASSERT_EQ(Inspector::GetFreePagesCount(cache), 0);
+
+    // This must evict exactly one object
+    auto alloc = cache.AllocatePages(3, 2);
+
+    ASSERT_EQ(Inspector::CountAllocatedPages(cache, alloc), 2);
+    ASSERT_EQ(Inspector::GetFreePagesCount(cache), 0);
+}
+
+TEST_F(GPUPagedCacheTests, AllocatePagesMultipleEvictions)
+{
+    Cache cache;
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 4, 4));
+
+    cache.AllocatePages(1, 1);
+    cache.AllocatePages(2, 1);
+    cache.AllocatePages(3, 1);
+    cache.AllocatePages(4, 1);
+
+    ASSERT_EQ(Inspector::GetFreePagesCount(cache), 0);
+
+    // Needs 3 pages -> must evict 3 objects
+    auto alloc = cache.AllocatePages(5, 3);
+
+    ASSERT_EQ(Inspector::CountAllocatedPages(cache, alloc), 3);
+    ASSERT_EQ(Inspector::GetFreePagesCount(cache), 0);
+}
+
+TEST_F(GPUPagedCacheTests, AllocatePagesFragmentedAllocation)
+{
+    Cache cache;
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 4, 8));
+
+    // Allocate 3 objects of 2 pages each
+    auto obj1 = cache.AllocatePages(1, 2);
+    ASSERT_EQ(Inspector::CountAllocatedPages(cache, obj1), 2);
+
+    auto obj2 = cache.AllocatePages(2, 2);
+    ASSERT_EQ(Inspector::CountAllocatedPages(cache, obj2), 2);
+
+    auto obj3 = cache.AllocatePages(3, 2);
+    ASSERT_EQ(Inspector::CountAllocatedPages(cache, obj3), 2);
+
+
+    ASSERT_EQ(Inspector::GetFreePagesCount(cache), 2);
+
+    // Free the middle one -> fragmentation
+    cache.DeallocateObject(2);
+
+    ASSERT_EQ(Inspector::GetFreePagesCount(cache), 4);
+
+    // Allocate 1 page -> must pick from fragmented region
+    auto alloc = cache.AllocatePages(4, 3);
+
+    ASSERT_EQ(Inspector::CountAllocatedPages(cache, alloc), 3);
+    ASSERT_EQ(Inspector::GetFreePagesCount(cache), 1);
+}
+
+TEST_F(GPUPagedCacheTests, AllocatePagesReusesFreedPages)
+{
+    Cache cache;
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 4, 8));
+
+    auto alloc1 = cache.AllocatePages(1, 2);
+    uint32_t firstStart = alloc1.startPage;
+
+    cache.DeallocateObject(1);
+
+    ASSERT_EQ(Inspector::GetFreePagesCount(cache), 8);
+
+    auto alloc2 = cache.AllocatePages(2, 2);
+
+    ASSERT_EQ(alloc2.startPage, firstStart);  // must reuse same pages
+}
+
+TEST_F(GPUPagedCacheTests, AllocatePagesAppendsToExistingAllocation)
+{
+    Cache cache;
+    ASSERT_TRUE(cache.Create(GL_SHADER_STORAGE_BUFFER, 4, 8));
+
+    auto alloc1 = cache.AllocatePages(1, 1);
+    uint32_t first = alloc1.startPage;
+
+    auto alloc2 = cache.AllocatePages(1, 2); // append 2 more pages
+
+    ASSERT_EQ(Inspector::CountAllocatedPages(cache, alloc2), 3);
+    ASSERT_EQ(alloc2.startPage, first);
+}
+
 TEST_F(GPUPagedCacheTests, DeallocateObjectBasic)
 {
     Cache cache;
@@ -870,19 +991,6 @@ TEST_F(GPUPagedCacheTests, LargeObjectChurnStressTest)
         }
     }
 }
-
-// AllocatePages
-// - AllocatePages single page
-// - AllocatePages exact remaining capacity
-// - AllocatePages exceed cache page count
-// - AllocatePages with 0
-// - AllocatePages causes single eviction
-// - AllocatePages causes multiple evictions
-// - AllocatePages fragmented allocation
-// - AllocatePages contiguous allocation
-// - AllocatePages after deallocation reuses pages
-// - AllocatePages append to existing allocation
-
 
 // PushBackToObject
 // - PushBackToObject existing object
