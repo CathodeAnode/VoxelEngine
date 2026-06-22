@@ -104,7 +104,7 @@ private:
     [[nodiscard]] uint32_t _EvictAndTakePages(const ObjectID& obj, ObjectAllocation& targetAlloc, uint32_t pagesNeeded);
     SplitChain _SplitVictimChain(const ObjectAllocation& victim, uint32_t pagesToTake);
     void _AttachPages(const ObjectID& obj, ObjectAllocation& target, uint32_t start, uint32_t end);
-
+    uint32_t _CountAllocatedPages(const ObjectAllocation& alloc) const;
 
 };
 

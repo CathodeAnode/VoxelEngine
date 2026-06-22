@@ -21,7 +21,6 @@ class VoxelRenderer;
 template<typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
 class VoxelEdit;
 
-//TODO: multi-thread (thread-pool) chunk meshing/uploading
 template<typename ChunkType>
 class Scene
 {

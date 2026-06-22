@@ -105,7 +105,9 @@ inline void Scene<ChunkType>::_UploadRequestedChunks()
 
 	for (int i = 0; i < uncachedChunkCoords.size() && i < m_RemainingUploadBudget; ++i)
 	{
-		_MeshNUploadChunk(glm::ivec3(uncachedChunkCoords[i]));
+		glm::ivec3 chunkCoord = uncachedChunkCoords[i];
+		if(!m_Renderer.IsCached(UIDManager::Generate(chunkCoord)))
+			_MeshNUploadChunk(chunkCoord);
 	}
 }
 

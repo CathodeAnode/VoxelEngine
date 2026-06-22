@@ -98,10 +98,7 @@ template<typename TObjectID, typename TAtom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
 void GPUPagedCache<TObjectID, TAtom, Policy>::AllocateObject(const TObjectID& obj, const TAtom* data, size_t count)
 {
-	if (Has(obj))
-	{
-		DeallocateObject(obj);
-	}
+	DeallocateObject(obj);
 
 	if (count == 0)
 	{
@@ -122,7 +119,7 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::AllocateObject(const TObjectID& ob
 		uint32_t next = m_PageNodes[current].next;
 
 		size_t copySize = std::min(remaining, pageSize);
-		memcpy(&m_PagedBuffer[current][0], &data[index], copySize * sizeof(TAtom)); // copysize needs to be in bytes?
+		memcpy(&m_PagedBuffer[current][0], &data[index], copySize * sizeof(TAtom));
 		index += copySize;
 		remaining -= copySize;
 
@@ -152,7 +149,7 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::PushBackToObject(const TObjectID& 
 	const unsigned int pageElemOffset = objAlloc.totalElementCount % pageSize;
 
 	// Allocate new page if needed
-	if (pageIndex > objAlloc.GetPageCount(pageSize))
+	if (pageIndex >= _CountAllocatedPages(objAlloc))
 	{
 		LOG_DEBUG(EngineSystem::GPU_BUFFER,
 			"[GPUPagedCache|{}] Push back overflow. Allocating page for object {}.",
@@ -407,9 +404,7 @@ uint32_t GPUPagedCache<TObjectID, TAtom, Policy>::_TryReservePages(const TObject
 	std::vector<uint32_t> allocatedPages;
 	allocatedPages.reserve(pageCount);
 
-	m_PagedBuffer.ReserveFirstAvaliblePages(pageCount, allocatedPages);
-
-	if (allocatedPages.empty()) return 0;
+	if (!m_PagedBuffer.ReserveFirstAvaliblePages(pageCount, allocatedPages)) return 0;
 
 	if (outAlloc.startPage != PageNode::NULL_PAGE)
 	{
@@ -447,7 +442,7 @@ uint32_t GPUPagedCache<TObjectID, TAtom, Policy>::_EvictAndTakePages(const TObje
 	if (!m_ObjectPages.Find(victimID, victimAlloc))
 		return 0;
 
-	uint32_t victimPages = victimAlloc.GetPageCount(pageSize);
+	uint32_t victimPages = _CountAllocatedPages(victimAlloc);
 	uint32_t numPagesToTake = std::min(
 		victimPages,
 		pagesNeeded
@@ -522,6 +517,28 @@ void GPUPagedCache<TObjectID, TAtom, Policy>::_AttachPages(const TObjectID& obj,
 	}
 	target.endPage = end;
 	m_PageNodes[end].next = PageNode::NULL_PAGE;
+}
+
+template<typename TObjectID, typename TAtom, template<typename> typename Policy>
+	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
+uint32_t GPUPagedCache<TObjectID, TAtom, Policy>::_CountAllocatedPages(const ObjectAllocation& alloc) const
+{
+	if (alloc.startPage == PageNode::NULL_PAGE)
+		return 0;
+
+	uint32_t count = 0;
+	uint32_t current = alloc.startPage;
+
+	while (current != PageNode::NULL_PAGE)
+	{
+		++count;
+
+		const uint32_t next = m_PageNodes[current].next;
+
+		current = next;
+	}
+
+	return count;
 }
 
 #endif

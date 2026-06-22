@@ -521,7 +521,7 @@ template<GPUSafeStruct Atom, ThreadMode Mode>
 inline Atom* GPUPagedBuffer<Atom, Mode>::operator[](Page pageNum)
 {
 	assert(pageNum < GetPageCount());
-	assert(IsPageReserved(pageNum));
+	if constexpr (Mode == ThreadMode::SingleThreaded) assert(IsPageReserved(pageNum));
 	return m_RawBuffer.GetContents() + pageNum * m_PageSize;
 }
 
@@ -529,7 +529,7 @@ template<GPUSafeStruct Atom, ThreadMode Mode>
 const Atom* GPUPagedBuffer<Atom, Mode>::operator[](Page pageNum) const
 {
 	assert(pageNum < GetPageCount());
-	assert(IsPageReserved(pageNum));
+	if constexpr (Mode == ThreadMode::SingleThreaded) assert(IsPageReserved(pageNum));
 	return m_RawBuffer.GetContents() + pageNum * m_PageSize;
 }
 
