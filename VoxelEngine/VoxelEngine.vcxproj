@@ -114,7 +114,7 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>VE_LOGGING_ENABLED;VE_PROFILING_ENABLED</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VE_LOGGING_ENABLED;VE_PROFILING_ENABLED;VE_BUILD_DLL</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp23</LanguageStandard>
       <AdditionalOptions>/utf-8 %(AdditionalOptions)</AdditionalOptions>
@@ -137,7 +137,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>VE_LOGGING_ENABLED;VE_PROFILING_ENABLED</PreprocessorDefinitions>
+      <PreprocessorDefinitions>VE_LOGGING_ENABLED;VE_PROFILING_ENABLED;VE_BUILD_DLL</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>vepch.h</PrecompiledHeaderFile>

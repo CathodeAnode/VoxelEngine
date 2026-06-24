@@ -51,7 +51,16 @@ extern "C" {
 	__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 }
 
+#if defined(VE_CHUNK_TYPE_8)
 using ChunkType = Chunk8;
+#elif defined(VE_CHUNK_TYPE_16)
+using ChunkType = Chunk16;
+#elif defined(VE_CHUNK_TYPE_32)
+using ChunkType = Chunk32;
+#error "Chunk32 is not supported yet!"
+#else
+using ChunkType = Chunk8;
+#endif
 
 int main() 
 {

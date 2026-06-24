@@ -145,7 +145,7 @@ void Application<ChunkT>::Run()
 }
 
 template<typename ChunkT>
-void Application<ChunkT>::ProcessInput()
+void Application<ChunkT>::ProcessInput() 
 {
     PROFILE_FUNCTION();
 

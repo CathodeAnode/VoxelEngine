@@ -1,7 +1,106 @@
-.vs/
-VoxelEngine/x64/
-x64/
 Profile-Startup.json
 Profile-Runtime.json
 Profile-Shutdown.json
 Profiling/
+
+# Auto generated files
+.vs
+*.slo
+*.lo
+*.o
+*.obj
+*.suo
+*.tlog
+*.ilk
+*.log
+*.pdb
+*.idb
+*.iobj
+*.ipdb
+*.opensdf
+*.sdf
+
+# Build results
+[Bb]uild/
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+
+# Compiled Dynamic libraries
+*.so
+*.dylib
+*.dll
+
+# Compiled Static libraries
+*.lai
+*.la
+*.a
+*.lib
+
+# Executables
+*.exe
+*.out
+*.app
+
+# Codelite
+.codelite
+
+# KDevelop
+*.kdev4
+
+# .orig files
+*.orig
+
+# generated files
+generated
+version.rc
+
+# Cmake
+CMakeCache.txt
+CMakeFiles
+CMakeScripts
+Makefile
+cmake_install.cmake
+install_manifest.txt
+/tests/tests.VC.VC.opendb
+/tests/tests.VC.db
+/tests/tests
+/tests/logs/*
+compile_commands.json
+
+# idea
+.idea/
+.cache/
+.vscode/
+cmake-build-*/
+*.db
+*.ipch
+*.db-wal
+*.opendb
+*.db-shm
+*.tcl
+*.user
+*.sln
+
+### VisualStudioCode ###
+.vscode/*
+.vscode/settings.json
+.vscode/tasks.json
+.vscode/launch.json
+.vscode/extensions.json
+
+# macos
+*.DS_store
+*.xcodeproj/
+/.vs
+/out/build
+/CMakeSettings.json
