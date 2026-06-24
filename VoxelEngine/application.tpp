@@ -29,18 +29,18 @@
 // TODO make loadedChunkDistance & terrian generation strargy user defiend
 template<typename ChunkT>
 Application<ChunkT>::Application(unsigned int width, unsigned int height, const char* title, std::unique_ptr<ChunkGeneratorStrategy<ChunkT>> generator, const glm::vec3& startingWorldPos)
-    : m_MainJoystick(0)
-    , m_Screen(width, height, title)
+    : m_Screen(width, height, title)
     , m_World(startingWorldPos, LOADED_CHUNK_DISTANCE, std::move(generator))
     , m_Renderer(std::make_unique<MesherT>())
     , m_VoxelEdit(m_World, 1024)
     , m_Scene(8, m_World, m_Renderer, m_VoxelEdit)
     , m_DebuggingRenderer(ChunkT::Size)
+    , m_MainJoystick(0)
 {
     LOG_INFO(EngineSystem::VOXEL_ENGINE,
         "Voxel engine configuration: chunk={}x{}x{}",
         ChunkT::Size,
-        sizeof(ChunkT::ValueType) * 8,
+        sizeof(typename ChunkT::ValueType) * 8,
         ChunkT::Size);
 
     const float camNear = 0.1f;
@@ -224,7 +224,6 @@ void Application<ChunkT>::ProcessInput()
 
     if (Mouse::buttonUp(MouseKey::ButtonLeft))
     {
-        glm::ivec3 voxelCoords;
         if (m_AimedRaycastHit)
         {
             m_VoxelEdit.RemoveVoxel(m_VoxelAimedAt);

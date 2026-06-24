@@ -217,8 +217,10 @@ std::vector<VoxelQuad> VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& c
 
 template<typename ChunkType>
 template<ChunkProvider<ChunkType> ChunkContianer>
-std::vector<VoxelQuad>  VoxelMesher<ChunkType>::MeshChunkGrid(const ChunkContianer& chunkContainer)
+std::vector<VoxelQuad> VoxelMesher<ChunkType>::MeshChunkGrid(const ChunkContianer& chunkContainer)
 {
+	std::vector<VoxelQuad> res;
+
 	LOG_DEBUG(EngineSystem::VOXEL_MESHER,
 		"Meshing chunk container {}",
 		chunkContainer.GetUID());
@@ -231,6 +233,8 @@ std::vector<VoxelQuad>  VoxelMesher<ChunkType>::MeshChunkGrid(const ChunkContian
 	//	glm::ivec3 chunkCoords = chunkContainer<ChunkType>::GetChunkCoords(index);
 	//	meshChunk(chunkContainer, chunkCoords, out);
 	//}
+
+	return res;
 }
 
 #endif

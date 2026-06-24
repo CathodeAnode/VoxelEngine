@@ -8,6 +8,7 @@
 #include <memory>
 #include <vector>
 #include <algorithm>
+#include <cassert>
 
 #include "logger.h"
 #include "profiler.h"
@@ -20,6 +21,8 @@
 #include "shader.h"
 #include "camera.h"
 #include "voxel_math.h"
+#include "frame_counter.h"
+
 
 template<typename ChunkType> 
 class VoxelMesher;

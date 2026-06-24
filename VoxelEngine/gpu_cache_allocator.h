@@ -22,7 +22,27 @@ public:
     using Atom = TAtom;
 
 public:
-    struct ObjectAllocation;
+    struct ObjectAllocation
+    {
+        uint32_t totalElementCount = 0;
+        uint32_t startPage = PageNode::NULL_PAGE;
+        uint32_t endPage = PageNode::NULL_PAGE;
+
+        Policy<ObjectID>::Handle policyHandle;
+
+        inline unsigned int GetPageCount(unsigned int pageSize) const noexcept
+        {
+            assert(pageSize > 0);
+            return ((totalElementCount + pageSize - 1) / pageSize) + (totalElementCount == 0 && startPage != PageNode::NULL_PAGE);
+        }
+
+        inline bool IsEmpty() const noexcept
+        {
+            return startPage == PageNode::NULL_PAGE;
+        }
+    };
+
+public:
     // TODO pass max objects to constructor
     GPUPagedCache(bool cpuUpdates = true);
     ~GPUPagedCache();
@@ -54,26 +74,6 @@ private:
     template<typename Cache>
     friend class GPUPagedCacheInspector; // for validation, debugging, and unit testing
 
-    struct ObjectAllocation
-    {
-        uint32_t totalElementCount = 0;
-        uint32_t startPage = PageNode::NULL_PAGE;
-        uint32_t endPage = PageNode::NULL_PAGE;
-
-        Policy<ObjectID>::Handle policyHandle;
-
-        inline unsigned int GetPageCount(unsigned int pageSize) const noexcept
-        {
-            assert(pageSize > 0);
-            return ((totalElementCount + pageSize - 1) / pageSize) + (totalElementCount == 0 && startPage != PageNode::NULL_PAGE);
-        }
-
-        inline bool IsEmpty() const noexcept
-        {
-            return startPage == PageNode::NULL_PAGE;
-        }
-    };
-
     struct PageNode
     {
         static inline constexpr uint32_t NULL_PAGE = std::numeric_limits<uint32_t>::max();
@@ -103,7 +103,7 @@ private:
     [[nodiscard]] uint32_t _TryReservePages(const ObjectID& obj, uint32_t pageCount, ObjectAllocation& outAlloc);
     [[nodiscard]] uint32_t _EvictAndTakePages(const ObjectID& obj, ObjectAllocation& targetAlloc, uint32_t pagesNeeded);
     SplitChain _SplitVictimChain(const ObjectAllocation& victim, uint32_t pagesToTake);
-    void _AttachPages(const ObjectID& obj, ObjectAllocation& target, uint32_t start, uint32_t end);
+    void _AttachPages(ObjectAllocation& target, uint32_t start, uint32_t end);
     uint32_t _CountAllocatedPages(const ObjectAllocation& alloc) const;
 
 };

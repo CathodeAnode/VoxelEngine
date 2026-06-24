@@ -1,8 +1,7 @@
 #ifndef VOXEL_RENDERER_TPP
 #define VOXEL_RENDERER_TPP
-#include "voxel_renderer.h"
 
-#include "frame_counter.h"
+#include "voxel_renderer.h"
 
 template <typename ChunkType>
 VoxelRenderer<ChunkType>::VoxelRenderer(std::unique_ptr<VoxelMesher<ChunkType>> mesher)
@@ -94,12 +93,12 @@ void VoxelRenderer<ChunkType>::DrawOnNextFrame(VoxelObjectID objectID, const glm
     }
     
     std::vector<GPUBufferRange> memoryRanges = m_DataCache.GetObjectBufferRanges(objectID);
-    uint32_t* indirectCmdsCount = reinterpret_cast<uint32_t*>(m_IndirectCommandBuffer.GetHeadContents());
+    uint32_t* indirectCmdsCount = reinterpret_cast<uint32_t*>(m_IndirectCommandBuffer.GetCurrentContents());
 
     const size_t headerSize = sizeof(uint32_t);
     const size_t bodyCount = (*indirectCmdsCount) * sizeof(DrawArraysIndirectCommand);
-    DrawArraysIndirectCommand* cmds = reinterpret_cast<DrawArraysIndirectCommand*>(m_IndirectCommandBuffer.GetHeadContents() + headerSize + bodyCount);
-    glm::vec4* paddedPos = m_PositionSSBO.GetHeadContents() + (*indirectCmdsCount);
+    DrawArraysIndirectCommand* cmds = reinterpret_cast<DrawArraysIndirectCommand*>(m_IndirectCommandBuffer.GetCurrentContents() + headerSize + bodyCount);
+    glm::vec4* paddedPos = m_PositionSSBO.GetCurrentContents() + (*indirectCmdsCount);
 
     LOG_TRACE(EngineSystem::RENDERER,
         "[Frame: {}] Scheduling UID={} for draw (indirectCmds={})",
@@ -194,9 +193,7 @@ std::span<const glm::ivec4> VoxelRenderer<ChunkType>::GetGPURequestedChunks()
         const size_t availableBytes = m_UncachedChunks.GetSize() - headerSize;
 
         assert(requiredBytes <= availableBytes &&
-            "Overflow: Frustum culling SSBO size is too small for the result chunk count. "
-            "Required bytes: {}, Available bytes: {}",
-            requiredBytes, availableBytes);
+            "Overflow: Frustum culling SSBO size is too small for the result chunk count.");
     }
 
     LOG_DEBUG(EngineSystem::RENDERER,

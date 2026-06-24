@@ -51,18 +51,19 @@ private:
 
     Screen m_Screen;
 
+    // World / Rendering
+    ChunkManagerT     m_World;
+    RendererT         m_Renderer;
+    VoxelEditT        m_VoxelEdit;
+    SceneT            m_Scene;
+    DebuggingRenderer m_DebuggingRenderer;
+
     // Input / Camera
     Joystick m_MainJoystick;
     CameraManager m_CameraManager;
     CameraManager::CameraId m_MainCameraID;
     CameraManager::CameraId m_DebugCameraID;
 
-    // World / Rendering
-    ChunkManagerT     m_World;
-    RendererT         m_Renderer;
-    DebuggingRenderer m_DebuggingRenderer;
-    VoxelEditT        m_VoxelEdit;
-    SceneT            m_Scene;
 
     // Application variables
     glm::ivec3 m_VoxelAimedAt;

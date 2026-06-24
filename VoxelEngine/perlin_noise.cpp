@@ -24,9 +24,9 @@ void PerlinNoise::Reseed(unsigned int seed)
 
 float PerlinNoise::Noise1D(float x)
 {
-    int xi = static_cast<int>(std::floorf(x)) & 255; // = % 256
+    int xi = static_cast<int>(std::floor(x)) & 255; // = % 256
     
-    x -= std::floorf(x);
+    x -= std::floor(x);
     float sx = fade(x);
 
     unsigned char a, b;
@@ -44,11 +44,11 @@ float PerlinNoise::Noise1D(float x)
 
 float PerlinNoise::Noise2D(float x, float y)
 {
-    int xi = static_cast<int>(std::floorf(x)) & 255;
-    int yi = static_cast<int>(std::floorf(y)) & 255;
+    int xi = static_cast<int>(std::floor(x)) & 255;
+    int yi = static_cast<int>(std::floor(y)) & 255;
 
-    x -= std::floorf(x);
-    y -= std::floorf(y);
+    x -= std::floor(x);
+    y -= std::floor(y);
 
     float sx = fade(x);
     float sy = fade(y);
@@ -78,13 +78,13 @@ float PerlinNoise::Noise2D(float x, float y)
 
 float PerlinNoise::Noise3D(float x, float y, float z)
 {
-    int xi = static_cast<int>(std::floorf(x)) & 255;
-    int yi = static_cast<int>(std::floorf(y)) & 255;
-    int zi = static_cast<int>(std::floorf(z)) & 255;
+    int xi = static_cast<int>(std::floor(x)) & 255;
+    int yi = static_cast<int>(std::floor(y)) & 255;
+    int zi = static_cast<int>(std::floor(z)) & 255;
 
-    x -= std::floorf(x);
-    y -= std::floorf(y);
-    z -= std::floorf(z);
+    x -= std::floor(x);
+    y -= std::floor(y);
+    z -= std::floor(z);
 
     float sx = fade(x);
     float sy = fade(y);

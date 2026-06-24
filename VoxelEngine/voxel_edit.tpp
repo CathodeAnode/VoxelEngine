@@ -5,8 +5,8 @@
 
 template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
 VoxelEdit<ChunkType, ChunkContainer>::VoxelEdit(ChunkContainer& chunkContainer, unsigned int cap)
-	: m_ChunkContainer(chunkContainer)
-	, m_DirtyChunks(cap)
+	: m_DirtyChunks(cap)
+	, m_ChunkContainer(chunkContainer)
 {
 }
 

@@ -103,7 +103,7 @@ inline void Scene<ChunkType>::_UploadRequestedChunks()
 
 	std::span<const glm::ivec4> uncachedChunkCoords = m_Renderer.GetGPURequestedChunks(); // get frustum culling results from preivous frame (frame n-1)
 
-	for (int i = 0; i < uncachedChunkCoords.size() && i < m_RemainingUploadBudget; ++i)
+	for (size_t i = 0; i < uncachedChunkCoords.size() && i < m_RemainingUploadBudget; ++i)
 	{
 		glm::ivec3 chunkCoord = uncachedChunkCoords[i];
 		if(!m_Renderer.IsCached(UIDManager::Generate(chunkCoord)))
