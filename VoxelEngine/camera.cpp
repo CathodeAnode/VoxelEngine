@@ -6,19 +6,19 @@
 
 Camera::Camera(glm::vec3 position, int _screenWidth, int _screenHeight, float _zNear, float _zFar)
 	: pos(position)
-	, m_ScreenWidth(_screenWidth)
-	, m_ScreenHeight(_screenHeight)
-	, m_ZNear(_zNear)
-	, m_ZFar(_zFar)
+	, front(glm::vec3(0.0f, 0.0f, -1.0f))
 	, worldUp(glm::vec3(0.0f, 1.0f, 0.0f))
 	, yaw(90.0f)
 	, pitch(0.0f)
 	, speed(8.0f)
 	, zoom(45.0f)
-	, front(glm::vec3(0.0f, 0.0f, -1.0f))
+	, m_ZNear(_zNear)
+	, m_ZFar(_zFar)
+	, m_ScreenWidth(_screenWidth)
+	, m_ScreenHeight(_screenHeight)
+	, m_CamFrustum()
 	, m_ViewMatrix(1.0f)
 	, m_ProjectionMatrix(1.0f)
-	, m_CamFrustum()
 {
 	_UpdateCameraVectors();
 }

@@ -37,7 +37,7 @@ private:
 	bool m_CursorEnabled;
 
 private:
-	static void framebuffer_size_callback(GLFWwindow* m_Window, int _width, int _height);
+	static void framebuffer_size_callback(GLFWwindow* window, int _width, int _height);
 	static void log_Opengl_info();
 };
 

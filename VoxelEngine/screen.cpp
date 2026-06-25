@@ -126,7 +126,7 @@ void Screen::setTitle(const char* newTitle)
 	}
 }
 
-void Screen::framebuffer_size_callback(GLFWwindow* m_Window, int _width, int _height) {
+void Screen::framebuffer_size_callback(GLFWwindow* window, int _width, int _height) {
 	LOG_INFO(EngineSystem::CORE, "Framebuffer resized to {}x{}", _width, _height);
 	glViewport(0, 0, _width, _height);
 	Screen::m_Width = _width;

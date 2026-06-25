@@ -23,6 +23,7 @@
 #include "voxel_math.h"
 #include "frame_counter.h"
 
+#define OPRPAH_BUFFERS_SIZE 3
 
 template<typename ChunkType> 
 class VoxelMesher;
@@ -55,19 +56,8 @@ public:
 	inline bool IsCached(VoxelObjectID objectID) { return m_DataCache.Has(objectID); }
 
 private:
-	static constexpr int k_TripleBuffer = 3;
-	GLsizei m_MaxIndirectCommands;
 
 	GPUPagedCache<VoxelObjectID, VoxelQuad, FIFOPolicy> m_DataCache;
-	GPUOrphanBuffer<glm::vec4, k_TripleBuffer> m_PositionSSBO;
-	GPUOrphanBuffer<std::byte, k_TripleBuffer> m_IndirectCommandBuffer;
-	GPUOrphanBuffer<std::byte, k_TripleBuffer> m_UncachedChunks; // TODO figure out sizing
-
-	Shader m_VoxelShader;
-	ComputeShader m_FrustumCullingShader;
-	std::unique_ptr<VoxelMesher<ChunkType>> m_Mesher;
-
-	unsigned int m_VAO, m_QuadVBO;
 	static constexpr float m_QuadVertices[20] = {
 		// position             texture
 		0.0f,  0.0f, 0.0f,    0.0f, 1.0f,    // Bottom left
@@ -75,6 +65,19 @@ private:
 		1.0f,  0.0f, 0.0f,    0.0f, 0.0f, // Bottom Right
 		1.0f,  1.0f, 0.0f,    1.0f, 0.0f  // Top Right
 	};
+
+	GPUOrphanBuffer<glm::vec4, OPRPAH_BUFFERS_SIZE> m_PositionSSBO;
+	GPUOrphanBuffer<std::byte, OPRPAH_BUFFERS_SIZE> m_IndirectCommandBuffer;
+	GPUOrphanBuffer<std::byte, OPRPAH_BUFFERS_SIZE> m_UncachedChunks; // TODO figure out sizing
+
+	ComputeShader m_FrustumCullingShader;
+
+	std::unique_ptr<VoxelMesher<ChunkType>> m_Mesher;
+	GLsizei m_MaxIndirectCommands;
+
+	Shader m_VoxelShader;
+
+	unsigned int m_VAO, m_QuadVBO;
 
 private:
 	inline void _CreateGPUBuffers(size_t indirectBufferSize, size_t cachePageSize, size_t cachePages);

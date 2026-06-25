@@ -36,7 +36,7 @@ float PerlinNoise::Noise1D(float x)
     float avg = lerp(
         sx,
         gradient(a, x, 0, 0),
-        gradient(a, x - 1, 0, 0)
+        gradient(b, x - 1, 0, 0)
     );
 
     return avg;

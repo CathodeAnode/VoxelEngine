@@ -6,8 +6,8 @@
 template <typename ChunkType>
 VoxelRenderer<ChunkType>::VoxelRenderer(std::unique_ptr<VoxelMesher<ChunkType>> mesher)
     : m_DataCache(true)
-    , m_IndirectCommandBuffer(true)
     , m_PositionSSBO(true)
+    , m_IndirectCommandBuffer(true)
     , m_UncachedChunks(true)
     , m_Mesher(std::move(mesher))
 {

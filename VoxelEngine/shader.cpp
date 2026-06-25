@@ -1,16 +1,8 @@
 #include "shader.h"
 
-#include <string>
-#include <filesystem>
-#include <fstream>
-#include <sstream>
-#include <iostream>
-#include <initializer_list>
 #include <vector>
-#include <span>
 #include <glm/gtc/type_ptr.hpp>
 
-#include "logger.h"
 #include "profiler.h"
 
 Shader::Shader(std::initializer_list<ShaderFile> shaders)
@@ -114,87 +106,6 @@ void Shader::Use()
 	glUseProgram(m_Id);
 }
 
-
-unsigned int Shader::_CompileShader(const char* path, int shaderType) 
-{
-	int success;
-	char infoLog[512];
-
-	unsigned int shader;
-	shader = glCreateShader(shaderType);
-
-	LOG_TRACE(
-		EngineSystem::RENDERER,
-		"Created shader object (ID={}) for '{}'",
-		shader,
-		path
-	);
-
-	std::string shaderSrc = _LoadShaderSrc(path);
-	const GLchar* shaderStr = shaderSrc.c_str();
-	glShaderSource(shader, 1, &shaderStr, NULL);
-	glCompileShader(shader);
-
-	glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-	if (!success) {
-		glGetShaderInfoLog(shader, 512, NULL, infoLog);
-		LOG_ERROR(
-			EngineSystem::RENDERER,
-			"Shader compilation failed for '{}': {}",
-			path,
-			infoLog
-		);
-	}
-
-	LOG_TRACE(
-		EngineSystem::RENDERER,
-		"Shader compiled successfully: '{}'",
-		path
-	);
-
-	return shader;
-}
-
-std::string Shader::_LoadShaderSrc(const char* path) 
-{
-	if (!std::filesystem::exists(path)) {
-		LOG_CRITICAL(
-			EngineSystem::RENDERER,
-			"Shader file does not exist '{}'",
-			path
-		);
-		return {};
-	}
-
-	std::fstream file;
-	std::stringstream buf;
-
-	std::string ret = "";
-
-	file.open(path);
-
-	if (file.is_open()) {
-		buf << file.rdbuf();
-		ret = buf.str();
-	}
-	else {
-		LOG_ERROR(
-			EngineSystem::RENDERER,
-			"Failed to open shader file '{}'",
-			path
-		);
-	}
-
-	file.close();
-	LOG_TRACE(
-		EngineSystem::RENDERER,
-		"Loaded shader source from '{}'",
-		path
-	);
-
-	return ret;
-}
-
 std::string Shader::_StripGLSLComments(const std::string& shaderSrc)
 {
 	std::string out;
@@ -281,9 +192,9 @@ std::string Shader::_StripGLSLComments(const std::string& shaderSrc)
 	return out;
 }
 
-GLuint Shader::GetVarLocation(const char* name) const
+GLint Shader::GetVarLocation(const char* name) const
 {
-	GLuint location = glGetUniformLocation(m_Id, name);
+	GLint location = glGetUniformLocation(m_Id, name);
 
 	assert(location != -1 && "Could not find variable in shader");
 

@@ -6,9 +6,9 @@
 template<typename TObjectID, typename TAtom, template<typename> typename Policy>
 	requires EvictionPolicy<Policy<TObjectID>, TObjectID>
 GPUPagedCache<TObjectID, TAtom, Policy>::GPUPagedCache(bool cpuUpdates)
-	: m_PagedBuffer(cpuUpdates)
+	: m_Policy(10000)
 	, m_PageNodes(cpuUpdates)
-	, m_Policy(10000)
+	, m_PagedBuffer(cpuUpdates)
 {
 	PROFILE_FUNCTION();
 }

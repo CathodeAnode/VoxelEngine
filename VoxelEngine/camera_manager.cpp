@@ -25,7 +25,7 @@ CameraManager::CameraId CameraManager::RegisterCamera(std::unique_ptr<Camera> ca
 
 void CameraManager::SetActiveCamera(CameraId camID)
 {
-    if (camID >= m_Cameras.size())
+    if (camID >= static_cast<int>(m_Cameras.size()))
         LOG_ERROR(EngineSystem::CORE, "Invalid CameraId");
 
     m_ActiveCameraID = camID;
@@ -33,27 +33,27 @@ void CameraManager::SetActiveCamera(CameraId camID)
 
 Camera& CameraManager::GetActiveCamera()
 {
-    assert(m_ActiveCameraID < m_Cameras.size() && "Invalid active camera ID");
+    assert(m_ActiveCameraID < static_cast<int>(m_Cameras.size()) && "Invalid active camera ID");
     return *m_Cameras[m_ActiveCameraID];
 }
 
 const Camera& CameraManager::GetActiveCamera() const
 {
-    assert(m_ActiveCameraID < m_Cameras.size() && "Invalid active camera ID");
+    assert(m_ActiveCameraID < static_cast<int>(m_Cameras.size()) && "Invalid active camera ID");
 
     return *m_Cameras[m_ActiveCameraID];
 }
 
 Camera& CameraManager::GetCamera(CameraId camID)
 {
-    assert(m_ActiveCameraID < m_Cameras.size() && "Invalid active camera ID");
+    assert(m_ActiveCameraID < static_cast<int>(m_Cameras.size()) && "Invalid active camera ID");
 
     return *m_Cameras[camID];
 }
 
 const Camera& CameraManager::GetCamera(CameraId camID) const
 {
-    assert(m_ActiveCameraID < m_Cameras.size() && "Invalid active camera ID");
+    assert(m_ActiveCameraID < static_cast<int>(m_Cameras.size()) && "Invalid active camera ID");
 
     return *m_Cameras[camID];
 }

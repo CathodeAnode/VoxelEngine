@@ -37,11 +37,12 @@ private:
     void _RenderChunkBounds(const Camera& mainCamera);
 
 private:
+    const unsigned int k_ChunkSize;
+
     DrawMode m_DrawMode;
     bool m_DrawCameraFrustum;
     bool m_DrawChunkBounds;
 
-    const unsigned int k_ChunkSize;
 };
 
 

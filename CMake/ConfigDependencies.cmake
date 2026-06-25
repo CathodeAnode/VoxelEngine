@@ -40,17 +40,22 @@ target_include_directories(stb INTERFACE
 )
 
 # --------------------------------------------
-# GLAD (header-only in your structure)
+# GLAD (header-only)
 # --------------------------------------------
 add_library(glad STATIC
     ${CMAKE_SOURCE_DIR}/VoxelEngine/glad.c
 )
 
 set_target_properties(glad PROPERTIES LINKER_LANGUAGE C)
+target_compile_options(glad PRIVATE
+    -Wno-cast-function-type
+    -Wno-pedantic
+)
 
 target_include_directories(glad PUBLIC
     ${VE_THIRD_PARTY_INCLUDE_DIR}
 )
+
 
 # --------------------------------------------
 # GoogleTest (only if building tests)

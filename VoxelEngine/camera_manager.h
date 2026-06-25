@@ -9,7 +9,7 @@ class Camera;
 class CameraManager
 {
 public:
-	using CameraId = uint32_t;
+	using CameraId = int32_t;
 
 	CameraManager();
 

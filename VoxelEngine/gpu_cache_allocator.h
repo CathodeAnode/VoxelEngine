@@ -90,9 +90,9 @@ private:
 
 private:
     Policy<ObjectID> m_Policy;
-    GPUPagedBuffer<Atom, ThreadMode::LockFree> m_PagedBuffer;
-    GPUPersistentlyMappedBuffer<PageNode> m_PageNodes;
     GPUHashMap<ObjectID, ObjectAllocation, ThreadMode::LockFree> m_ObjectPages;
+    GPUPersistentlyMappedBuffer<PageNode> m_PageNodes;
+    GPUPagedBuffer<Atom, ThreadMode::LockFree> m_PagedBuffer;
 
 private:
     void _FreeChain(uint32_t startPage);

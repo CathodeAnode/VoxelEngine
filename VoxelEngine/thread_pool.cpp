@@ -4,9 +4,9 @@
 
 
 ThreadPool::ThreadPool(unsigned int numThreads)
-	: m_BusyThreads(numThreads)
+	: m_Threads(numThreads)
+	, m_BusyThreads(numThreads)
 	, m_Shutdown(false)
-	, m_Threads(numThreads)
 {
 	LOG_INFO(
 		EngineSystem::CORE,

@@ -5,10 +5,10 @@
 #include "camera.h"
 
 DebuggingRenderer::DebuggingRenderer(unsigned int chunkSize)
-	: m_DrawCameraFrustum(false)
-	, m_DrawChunkBounds(false)
+    : k_ChunkSize(chunkSize)
 	, m_DrawMode(DrawMode::Fill)
-    , k_ChunkSize(chunkSize)
+	, m_DrawCameraFrustum(false)
+	, m_DrawChunkBounds(false)
 {}
 
 void DebuggingRenderer::RenderOverlay(const Camera& mainCamera)
