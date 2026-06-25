@@ -10,7 +10,7 @@ cmake_policy(SET CMP0091 NEW)
 
 # Define the Project Name and Description
 project(VoxelEngine
-    LANGUAGES CXX 
+    LANGUAGES CXX C # C language is used to compile glad
     DESCRIPTION "GPU-Driven voxel engine using OpenGL 4.6"
 )
 

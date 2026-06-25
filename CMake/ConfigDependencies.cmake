@@ -6,12 +6,12 @@ set(VE_THIRD_PARTY_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/Linking/include)
 set(VE_THIRD_PARTY_LIB_DIR     ${CMAKE_SOURCE_DIR}/Linking/lib)
 
 # --------------------------------------------
-# GLFW (precompiled .lib)
+# GLFW (precompiled .a)
 # --------------------------------------------
 add_library(glfw STATIC IMPORTED)
 
 set_target_properties(glfw PROPERTIES
-    IMPORTED_LOCATION "${VE_THIRD_PARTY_LIB_DIR}/GLFW/glfw3.lib"
+    IMPORTED_LOCATION "${VE_THIRD_PARTY_LIB_DIR}/GLFW/glfw3.a"
     INTERFACE_INCLUDE_DIRECTORIES "${VE_THIRD_PARTY_INCLUDE_DIR}"
 )
 
@@ -42,8 +42,13 @@ target_include_directories(stb INTERFACE
 # --------------------------------------------
 # GLAD (header-only in your structure)
 # --------------------------------------------
-add_library(glad INTERFACE)
-target_include_directories(glad INTERFACE
+add_library(glad STATIC
+    ${CMAKE_SOURCE_DIR}/VoxelEngine/glad.c
+)
+
+set_target_properties(glad PROPERTIES LINKER_LANGUAGE C)
+
+target_include_directories(glad PUBLIC
     ${VE_THIRD_PARTY_INCLUDE_DIR}
 )
 
