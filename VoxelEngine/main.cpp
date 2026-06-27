@@ -11,42 +11,6 @@
 #include "chunk_generator_strategy.h"
 #include "application.h"
 
-// current TODOs:
-// - (feat) adjusting scene's chunks to be meshed tunning parameter during runtime (increase/decrease depending on how long last frame took)
-// - (perf) gpu frustum culling shared varaibles optimizations
-// - (fix) rendering with chunksize 32, quad32 cannot be packed need extra 1 bit for xyzwh, 5 extra bits
-// - (feat): seperation between voxel engine library & application [Note: This will allow for mutliple applications for testing and showcasing purposes]
-// - (build): cmake build system with chunk size param, logging param, profiling param (current infrastructure supports this)
-// - (feat): per-vertex ambient occlusion
-
-// future TODOs:
-// - region-based world generation. Each region maps with user-defined chunk generation strategy, and chunks are generated according to the strategy defined for that region
-// - build config file for logger, chunktype, asserts
-// - python script engine for terrian generation
-
-// codebase clean up todos:
-// - project file structure
-// - namespacing
-// - PCH file
-// - Cmake /w chunk size param
-// - better logging
-
-// Futures: 
-// - region-based file saving system to save voxels/chunks of world (fixed sized files for regions of the world, i.e. 1 file save a volume of 16x16x16 chunks & multiple files for regions in world)
-// - camera editor controller
-// - dear imgui wrapper & engine gui
-
-// Future Future:
-// - physics system
-// - ECS https://github.com/skypjack/entt
-// - character/npc model rendering (non-voxel)
-// - audio system
-// - animation system
-// - pathfinding system
-// - networking system
-// - resource manager/loader https://giordi91.github.io/post/resourcesystem/
-
-
 extern "C" {
 	__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 }

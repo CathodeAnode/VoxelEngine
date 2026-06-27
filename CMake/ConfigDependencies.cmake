@@ -63,9 +63,17 @@ target_include_directories(glad PUBLIC
 if(VE_BUILD_TEST)
     include(CTest)
     enable_testing()
-    find_package(GTest CONFIG REQUIRED)
 
-    # GTest::gtest and GTest::gtest_main will now be available
+    include(FetchContent)
+    FetchContent_Declare(
+        googletest
+        URL https://github.com/google/googletest/archive/refs/tags/v1.14.0.zip
+        DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+    )
+    # Prevent GoogleTest from forcing /MD on Windows
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+    FetchContent_MakeAvailable(googletest)
 endif()
 
 
