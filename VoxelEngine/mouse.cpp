@@ -90,7 +90,7 @@ void Mouse::mouseWheelCallback(GLFWwindow* window, double m_Dx, double m_Dy)
 	m_ScrollDX = m_Dx;
 	m_ScrollDY = m_Dy;
 
-	LOG_INFO(EngineSystem::INPUTS,
+	LOG_TRACE(EngineSystem::INPUTS,
 		"Mouse wheel scrolled. Delta: ({:.2f}, {:.2f})",
 		m_ScrollDX, m_ScrollDY
 	);

@@ -40,7 +40,7 @@ void ThreadPool::Shutdown()
 
 		LOG_INFO(
 			EngineSystem::CORE,
-			"ThreadPool shutidown");
+			"ThreadPool shutdown");
 
 		m_Shutdown = true;
 		m_Cv.notify_all();

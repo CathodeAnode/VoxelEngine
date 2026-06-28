@@ -117,7 +117,7 @@ bool Screen::isOpen() {
 
 void Screen::setTitle(const char* newTitle)
 {
-	LOG_INFO(EngineSystem::CORE, "Changing window title to '{}'", newTitle);
+	LOG_TRACE(EngineSystem::CORE, "Changing window title to '{}'", newTitle);
 
 	m_Title = newTitle;
 
