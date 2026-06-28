@@ -17,23 +17,14 @@
 #include "gizmos.h"
 #include "frame_counter.h"
 
-// Cache configuration
-#define CACHE_PAGE_SIZE 400
-#define CACHE_NUM_OF_PAGES 62500
-#define AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK 3
-
-#define LOADED_CHUNK_DISTANCE 15
-#define RENDER_CHUNK_DISTANCE 15
-
-
 // TODO make loadedChunkDistance & terrian generation strargy user defiend
 template<typename ChunkT>
-Application<ChunkT>::Application(unsigned int width, unsigned int height, const char* title, std::unique_ptr<ChunkGeneratorStrategy<ChunkT>> generator, const glm::vec3& startingWorldPos)
-    : m_Screen(width, height, title)
-    , m_World(startingWorldPos, LOADED_CHUNK_DISTANCE, std::move(generator))
+Application<ChunkT>::Application(const ApplicationConfig& cfg, std::unique_ptr<ChunkGeneratorStrategy<ChunkT>> generator)
+    : m_Screen(cfg.ScreenWidth, cfg.ScreenHeight, cfg.Name)
+    , m_World(cfg.startingWorldPos, cfg.loadedChunkDistance, std::move(generator))
     , m_Renderer(std::make_unique<MesherT>())
-    , m_VoxelEdit(m_World, 1024)
-    , m_Scene(8, m_World, m_Renderer, m_VoxelEdit)
+    , m_VoxelEdit(m_World)
+    , m_Scene(cfg.ThreadWorkers, m_World, m_Renderer, m_VoxelEdit)
     , m_DebuggingRenderer(ChunkT::Size)
     , m_MainJoystick(0)
 {
@@ -46,17 +37,17 @@ Application<ChunkT>::Application(unsigned int width, unsigned int height, const 
     const float camNear = 0.1f;
     const float camFar = 1000.0f;
 
-    std::unique_ptr<Camera> mainCamera = std::make_unique<Camera>(startingWorldPos, width, height, camNear, camFar);
+    std::unique_ptr<Camera> mainCamera = std::make_unique<Camera>(cfg.startingWorldPos, cfg.ScreenWidth, cfg.ScreenHeight, camNear, camFar);
 
-    float renderRadius = LOADED_CHUNK_DISTANCE * ChunkT::Size;
+    float renderRadius = cfg.renderChunkDistance * ChunkT::Size;
 
     // distance needed to see the whole cube of chunks
-    const float debugDistance = renderRadius * 1.5f;
+    const float debugDistance = renderRadius * 1.75f;
 
     glm::vec3 isoDir = glm::normalize(glm::vec3(1.0f, 1.0f, 1.0f));
     glm::vec3 debugPos = mainCamera->pos + isoDir * debugDistance;
 
-    std::unique_ptr<Camera> debugCamera = std::make_unique<Camera>(debugPos, width, height, 0.1f, debugDistance * 4.0f);
+    std::unique_ptr<Camera> debugCamera = std::make_unique<Camera>(debugPos, cfg.ScreenWidth, cfg.ScreenHeight, 0.1f, debugDistance * 4.0f);
 
     debugCamera->LookAt(mainCamera->pos);
 
@@ -73,15 +64,15 @@ Application<ChunkT>::~Application()
 }
 
 template<typename ChunkT>
-bool Application<ChunkT>::Init()
+bool Application<ChunkT>::Init(const ApplicationConfig& cfg)
 {
-    if (LOADED_CHUNK_DISTANCE > RENDER_CHUNK_DISTANCE)
+    if (cfg.loadedChunkDistance > cfg.renderChunkDistance)
     {
         LOG_WARN(
             EngineSystem::VOXEL_ENGINE,
             "Loaded chunk distance ({}) exceeds render distance ({}). Some loaded chunks will not be rendered.",
-            LOADED_CHUNK_DISTANCE,
-            RENDER_CHUNK_DISTANCE
+            cfg.loadedChunkDistance,
+            cfg.renderChunkDistance
         );
     }
 
@@ -105,15 +96,15 @@ bool Application<ChunkT>::Init()
     }
 
     m_Renderer.Init(
-        CACHE_NUM_OF_PAGES,
-        CACHE_PAGE_SIZE,
-        static_cast<size_t>(AVERAGE_NUMBER_OF_INDIRECTCMDS_PER_CHUNK * pow(RENDER_CHUNK_DISTANCE, 3))
+        cfg.cacheNumOfPages,
+        cfg.cachePageSize,
+        static_cast<size_t>(cfg.averageIndirectCmdsPerChunk * pow(cfg.renderChunkDistance, 3))
     );
 
     Gizmos::Init();
 
     m_World.InitializeStartingChunks();
-    m_Scene.Init(RENDER_CHUNK_DISTANCE, m_CameraManager.GetActiveCamera().pos);
+    m_Scene.Init(cfg.renderChunkDistance, m_CameraManager.GetActiveCamera().pos);
 
     return true;
 }

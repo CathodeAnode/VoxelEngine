@@ -13,6 +13,7 @@
 #include "voxel_renderer.h"
 #include "debugging_renderer.h"
 #include "voxel_edit.h"
+#include "application_config.h"
 
 template<typename ChunkT>
 class Application
@@ -25,10 +26,10 @@ public:
     using SceneT = Scene<ChunkT>;
 
 public:
-    Application(unsigned int width, unsigned int height, const char* title, std::unique_ptr<ChunkGeneratorStrategy<ChunkT>> generator, const glm::vec3& startingWorldPos=glm::vec3(1));
+    Application(const ApplicationConfig& cfg, std::unique_ptr<ChunkGeneratorStrategy<ChunkT>> generator);
     ~Application();
 
-    bool Init();
+    bool Init(const ApplicationConfig& cfg);
     void Run();
     void Shutdown();
 
@@ -63,7 +64,6 @@ private:
     CameraManager m_CameraManager;
     CameraManager::CameraId m_MainCameraID;
     CameraManager::CameraId m_DebugCameraID;
-
 
     // Application variables
     glm::ivec3 m_VoxelAimedAt;

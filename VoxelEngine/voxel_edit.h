@@ -19,7 +19,7 @@ template <typename ChunkType, ChunkProvider<ChunkType> ChunkContainer>
 class VoxelEdit
 {
 public:
-	explicit VoxelEdit(ChunkContainer& chunkContainer, unsigned int cap);
+	explicit VoxelEdit(ChunkContainer& chunkContainer, unsigned int cap=1024);
 
 	ViewRingBuffer<glm::ivec3>::Range GetDirtyChunks(unsigned int budget);
 
