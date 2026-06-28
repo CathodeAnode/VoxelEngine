@@ -23,7 +23,6 @@ GPUPersistentlyMappedBuffer<Atom, LockManager>::GPUPersistentlyMappedBuffer(bool
 template<GPUSafeStruct Atom, IBufferLockManager LockManager>
 GPUPersistentlyMappedBuffer<Atom, LockManager>::~GPUPersistentlyMappedBuffer()
 {
-	LOG_INFO(EngineSystem::GPU_BUFFER, "[GPUPersistentlyMappedBuffer|ID={}] Destroyed", m_Name);
 	Destroy();
 }
 

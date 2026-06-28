@@ -31,7 +31,17 @@ using ChunkType = Chunk8;
 
 int main() 
 {
-	LogManager::Initialize();
+	LogConfig logConfig = {
+		.CORE = LogLevel::Info,
+		.RENDERER = LogLevel::Info,
+		.INPUTS = LogLevel::Info,
+		.CHUNK = LogLevel::Info,
+		.VOXEL_MESHER = LogLevel::Info,
+		.SCENE = LogLevel::Info,
+		.GPU_BUFFER = LogLevel::Info,
+		.VOXEL_ENGINE = LogLevel::Info,
+	};
+	LogManager::Initialize(logConfig);
 
 	//LogManager::GetInstance()->GetLogger(EngineSystem::RENDERER)->set_level(spdlog::level::debug);
 
@@ -45,7 +55,7 @@ int main()
 	std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generationStratgy = std::make_unique<
 		Simple3DPerlinNoiseGeneration<ChunkType>>();
 
-	ApplicationConfig config = {
+	ApplicationConfig appConfig = {
 		.ScreenWidth = 800,
 		.ScreenHeight = 600,
 		.Name = "VoxelEngine",
@@ -64,8 +74,8 @@ int main()
 		.startingWorldPos = glm::vec3(1.0f),
 	};
 
-	auto* app = new Application<ChunkType>(config, std::move(generationStratgy));
-	app->Init(config);
+	auto* app = new Application<ChunkType>(appConfig, std::move(generationStratgy));
+	app->Init(appConfig);
 	PROFILE_END_SESSION();
 
 	PROFILE_BEGIN_SESSION("Runtime", "../Profile-Runtime.json");

@@ -24,29 +24,18 @@ LogManager::LogManager()
 
 }
 
-const char* LogManager::SysToString(EngineSystem sys)
+void LogManager::Initialize(const LogConfig& cfg)
 {
-	switch (sys)
-	{
-#define X(ENGINESYSTEM)			\
-	case EngineSystem::ENGINESYSTEM :			\
-		return #ENGINESYSTEM;	
-		ENGINE_SYSTEMS
-#undef X
-	default:
-		return "Unknown (X-macro failed)";
-	}
-	return nullptr;
-}
-
-void LogManager::Initialize()
-{
-	assert(!s_Instance);
+	assert(s_Instance == nullptr);
 	s_Instance = new LogManager();
 
-	// TODO: log config parameters
 	LOG_INFO(EngineSystem::CORE,
 		"Initializing logging");
+
+#define X(ENGINESYSTEM) GetInstance()->SetLevel(EngineSystem::ENGINESYSTEM, cfg.ENGINESYSTEM);
+	ENGINE_SYSTEMS
+#undef X
+
 }
 
 void LogManager::Shutdown()
@@ -60,7 +49,7 @@ void LogManager::Shutdown()
 
 LogManager* LogManager::GetInstance()
 {
-	assert(s_Instance);
+	assert(s_Instance != nullptr);
 
 	return s_Instance;
 }
@@ -68,6 +57,17 @@ LogManager* LogManager::GetInstance()
 std::shared_ptr<spdlog::logger> LogManager::GetLogger(EngineSystem sys)
 {
 	return m_LoggerMap[sys];
+}
+
+void LogManager::SetLevel(EngineSystem sys, LogLevel lvl)
+{
+	assert(s_Instance != nullptr);
+
+	LOG_INFO(EngineSystem::CORE, "{:<12} : LogLevel set to {:<8}", 
+		LoggerUtils::ToString(sys),
+		LoggerUtils::ToString(lvl));
+
+	m_LoggerMap[sys]->set_level(static_cast<spdlog::level::level_enum>(lvl));
 }
 
 

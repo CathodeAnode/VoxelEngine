@@ -6,6 +6,17 @@
 #include <unordered_map>
 #include <memory>
 
+enum class LogLevel : int
+{
+	Trace = spdlog::level::trace,
+	Debug = spdlog::level::debug,
+	Info =  spdlog::level::info,
+	Warn = spdlog::level::warn,
+	Error = spdlog::level::err,
+	Critical = spdlog::level::critical,
+	Off = spdlog::level::off
+};
+
 #define ENGINE_SYSTEMS	\
 	X(CORE)	\
 	X(RENDERER)	\
@@ -23,12 +34,18 @@ enum class EngineSystem
 #undef X
 };
 
-// TODO: have one logger object to reduce memory footprint
 // TODO: option to output to file
+struct LogConfig
+{
+#define X(ENGINESYSTEM) LogLevel ENGINESYSTEM = LogLevel::Info;
+	ENGINE_SYSTEMS
+#undef X
+};
+
 class LogManager
 {
 public:
-	static void Initialize();
+	static void Initialize(const LogConfig& cfg);
 	static void Shutdown();
 
 	static LogManager* GetInstance();
@@ -38,6 +55,10 @@ public:
 	void operator=(const LogManager&) = delete;
 
 	std::shared_ptr<spdlog::logger> GetLogger(EngineSystem sys);
+	void SetLevel(EngineSystem sys, LogLevel lvl);
+
+private:
+	LogManager();
 
 private:
 	std::unordered_map<EngineSystem, std::shared_ptr<spdlog::logger>> m_LoggerMap;
@@ -45,12 +66,40 @@ private:
 
 	std::shared_ptr<spdlog::sinks::ansicolor_stdout_sink_mt> m_ConsoleSink = std::make_shared<spdlog::sinks::ansicolor_stdout_sink_mt>();
 
-private:
-	LogManager();
-
-	const char* SysToString(EngineSystem sys);
-
 };
+
+namespace LoggerUtils
+{
+	constexpr const char* ToString(LogLevel lvl) noexcept
+	{
+		switch (lvl)
+		{
+		case LogLevel::Trace:    return "Trace";
+		case LogLevel::Debug:    return "Debug";
+		case LogLevel::Info:     return "Info";
+		case LogLevel::Warn:     return "Warn";
+		case LogLevel::Error:    return "Error";
+		case LogLevel::Critical: return "Critical";
+		case LogLevel::Off:      return "Off";
+		default:                 return "Unknown";
+		}
+	}
+
+	constexpr const char* ToString(EngineSystem sys) noexcept
+	{
+		switch (sys)
+		{
+#define X(ENGINESYSTEM)			\
+	case EngineSystem::ENGINESYSTEM :			\
+		return #ENGINESYSTEM;	
+			ENGINE_SYSTEMS
+#undef X
+		default:
+			return "?????";
+		}
+	}
+}
+
 
 #ifdef VE_LOGGING_ENABLED
 #define LOG_TRACE(engineSys, ...)		LogManager::GetInstance()->GetLogger(engineSys)->trace(__VA_ARGS__);
