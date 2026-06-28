@@ -9,16 +9,38 @@ file(GLOB_RECURSE VE_SOURCES
 )
 
 # Create the executable
-add_executable(VoxelEngineExe ${VE_SOURCES})
+add_executable(VoxelEngine ${VE_SOURCES})
+
+# Collect all asset files recursively
+file(GLOB_RECURSE VE_ASSETS
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.glsl"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.vert"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.frag"
+    "${CMAKE_CURRENT_SOURCE_DIR}/*.png"
+)
+
+foreach(asset ${VE_ASSETS})
+    file(RELATIVE_PATH rel_path "${CMAKE_CURRENT_SOURCE_DIR}" "${asset}")
+    get_filename_component(rel_dir "${rel_path}" DIRECTORY)
+
+    add_custom_command(
+        TARGET VoxelEngine POST_BUILD
+        COMMAND ${CMAKE_COMMAND} -E make_directory
+                "${CMAKE_CURRENT_BINARY_DIR}/${rel_dir}"
+        COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                "${asset}"
+                "${CMAKE_CURRENT_BINARY_DIR}/${rel_dir}"
+    )
+endforeach()
 
 # Include directory (your folder is flat)
-target_include_directories(VoxelEngineExe
+target_include_directories(VoxelEngine
     PUBLIC
         ${CMAKE_CURRENT_SOURCE_DIR}
 )
 
 # Link dependencies
-target_link_libraries(VoxelEngineExe
+target_link_libraries(VoxelEngine
     PUBLIC
         glm
         stb
@@ -29,7 +51,7 @@ target_link_libraries(VoxelEngineExe
 )
 
 # Apply compile definitions (from ConfigDefinition.cmake)
-target_compile_definitions(VoxelEngineExe PUBLIC
+target_compile_definitions(VoxelEngine PUBLIC
     $<$<BOOL:${VE_LOGGING_ENABLED}>:VE_LOGGING_ENABLED>
     $<$<BOOL:${VE_PROFILING_ENABLED}>:VE_PROFILING_ENABLED>
     $<$<STREQUAL:${VE_CHUNK_TYPE},CHUNK8>:VE_CHUNK_TYPE_8>
@@ -39,7 +61,7 @@ target_compile_definitions(VoxelEngineExe PUBLIC
 
 # Optional: warnings
 if(MSVC)
-    target_compile_options(VoxelEngineExe PRIVATE /W4 /permissive-)
+    target_compile_options(VoxelEngine PRIVATE /W4 /permissive-)
 else()
-    target_compile_options(VoxelEngineExe PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(VoxelEngine PRIVATE -Wall -Wextra -Wpedantic)
 endif()
