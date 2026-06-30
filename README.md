@@ -117,18 +117,23 @@ The engine exposes several CMake options to customize logging, profiling, and ch
 
 ### Optimization Features
 
-- **Binary Greedy Meshing**: speeds, add screenshot of wiremesh
+- **Binary Greedy Meshing**: Bitmask-based greedy quad generation that merges contiguous visible voxels per face into large binary-packed quads, drastically reducing triangle count and while preserving exact chunk silhouettes.
+
+![Greedy Meshing Wireframe](../readme-assets/Demos/GreedyMeshWireframe.png)
+
 - **VRAM Chunk Mesh Cache**: Lock-free, gpu lookups, FIFO Page replacement
 - **AZDO rendering techinques**: Persistent Mapped Buffers, Multi-Draw Indirect, Direct State Access
-- **Triple-buffering**:
-- **Lock-free mutlithreading**: uploads + meshing using custom threadpool
-- **GPU Frustum Culling pipeline**: TODO TEXT
+- **Triple-buffering**: indirect command buffer and other rendering buffers split into three rotating regions so the CPU updates one segment while the GPU consumes the other two, eliminating write–read conflicts.
+- **Lock-free mutlithreading**: Custom thread pool enabling concurrent chunk meshing and lock‑free uploads into the mesh cache,
+- **GPU Frustum Culling pipeline**: Compute shader evaluates chunk visibility each frame, pushes visible cached meshes into the indirect draw buffer, and issues GPU-side meshing requests for uncached chunks to render on the next frame.
 
   ![GPU Frustum Culling Demo](../readme-assets/Demos/GPUFrustumCullingDemo.gif?raw=true)
 
-- **Quad compression & Instancing**:
+- **Quad compression & Instancing**: Quads are packed into a 2‑byte format encoding their local XYZ position, width, height, face direction, and RGBA color
 - **Face culling**: OpenGL face culling
-- **3D ring buffer**: gif if possible
+- **3D ring buffer**: 3D ring‑buffer world streaming, that continuously loads/unloads chunk data around the camera, keeping nearby regions resident in RAM
+
+![3D Ring Buffer](../readme-assets/Demos/3DRingBufferDemo.gif?raw=true)
 
 ### Utility Features
 
@@ -139,6 +144,10 @@ The engine exposes several CMake options to customize logging, profiling, and ch
 - **Voxel editing**:
 
 ## High-Level Rendering Architecture
+
+![High-Level Rendering Pipeline](../readme-assets/EngineRenderingPipeline.png)
+
+TODO text
 
 ## Engine Configuration
 
@@ -155,5 +164,15 @@ The engine exposes several CMake options to customize logging, profiling, and ch
 ### Profiling
 
 ## Performance and Benchmarks
+
+TODO my pc specs (gpu, ram, processor) + os env
+
+### Meshing
+
+TODO speeds with different chunksize builds, quads per chunk, chunk generation strategy used, etc...
+
+### Chunk Mesh Cache
+
+TODO evicitions, uploads, page allocations, etc...
 
 ## License
