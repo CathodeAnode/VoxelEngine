@@ -6,13 +6,8 @@ option(VE_BUILD_TEST "Build Voxel Engine tests" FALSE)
 # =============================
 # Compute defaults for logging/profiling
 # =============================
-if(VE_BUILD_TEST)
-    set(_DEFAULT_LOGGING FALSE)
-    set(_DEFAULT_PROFILING FALSE)
-else()
-    set(_DEFAULT_LOGGING TRUE)
-    set(_DEFAULT_PROFILING TRUE)
-endif()
+set(_DEFAULT_LOGGING TRUE)
+set(_DEFAULT_PROFILING TRUE)
 
 # =============================
 # Logging & Profiling Options
