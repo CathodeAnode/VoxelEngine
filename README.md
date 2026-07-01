@@ -131,7 +131,7 @@ The engine exposes several CMake options to customize logging, profiling, and ch
 
 - **Quad compression & Instancing**: Quads are packed into a 2‑byte format encoding their local XYZ position, width, height, face direction, and RGBA color
 - **Face culling**: OpenGL face culling
-- **3D ring buffer**: 3D ring‑buffer world streaming, that continuously loads/unloads chunk data around the camera, keeping nearby regions resident in RAM
+- **3D ring buffer**: Keeps a rotating window of chunks around the camera, loading only the incoming planes when movement crosses a chunk boundary. Avoids regenerating the full volume around the camera, preserves cache locality, and guarantees constant‑time chunk indexing.
 
 ![3D Ring Buffer](../readme-assets/Demos/3DRingBufferDemo.gif?raw=true)
 
@@ -147,13 +147,64 @@ The engine exposes several CMake options to customize logging, profiling, and ch
 
 ![High-Level Rendering Pipeline](../readme-assets/EngineRenderingPipeline.png)
 
-TODO text
-
 ## Engine Configuration
 
 ### Application Configuration
 
+The `ApplicationConfig` struct defines all runtime parameters for the engine. These values determine window size, threading behavior, chunk loading distances, cache layout, and the initial world position.
+
+```C++
+ApplicationConfig appConfig = {
+    .ScreenWidth = 800,
+    .ScreenHeight = 600,
+    .Name = "VoxelEngine",
+    .ThreadWorkers = std::thread::hardware_concurrency(),
+
+    // Cache configuration
+    .cachePageSize = 400,
+    .cacheNumOfPages = 62500,
+    .averageIndirectCmdsPerChunk = 3,
+
+    // Chunk distances
+    .loadedChunkDistance = 15,
+    .renderChunkDistance = 15,
+
+    // Starting world position
+    .startingWorldPos = glm::vec3(1.0f),
+};
+```
+
+| Field                           | Type          | Description                                                                                                 |
+| ------------------------------- | ------------- | ----------------------------------------------------------------------------------------------------------- |
+| **ScreenWidth**                 | `uint32_t`    | Width of the application window in pixels.                                                                  |
+| **ScreenHeight**                | `uint32_t`    | Height of the application window in pixels.                                                                 |
+| **Name**                        | `std::string` | Name of the application; appears in the window title.                                                       |
+| **ThreadWorkers**               | `uint32_t`    | Number of worker threads used for meshing & upload tasks (typically `std::thread::hardware_concurrency()`). |
+| **cachePageSize**               | `uint32_t`    | Number of quads stored per cache page. Controls paging granularity.                                         |
+| **cacheNumOfPages**             | `uint32_t`    | Total number of cache pages available for chunk storage.                                                    |
+| **averageIndirectCmdsPerChunk** | `uint32_t`    | Renderer tuning parameter estimating average indirect draw commands per chunk.                              |
+| **loadedChunkDistance**         | `uint32_t`    | Volumn (in chunks) around the camera where chunks are fully loaded.                                         |
+| **renderChunkDistance**         | `uint32_t`    | Volumn (in chunks) where chunks are rendered. Typically equal to `loadedChunkDistance`.                     |
+| **startingWorldPos**            | `glm::vec3`   | Initial world-space position of the camera.                                                                 |
+
 ### Logging Configuration
+
+Logging is configured through a `LogConfig` struct, allowing control over subsystem verbosity. Each subsystem can be independently set to Trace, Debug, Info, Warn, Error, Critical, or Off.
+
+```c++
+LogConfig logConfig = {
+    .CORE = LogLevel::Info,
+    .RENDERER = LogLevel::Info,
+    .INPUTS = LogLevel::Info,
+    .CHUNK = LogLevel::Info,
+    .VOXEL_MESHER = LogLevel::Info,
+    .SCENE = LogLevel::Info,
+    .GPU_BUFFER = LogLevel::Info,
+    .VOXEL_ENGINE = LogLevel::Info,
+};
+```
+
+**Note:** Disabling `VE_LOGGING_ENABLED` removes all runtime log output. No messages from any subsystem will appear in the console.
 
 ## Usage
 
