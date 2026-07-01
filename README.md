@@ -43,7 +43,6 @@ A high-performance, GPU-driven voxle engine written in C++23 and using OpenGL 4.
     <li><a href="#usage">Usage</a></li>
       <ul>
         <li><a href="#world-generation-strategy">World Generation Strategy</a></li>
-        <li><a href="#gizmos">Gizmos</a></li>
         <li><a href="#profiling">Profiling</a></li>
       </ul>
     <li><a href="#performancce-and-benchmarks">Performance and Benchmarks</a></li>
@@ -210,9 +209,67 @@ LogConfig logConfig = {
 
 ### World Generation Strategy
 
-### Gizmos
+Chunk generation is handled through the ChunkGeneratorStrategy interface. Each strategy defines how voxel data is produced for a chunk when the engine requests it. The engine passes the chunk’s coordinates and a writable chunk instance, and the strategy fills its voxels.
+
+A generator implements:
+
+```c++
+void Generate(const glm::ivec3& chunkCoords,
+              const std::shared_ptr<ChunkType>& outChunk);
+```
+
+Example 3D Perlin Noise:
+
+```c++
+class Simple3DPerlinNoiseGeneration : public ChunkGeneratorStrategy<ChunkType>
+{
+public:
+    Simple3DPerlinNoiseGeneration() : m_PerlinNoise(this->p_Seed) {}
+
+    void Generate(const glm::ivec3& chunkCoords,
+                  const std::shared_ptr<ChunkType>& outChunk) override
+    {
+        const int randColor = this->p_Dist(this->p_Engine);
+
+        for (int x = 0; x < ChunkType::Size; x++)
+        for (int y = 0; y < ChunkType::Size; y++)
+        for (int z = 0; z < ChunkType::Size; z++)
+        {
+            float n = m_PerlinNoise.Noise3D(
+                (chunkCoords.x * ChunkType::Size + x) * 0.1f,
+                (chunkCoords.y * ChunkType::Size + y) * 0.1f,
+                (chunkCoords.z * ChunkType::Size + z) * 0.1f
+            );
+
+            if (n > 0.2f)
+                outChunk->SetVoxel(x, y, z, randColor);
+        }
+    }
+
+    std::string ToString() override { return "Simple3DPerlinNoiseGeneration"; }
+
+private:
+    PerlinNoise m_PerlinNoise;
+};
+```
+
+To define custom terrain or structures, inherit from ChunkGeneratorStrategy, override Generate(), and fill the chunk using any logic—noise, heightmaps, patterns, or procedural rules. Then pass the ChunkGenertorStratgy to the engine application and the engine will automatically use your strategy for all chunks.
+
+Refer to [chunk_generator_strategy.h](VoxelEngine/chunk_generator_strategy.h) for built‑in generation strategies you can use or extend.
 
 ### Profiling
+
+The engine includes lightweight function‑level profiling inspired by The Cherno’s Hazel Engine. When profiling is enabled, the engine automatically records timing data into three JSON trace files:
+
+- Profile-Startup.json: events during engine initialization
+
+- Profile-Runtime.json: events captured while runtime profiling is active
+
+- Profile-Shutdown.json: events during engine shutdown
+
+You can open any of these files in a profiling viewer such as Google Trace ([chrome://tracing](chrome://tracing/)) by dragging the JSON file into the viewer.
+
+Use the **F1** key to start or stop runtime profiling. When profiling is disabled via the build option `VE_PROFILING_ENABLED=OFF`, no profiling files are generated.
 
 ## Performance and Benchmarks
 
