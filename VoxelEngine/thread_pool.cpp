@@ -1,11 +1,12 @@
 #include "thread_pool.h"
 
 #include "logger.h"
+#include "profiler.h"
 
 
 ThreadPool::ThreadPool(unsigned int numThreads)
 	: m_Threads(numThreads)
-	, m_BusyThreads(numThreads)
+	, m_BusyThreads(0)
 	, m_Shutdown(false)
 {
 	LOG_INFO(
@@ -53,4 +54,15 @@ void ThreadPool::Shutdown()
 			m_Threads[i].join();
 		}
 	}
+}
+
+void ThreadPool::WaitAll()
+{
+	PROFILE_FUNCTION();
+
+	std::unique_lock<std::mutex> lock(m_Mutex);
+
+	m_Cv.wait(lock, [this] {
+		return m_Queue.empty() && m_BusyThreads == 0;
+	});
 }

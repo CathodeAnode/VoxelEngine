@@ -43,6 +43,8 @@ void Scene<ChunkType>::Update(const glm::vec3& cameraPos, int chunkMeshingTuning
 	_UploadRequestedChunks();
 
 	m_World.Update(cameraPos);
+
+	m_ThreadPool.WaitAll();
 }
 
 
@@ -77,6 +79,8 @@ inline void Scene<ChunkType>::_UploadLoadedTerrain(const glm::vec3& cameraPos)
 			}
 		}
 	}
+
+	m_ThreadPool.WaitAll();
 }
 
 template<typename ChunkType>
@@ -121,6 +125,8 @@ inline void Scene<ChunkType>::_MeshNUploadChunk(const glm::ivec3& chunkCoords)
 		{
 			renderer.Upload(world, chunkCoords);
 		});
+
+	//m_Renderer.Upload(m_World, chunkCoords);
 }
 
 #endif

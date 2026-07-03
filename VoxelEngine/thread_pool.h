@@ -41,6 +41,8 @@ public:
 		return future;
 	}
 
+	void WaitAll();
+
 private:
 	class ThreadWorker
 	{
@@ -55,20 +57,21 @@ private:
 			std::unique_lock<std::mutex> lock(m_ThreadPool->m_Mutex);
 			while (!m_ThreadPool->m_Shutdown || (m_ThreadPool->m_Shutdown && !m_ThreadPool->m_Queue.empty()))
 			{
-				m_ThreadPool->m_BusyThreads--;
 				m_ThreadPool->m_Cv.wait(lock, [this] {
 					return this->m_ThreadPool->m_Shutdown || !m_ThreadPool->m_Queue.empty();
 					});
-				m_ThreadPool->m_BusyThreads++;
 
 				if (!this->m_ThreadPool->m_Queue.empty())
 				{
 					auto func = std::move(m_ThreadPool->m_Queue.front());
 					m_ThreadPool->m_Queue.pop();
 
+					m_ThreadPool->m_BusyThreads++;
 					lock.unlock();
 					func();
 					lock.lock();
+					m_ThreadPool->m_BusyThreads--;
+					m_ThreadPool->m_Cv.notify_all();
 				}
 			}
 		}
