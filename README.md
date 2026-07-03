@@ -1,6 +1,6 @@
 # Voxel Engine
 
-A high-performance, GPU-driven voxle engine written in C++23 and using OpenGL 4.6, GLM, GLAD.
+A high-performance, GPU-driven voxel engine written in C++23 and using OpenGL 4.6, GLM, GLAD.
 
 <p align="center">
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" alt="License">
@@ -48,8 +48,6 @@ A high-performance, GPU-driven voxle engine written in C++23 and using OpenGL 4.
     <li><a href="#performancce-and-benchmarks">Performance and Benchmarks</a></li>
     <li><a href="#contributing">Contributing</a></li>
     <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgments">Acknowledgments</a></li>
   </ol>
 </details>
 
@@ -148,6 +146,8 @@ The engine exposes several CMake options to customize logging, profiling, and ch
 
 ## Engine Configuration
 
+TODO text to main.cpp
+
 ### Application Configuration
 
 The `ApplicationConfig` struct defines all runtime parameters for the engine. These values determine window size, threading behavior, chunk loading distances, cache layout, and the initial world position.
@@ -182,8 +182,8 @@ ApplicationConfig appConfig = {
 | **cachePageSize**               | `uint32_t`    | Number of quads stored per cache page. Controls paging granularity.                                         |
 | **cacheNumOfPages**             | `uint32_t`    | Total number of cache pages available for chunk storage.                                                    |
 | **averageIndirectCmdsPerChunk** | `uint32_t`    | Renderer tuning parameter estimating average indirect draw commands per chunk.                              |
-| **loadedChunkDistance**         | `uint32_t`    | Volumn (in chunks) around the camera where chunks are fully loaded.                                         |
-| **renderChunkDistance**         | `uint32_t`    | Volumn (in chunks) where chunks are rendered. Typically equal to `loadedChunkDistance`.                     |
+| **loadedChunkDistance**         | `uint32_t`    | Length of cubic volumn (in chunks) around the camera where chunks are fully loaded.                         |
+| **renderChunkDistance**         | `uint32_t`    | Length of cubic volumn (in chunks) where chunks are rendered. Typically equal to `loadedChunkDistance`.     |
 | **startingWorldPos**            | `glm::vec3`   | Initial world-space position of the camera.                                                                 |
 
 ### Logging Configuration
@@ -273,11 +273,35 @@ Use the **F1** key to start or stop runtime profiling. When profiling is disable
 
 ## Performance and Benchmarks
 
-TODO my pc specs (gpu, ram, processor) + os env
+Benchmark results were collected using the environment and configuration described below. All tests were executed with logging disabled.
 
-### Meshing
+### Benchmark Environment
 
-TODO speeds with different chunksize builds, quads per chunk, chunk generation strategy used, etc...
+| Component | Specification              |
+| --------- | -------------------------- |
+| **CPU**   | Intel i5-10300H @ 2.50 GHz |
+| **Cores** | 8                          |
+| **GPU**   | NIVIDA GeForce RTX3050     |
+| **RAM**   | 16 GB                      |
+| **OS**    | Windows 11                 |
+
+### Cache Configuration Used for Tests
+
+| Cache Parameter                 | Value          |
+| ------------------------------- | -------------- |
+| **cachePageSize**               | 400 quads/page |
+| **cacheNumOfPages**             | 62,500 pages   |
+| **averageIndirectCmdsPerChunk** | 3              |
+
+### Meshing Benchmarking
+
+The following benchmarks were generated using the `Simple3DPerlinNoiseGeneration` chunk‑generation strategy, with multi‑threading disabled and both `LoadedChunkDistance` and `RenderChunkDistance` set to 31.
+
+| ChunkType | Meshing Time per Chunk | Mesh Upload time |
+| --------- | ---------------------- | ---------------- |
+| CHUNK8    | 0.020 ms               | 0.050 ms         |
+| CHUNK16   | 0.064 ms               | 0.051 ms         |
+| CHUNK32   | ---                    | ---              |
 
 ### Chunk Mesh Cache
 
