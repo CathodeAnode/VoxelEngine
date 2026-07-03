@@ -15,7 +15,7 @@ VoxelMesher<ChunkType>::VoxelMesher()
 template<typename ChunkType>
 QuadMeshData VoxelMesher<ChunkType>::_CompressQuadData(uint8_t x, uint8_t y, uint8_t z, uint8_t w, uint8_t h, uint8_t dir)
 {
-	PROFILE_FUNCTION();
+	//PROFILE_FUNCTION();
 
 	//std::cout << "Face: " << (int)dir << " pos: (" << (int)x << "," << (int)y << "," << (int)z << ") "
 	//		  << "size: (" << (int)w << "x" << (int)h << ")\n";
@@ -33,7 +33,7 @@ QuadMeshData VoxelMesher<ChunkType>::_CompressQuadData(uint8_t x, uint8_t y, uin
 template<typename ChunkType>
 VoxelMesher<ChunkType>::ColorFaceMasksMap VoxelMesher<ChunkType>::_SplitVoxelsByColor(uint8_t axis, std::shared_ptr<const ChunkType> chunk, FaceVisibilityMasks& faceMasks)
 {
-	PROFILE_FUNCTION();
+	//PROFILE_FUNCTION();
 
 	// MUST HAPPEN AFTER FACE HULLING STEP
 	ColorFaceMasksMap data;
@@ -91,10 +91,12 @@ std::vector<VoxelQuad> VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& c
 	PROFILE_FUNCTION();
 	FaceVisibilityMasks faceMasks;
 	std::vector<VoxelQuad> chunkMesh;
-	std::fill(faceMasks.begin(), faceMasks.end(), 0);
-	chunkMesh.reserve(CS_2 * 6);
-
 	ChunkData<ChunkType> chunks;
+	chunkMesh.reserve(CS_2 * 6);
+	chunkMesh.clear();
+	std::fill(faceMasks.begin(), faceMasks.end(), 0);
+	chunks.GatherData(chunkContainer, chunkLocation);
+
 	LOG_DEBUG(EngineSystem::VOXEL_MESHER,
 		"Meshing chunk at ({}, {}, {}) in container {}",
 		chunkLocation.x,
@@ -102,10 +104,6 @@ std::vector<VoxelQuad> VoxelMesher<ChunkType>::MeshChunk(const ChunkContainer& c
 		chunkLocation.z,
 		chunkContainer.GetUID());
 
-	std::fill(faceMasks.begin(), faceMasks.end(), 0);
-	chunkMesh.clear();
-
-	chunks.GatherData(chunkContainer, chunkLocation);
 
 	// face hulling
 	for (int a = 1; a < CS_P - 1; a++) {
