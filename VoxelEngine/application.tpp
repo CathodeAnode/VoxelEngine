@@ -273,8 +273,14 @@ void Application<ChunkT>::Render()
     m_Scene.Render(activeCamera, mainCamera);
 
     DebugUI::Print("FPS: {}", std::lround(m_FPS));
-    DebugUI::Print("Testing 2");
-    DebugUI::Print("Testing 3");
+    DebugUI::Print("XYZ: {}, {}, {}", mainCamera.pos.x, mainCamera.pos.y, mainCamera.pos.z);
+    if (m_AimedRaycastHit)
+        DebugUI::Print("Voxel: {}, {}, {}", m_VoxelAimedAt.x, m_VoxelAimedAt.y, m_VoxelAimedAt.z);
+    else
+        DebugUI::Print("Voxel: None");
+
+    DebugUI::Print("\n");
+    DebugUI::Print("Test");
 
     Gizmos::End();
     DebugUI::EndFrame();
