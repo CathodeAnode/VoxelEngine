@@ -16,8 +16,9 @@
 #include "voxel_mesher.h"
 #include "gizmos.h"
 #include "frame_counter.h"
+#include "debug_ui.h"
 
-// TODO make loadedChunkDistance & terrian generation strargy user defiend
+
 template<typename ChunkT>
 Application<ChunkT>::Application(const ApplicationConfig& cfg, std::unique_ptr<ChunkGeneratorStrategy<ChunkT>> generator)
     : m_Screen(cfg.ScreenWidth, cfg.ScreenHeight, cfg.Name)
@@ -101,6 +102,7 @@ bool Application<ChunkT>::Init(const ApplicationConfig& cfg)
         static_cast<size_t>(cfg.averageIndirectCmdsPerChunk * pow(cfg.renderChunkDistance, 3))
     );
 
+    DebugUI::Init(m_Screen.getWindow());
     Gizmos::Init();
 
     m_World.InitializeStartingChunks();
@@ -251,11 +253,18 @@ void Application<ChunkT>::Render()
     glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+    DebugUI::BeginFrame();
     Gizmos::Begin(activeCamera);
     if(m_AimedRaycastHit) Gizmos::DrawCube(glm::vec3(m_VoxelAimedAt) + 0.5f, glm::vec3(1));
     m_DebuggingRenderer.RenderOverlay(mainCamera);
     m_Scene.Render(activeCamera, mainCamera);
+
+    DebugUI::Print("Testing 1");
+    DebugUI::Print("Testing 2");
+    DebugUI::Print("Testing 3");
+
     Gizmos::End();
+    DebugUI::EndFrame();
 }
 
 template<typename ChunkT>
@@ -265,6 +274,7 @@ void Application<ChunkT>::Shutdown()
     while ((err = glGetError()) != GL_NO_ERROR)
         std::cerr << "GL ERROR: " << std::hex << err << std::endl;
 
+    DebugUI::Shutdown();
     Gizmos::Shutdown();
     glfwTerminate();
 }

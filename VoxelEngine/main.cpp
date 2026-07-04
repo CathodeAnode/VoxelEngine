@@ -43,17 +43,15 @@ int main()
 	};
 	LogManager::Initialize(logConfig);
 
-	//LogManager::GetInstance()->GetLogger(EngineSystem::RENDERER)->set_level(spdlog::level::debug);
-
 	PROFILE_BEGIN_SESSION("Startup", "../Profile-Startup.json");
 
 	//TODO: clean this up, so it is simpler to use. Ideally user would not have to use a unique ptr to define generation stratgy
-	//std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generationStratgy = std::make_unique<
-	//	HeightmapChunkGeneration<ChunkType>>("Grand_Canyon.png", 
-	//										800.0f // max height
-	//		);
 	std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generationStratgy = std::make_unique<
-		Simple3DPerlinNoiseGeneration<ChunkType>>();
+		HeightmapChunkGeneration<ChunkType>>("Grand_Canyon.png", 
+											800.0f // max height
+			);
+	//std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generationStratgy = std::make_unique<
+	//	Simple3DPerlinNoiseGeneration<ChunkType>>();
 
 	ApplicationConfig appConfig = {
 		.ScreenWidth = 800,
@@ -71,7 +69,7 @@ int main()
 		.renderChunkDistance = 15,
 
 		// Starting world position
-		.startingWorldPos = glm::vec3(1.0f),
+		.startingWorldPos = glm::vec3(1),
 	};
 
 	auto* app = new Application<ChunkType>(appConfig, std::move(generationStratgy));

@@ -47,6 +47,7 @@ target_link_libraries(VoxelEngine
         glad
         spdlog
         glfw
+        imgui
         ${VE_SYSTEM_LIBS}
 )
 

@@ -56,6 +56,27 @@ target_include_directories(glad PUBLIC
     ${VE_THIRD_PARTY_INCLUDE_DIR}
 )
 
+# --------------------------------------------
+# ImGui (compiled from source)
+# --------------------------------------------
+file(GLOB IMGUI_SOURCES
+    ${CMAKE_SOURCE_DIR}/Linking/src/imgui/*.cpp
+    ${CMAKE_SOURCE_DIR}/Linking/src/imgui/backends/imgui_impl_glfw.cpp
+    ${CMAKE_SOURCE_DIR}/Linking/src/imgui/backends/imgui_impl_opengl3.cpp
+)
+
+add_library(imgui STATIC ${IMGUI_SOURCES})
+
+target_include_directories(imgui PUBLIC
+    ${VE_THIRD_PARTY_INCLUDE_DIR}/imgui
+    ${VE_THIRD_PARTY_INCLUDE_DIR}/imgui/backends
+)
+
+target_link_libraries(imgui PUBLIC
+    glfw
+    glad
+)
+
 
 # --------------------------------------------
 # GoogleTest (only if building tests)

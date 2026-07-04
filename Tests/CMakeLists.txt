@@ -41,6 +41,7 @@ target_link_libraries(VoxelEngineTests PRIVATE
     glad
     spdlog
     glfw
+    imgui
     ${VE_SYSTEM_LIBS}
     GTest::gtest
     GTest::gtest_main
