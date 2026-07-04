@@ -164,6 +164,12 @@ void Application<ChunkT>::ProcessInput()
         m_DebuggingRenderer.ToggleChunkBounds();
     }
 
+    if (Keyboard::keyDown(Key::F4))
+    {
+        bool flip = !DebugUI::IsEnabled();
+        DebugUI::Toggle(flip);
+    }
+
     if (Keyboard::keyDown(Key::Tab))
     {
         if (&m_CameraManager.GetActiveCamera() == &m_CameraManager.GetCamera(m_MainCameraID))

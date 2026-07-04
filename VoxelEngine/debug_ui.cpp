@@ -57,8 +57,18 @@ void DebugUI::EndFrame()
     if (!m_Enabled)
         return;
 
+    for(const auto& text: m_Text)
+        ImGui::TextUnformatted(text.c_str());
+
     ImGui::End();
 
     ImGui::Render();
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
+
+    m_Text.clear();
+}
+
+void DebugUI::_AddText(const std::string& s)
+{
+    m_Text.push_back(s);
 }

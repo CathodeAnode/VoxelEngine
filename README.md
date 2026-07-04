@@ -108,6 +108,7 @@ The engine exposes several CMake options to customize logging, profiling, and ch
 | **F1**                | Toggle profiling (Google Trace)                                         |
 | **F2**                | Toggle draw mode (Fill ↔ Wireframe)                                     |
 | **F3**                | Toggle chunk bounds visualization                                       |
+| **F4**                | Toggle DebugUI Overlay                                                  |
 | **Tab**               | Switch between Main Camera and isometric Camera; toggle frustum outline |
 
 ## Features

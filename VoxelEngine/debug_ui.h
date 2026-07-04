@@ -27,11 +27,15 @@ public:
     template<typename... Args>
     static void Print(const std::string& fmt, Args&&... args)
     {
-        ImGui::Text(fmt.c_str(), args...);
+        _AddText(std::vformat(fmt, std::make_format_args(args...)));
     }
 
 private:
+    static void _AddText(const std::string& s);
+
+private:
     static inline bool m_Enabled = true;
+    static inline std::vector<std::string> m_Text;
 };
 
 #endif
