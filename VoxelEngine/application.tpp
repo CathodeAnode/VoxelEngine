@@ -116,21 +116,28 @@ void Application<ChunkT>::Run()
 {
     Profiler::GetInstance().SetEnabled(false);
 
+    auto lastTime = clock::now();
+    m_FPS = 60.0;
+    const double smoothing = 0.99; // better for FPS
+
     while (m_Screen.isOpen())
     {
         PROFILE_SCOPE("Frame");
 
-        double currentTime = glfwGetTime();
-        m_DeltaTime = currentTime - m_LastFrameTime;
-        m_LastFrameTime = currentTime;
-        m_FPS = static_cast<float>(1.0 / m_DeltaTime);
+        auto now = clock::now();
+        m_DeltaTime = now - lastTime;
+        lastTime = now;
+
+        double frameTime = m_DeltaTime.count(); // seconds
+        double currentFPS = 1.0 / frameTime;
+
+        m_FPS = m_FPS * smoothing + currentFPS * (1.0 - smoothing);
 
         ProcessInput();
         Update();
         Render();
 
         m_Screen.Flush();
-        CalcFPSOnWindowTitle(100);
         FrameCounter::Tick();
     }
 
@@ -184,32 +191,32 @@ void Application<ChunkT>::ProcessInput()
 
     if (Keyboard::key(Key::W)) 
     {
-        camera.UpdateCameraPos(CameraDirection::FORWARD, m_DeltaTime);
+        camera.UpdateCameraPos(CameraDirection::FORWARD, m_DeltaTime.count());
     }
 
     if (Keyboard::key(Key::S)) 
     {
-        camera.UpdateCameraPos(CameraDirection::BACKWARD, m_DeltaTime);
+        camera.UpdateCameraPos(CameraDirection::BACKWARD, m_DeltaTime.count());
     }
 
     if (Keyboard::key(Key::A)) 
     {
-        camera.UpdateCameraPos(CameraDirection::LEFT, m_DeltaTime);
+        camera.UpdateCameraPos(CameraDirection::LEFT, m_DeltaTime.count());
     }
 
     if (Keyboard::key(Key::D)) 
     {
-        camera.UpdateCameraPos(CameraDirection::RIGHT, m_DeltaTime);
+        camera.UpdateCameraPos(CameraDirection::RIGHT, m_DeltaTime.count());
     }
 
     if (Keyboard::key(Key::Space)) 
     {
-        camera.UpdateCameraPos(CameraDirection::UP, m_DeltaTime);
+        camera.UpdateCameraPos(CameraDirection::UP, m_DeltaTime.count());
     }
 
     if (Keyboard::key(Key::LeftShift)) 
     {
-        camera.UpdateCameraPos(CameraDirection::DOWN, m_DeltaTime);
+        camera.UpdateCameraPos(CameraDirection::DOWN, m_DeltaTime.count());
     }
 
     double dx = Mouse::getDX();
@@ -265,7 +272,7 @@ void Application<ChunkT>::Render()
     m_DebuggingRenderer.RenderOverlay(mainCamera);
     m_Scene.Render(activeCamera, mainCamera);
 
-    DebugUI::Print("Testing 1");
+    DebugUI::Print("FPS: {}", std::lround(m_FPS));
     DebugUI::Print("Testing 2");
     DebugUI::Print("Testing 3");
 
@@ -283,35 +290,6 @@ void Application<ChunkT>::Shutdown()
     DebugUI::Shutdown();
     Gizmos::Shutdown();
     glfwTerminate();
-}
-
-template<typename ChunkT>
-void Application<ChunkT>::CalcFPSOnWindowTitle(int avgOverNFrames)
-{
-    PROFILE_FUNCTION();
-
-    const Camera& camera = m_CameraManager.GetActiveCamera();
-
-    if (m_CountFPS > avgOverNFrames)
-    {
-        // this is taking alot of cpu cycles
-        std::string title = "VoxelEngine - FPS: " + std::to_string(m_SumFPS / m_CountFPS) +
-            " | Pos(" +
-            std::to_string(camera.pos.x) + ", " +
-            std::to_string(camera.pos.y) + ", " +
-            std::to_string(camera.pos.z) + ")";
-
-        m_Screen.setTitle(title.c_str());
-        m_CountFPS = 0;
-        m_SumFPS = 0;
-
-    }
-    else
-    {
-        m_SumFPS += m_FPS;
-        m_CountFPS++;
-    }
-
 }
 
 #endif

@@ -37,14 +37,13 @@ private:
     void ProcessInput();
     void Update();
     void Render();
-    void CalcFPSOnWindowTitle(int avgOverNFrames);
 
 private:
+    using clock = std::chrono::high_resolution_clock;
+
     // Timing
-    float m_LastFrameTime = 0.0;
-    float m_DeltaTime = 0.0;
-    float  m_FPS = 0.0f;
-    int    m_FPSLimit = 60.0f;
+    std::chrono::duration<double> m_DeltaTime;
+    double  m_FPS = 0.0f;
 
     // FPS display helpers
     int   m_CountFPS = 0;
