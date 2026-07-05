@@ -54,7 +54,8 @@ layout(local_size_x = 8, local_size_y = 4, local_size_z = 8) in; // 256 threads 
 layout(std430, binding = 0) buffer IndirectDrawBuffer
 {
     uint indirectCmdsCount;
-    uint pad_indirect[3];  
+    uint chunksRendered;
+    uint pad_indirect[2];  
 
     DrawArraysIndirectCommand indirectCmds[];
 };
@@ -81,7 +82,6 @@ layout(std430, binding = 4) readonly buffer PageNodesBuffer
 {
     PageNode pageNodes[];
 };
-
 
 uniform vec4 u_FrustumPlanes[6];
 uniform uint u_RenderDistance;
@@ -175,6 +175,8 @@ void DrawChunk(ObjectAllocation alloc, ivec3 chunkPos)
 
         current = next;
     }
+
+    atomicAdd(chunksRendered, 1);
 }
 
 void main()

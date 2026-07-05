@@ -267,20 +267,18 @@ void Application<ChunkT>::Render()
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     DebugUI::BeginFrame();
-    Gizmos::Begin(activeCamera);
-    if(m_AimedRaycastHit) Gizmos::DrawCube(glm::vec3(m_VoxelAimedAt) + 0.5f, glm::vec3(1));
-    m_DebuggingRenderer.RenderOverlay(mainCamera);
-    m_Scene.Render(activeCamera, mainCamera);
-
     DebugUI::Print("FPS: {}", std::lround(m_FPS));
     DebugUI::Print("XYZ: {}, {}, {}", mainCamera.pos.x, mainCamera.pos.y, mainCamera.pos.z);
     if (m_AimedRaycastHit)
         DebugUI::Print("Voxel: {}, {}, {}", m_VoxelAimedAt.x, m_VoxelAimedAt.y, m_VoxelAimedAt.z);
     else
         DebugUI::Print("Voxel: None");
-
     DebugUI::Print("\n");
-    DebugUI::Print("Test");
+
+    Gizmos::Begin(activeCamera);
+    if(m_AimedRaycastHit) Gizmos::DrawCube(glm::vec3(m_VoxelAimedAt) + 0.5f, glm::vec3(1));
+    m_DebuggingRenderer.RenderOverlay(mainCamera);
+    m_Scene.Render(activeCamera, mainCamera);
 
     Gizmos::End();
     DebugUI::EndFrame();

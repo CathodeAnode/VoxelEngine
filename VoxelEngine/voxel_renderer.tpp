@@ -144,8 +144,15 @@ void VoxelRenderer<ChunkType>::DispatchFrustumCullPass(unsigned int renderDistan
     std::byte* uncachedBase = m_UncachedChunks.GetCurrentContents();
     std::byte* indirectBase = m_IndirectCommandBuffer.GetCurrentContents();
 
-    *reinterpret_cast<uint32_t*>(uncachedBase) = 0;
-    *reinterpret_cast<uint32_t*>(indirectBase) = 0;
+    uint32_t rendered = *reinterpret_cast<uint32_t*>(indirectBase + sizeof(uint32_t));
+    uint32_t total = static_cast<uint32_t>(std::pow(renderDistance, 3));
+    uint32_t culled = total - rendered;
+    DebugUI::Print("Chunks Rendered: {} / {}  |  Culled: {}", rendered, total, culled);
+    DebugUI::Print("Indirect Command Count: {}", *reinterpret_cast<uint32_t*>(indirectBase));
+
+    *reinterpret_cast<uint32_t*>(uncachedBase) = 0; // count
+    *reinterpret_cast<uint32_t*>(indirectBase) = 0; // indirectCmdsCount
+    *reinterpret_cast<uint32_t*>(indirectBase + sizeof(uint32_t)) = 0; // chunksRendered
 
     GLsync clearCounts = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
     glWaitSync(clearCounts, 0, GL_TIMEOUT_IGNORED);
@@ -221,8 +228,6 @@ void VoxelRenderer<ChunkType>::Render(const Camera& camera)
 {
     PROFILE_FUNCTION();
 
-    //const uint32_t indirectCmdsCount = *reinterpret_cast<const uint32_t*>(m_IndirectCommandBuffer.GetPreviousContents());
-
     //LOG_TRACE(EngineSystem::RENDERER,
     //    "VoxelRenderer rendering frame with {} indirect commands",
     //    indirectCmdsCount);
@@ -262,7 +267,7 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
 
     const size_t headerPadding = sizeof(uint32_t) * 3;
 
-    const size_t indirectHeaderSize = sizeof(uint32_t);
+    const size_t indirectHeaderSize = sizeof(uint32_t) * 2;
     const size_t indirectBodySize = indirectBufferSize * sizeof(DrawArraysIndirectCommand);
     const size_t indirectSSBOSize = indirectHeaderSize + headerPadding + indirectBodySize;
     m_IndirectCommandBuffer.Create(GL_SHADER_STORAGE_BUFFER, indirectSSBOSize, BufferAccess::ReadWrite);
@@ -271,11 +276,6 @@ void VoxelRenderer<ChunkType>::_CreateGPUBuffers(size_t indirectBufferSize, size
     const size_t culledCoordsSize = sizeof(glm::vec4) * indirectBufferSize * 5; // TEMP: sizing, later will give correct sizing for frustum culling SSBO
     const size_t culledSSBOSize = culledHeaderSize + headerPadding + culledCoordsSize;
     m_UncachedChunks.Create(GL_SHADER_STORAGE_BUFFER, culledSSBOSize, BufferAccess::ReadWrite);
-
-    // Offset head from tail on OrphanBuffers
-    //m_IndirectCommandBuffer.AdvanceHead();
-    //m_PositionSSBO.AdvanceHead();
-    //m_UncachedChunks.AdvanceHead();
 
     LOG_DEBUG(EngineSystem::RENDERER, "GPU Buffers Created")
 }

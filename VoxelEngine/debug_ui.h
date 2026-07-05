@@ -30,12 +30,25 @@ public:
         _AddText(std::vformat(fmt, std::make_format_args(args...)));
     }
 
+    static int AddPlotSeries(const std::string& name, size_t maxPoints = 512);
+    static void AddPlot(int seriesId, float value);
+
 private:
     static void _AddText(const std::string& s);
+    static void _RenderPlots();
 
 private:
     static inline bool m_Enabled = true;
     static inline std::vector<std::string> m_Text;
+
+    struct PlotSeries
+    {
+        std::string name;
+        std::vector<float> values;
+        size_t maxPoints;
+    };
+
+    static inline std::vector<PlotSeries> m_Plots;
 };
 
 #endif

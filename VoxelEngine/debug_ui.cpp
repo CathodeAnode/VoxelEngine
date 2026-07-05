@@ -30,6 +30,25 @@ bool DebugUI::IsEnabled()
     return m_Enabled;
 }
 
+int DebugUI::AddPlotSeries(const std::string& name, size_t maxPoints)
+{
+    m_Plots.push_back({ name, {}, maxPoints });
+    return static_cast<int>(m_Plots.size() - 1);
+}
+
+void DebugUI::AddPlot(int seriesId, float value)
+{
+    if (seriesId < 0 || seriesId >= (int)m_Plots.size())
+        return;
+
+    auto& ps = m_Plots[seriesId];
+
+    if (ps.values.size() >= ps.maxPoints)
+        ps.values.erase(ps.values.begin());
+
+    ps.values.push_back(value);
+}
+
 void DebugUI::BeginFrame()
 {
     if (!m_Enabled)
@@ -60,6 +79,8 @@ void DebugUI::EndFrame()
     for(const auto& text: m_Text)
         ImGui::TextUnformatted(text.c_str());
 
+    _RenderPlots();
+
     ImGui::End();
 
     ImGui::Render();
@@ -71,4 +92,24 @@ void DebugUI::EndFrame()
 void DebugUI::_AddText(const std::string& s)
 {
     m_Text.push_back(s);
+}
+
+void DebugUI::_RenderPlots()
+{
+    for (auto& ps : m_Plots)
+    {
+        if (!ps.values.empty())
+        {
+            ImGui::PlotLines(
+                ps.name.c_str(),
+                ps.values.data(),
+                static_cast<int>(ps.values.size()),
+                0,
+                nullptr,
+                FLT_MAX,
+                FLT_MAX,
+                ImVec2(0, 80)
+            );
+        }
+    }
 }

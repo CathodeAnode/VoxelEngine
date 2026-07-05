@@ -22,6 +22,7 @@
 #include "camera.h"
 #include "voxel_math.h"
 #include "frame_counter.h"
+#include "debug_ui.h"
 
 #define OPRPAH_BUFFERS_SIZE 3
 
