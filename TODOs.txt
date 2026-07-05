@@ -1,0 +1,11 @@
+- per-vertex Occlusion Culling
+- resource loader
+- 32 chunk build
+- disk-saved compiled glsl code (either with SPIR-V opengl4.6 or with GPU-specific .bin pipeline)
+- bake compiled glsl shader code into engine exe
+- world file saving
+- Voxel edit tools w/ visuals (Minecraft effortless building mod like)
+- LOD system
+- advanced on-screen debugging tools (cache inspector, ...) [dependent on ImGUI wrapper]
+- fix cache bugs
+
