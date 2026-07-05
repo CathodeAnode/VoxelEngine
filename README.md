@@ -33,7 +33,6 @@ A high-performance, GPU-driven voxel engine written in C++23 and using OpenGL 4.
         <li><a href="#optimization-features">Optimization Features</a></li>
         <li><a href="#utility-features">Utility Features</a></li>
       </ul>
-    <li><a href="#high-level-rendering-architecture">High-Level Rendering Architecture</a></li>
     <li><a href="#engine-configuration">Engine Configuration</a>
           <ul>
         <li><a href="#application-configuration">Application Configuration</a></li>
@@ -53,7 +52,13 @@ A high-performance, GPU-driven voxel engine written in C++23 and using OpenGL 4.
 
 ## Overview
 
-TODO
+Voxel Engine is a high-performance, GPU-driven voxel engine built in C++23 on top of OpenGL 4.6. It's designed around a "GPU does the heavy lifting" philosophy: chunk visibility, meshing requests, and draw submission are all driven through compute shaders and indirect rendering rather than CPU-bound per-frame work, allowing large, dynamic voxel worlds to stream and render with minimal CPU overhead.
+
+At the core of the engine is a binary greedy meshing algorithm that collapses contiguous voxel faces into compressed, GPU-friendly quads, paired with a lock-free VRAM mesh cache and AZDO rendering techniques (persistent mapped buffers, multi-draw indirect, direct state access) to keep draw calls and memory traffic to a minimum. A GPU frustum culling pipeline evaluates chunk visibility every frame, pulling cached meshes straight into the indirect draw buffer while kicking off meshing for anything not yet cached—so newly visible terrain appears with minimal stalling. A 3D ring buffer keeps only the chunks around the camera loaded, streaming in new chunks as the camera crosses boundaries instead of rebuilding the entire world volume.
+
+Beyond rendering, the engine provides a pluggable world generation system via the ChunkGeneratorStrategy interface, real-time voxel editing with undo/redo and brush tools, DDA-based voxel ray-casting for precise picking, and built-in tooling for debugging and performance analysis—including gizmos, an X-macro–driven logging system, and Hazel-inspired JSON trace profiling viewable in chrome://tracing.
+
+![High-Level Rendering Pipeline](../readme-assets/EngineRenderingPipeline.png)
 
 ## Getting Started
 
@@ -135,19 +140,13 @@ The engine exposes several CMake options to customize logging, profiling, and ch
 
 ### Utility Features
 
-- **Gizmos**:
-- **Logging**:
-- **Profiling**:
-- **Ray-casting**:
-- **Voxel editing**:
-
-## High-Level Rendering Architecture
-
-![High-Level Rendering Pipeline](../readme-assets/EngineRenderingPipeline.png)
+- **Gizmos**: Lightweight debug gizmos for visualizing chunk bounds, ray hits, frustums, and editor handles, using depth‑aware screen‑space rendering.
+- **Logging**: X‑macro–driven logging system backed by spdlog, making it trivial to add new log channels while keeping output fast and thread‑safe.
+- **Profiling**: Lightweight function‑level profiling inspired by Hazel, writing JSON trace files for startup, runtime, and shutdown that can be inspected in chrome://tracing.
+- **Ray-casting**: Voxel ray‑casting uses the Amanatides & Woo DDA grid traversal algorithm for precise, step‑wise intersection across chunk boundaries. Supports accurate voxel picking for editing, selection, and gizmo interaction.
+- **Voxel editing**: Real‑time voxel modification with automatic dirty‑chunk tracking and incremental remeshing. Includes undo/redo support and basic brush tools for painting, carving, and filling.
 
 ## Engine Configuration
-
-TODO text to main.cpp
 
 ### Application Configuration
 
@@ -286,7 +285,7 @@ Benchmark results were collected using the environment and configuration describ
 | **RAM**   | 16 GB                      |
 | **OS**    | Windows 11                 |
 
-### Cache Configuration Used for Tests
+### Cache Configuration Used for Benchmarks
 
 | Cache Parameter                 | Value          |
 | ------------------------------- | -------------- |
@@ -294,7 +293,7 @@ Benchmark results were collected using the environment and configuration describ
 | **cacheNumOfPages**             | 62,500 pages   |
 | **averageIndirectCmdsPerChunk** | 3              |
 
-### Meshing Benchmarking
+### Meshing Benchmarks
 
 The following benchmarks were generated using the `Simple3DPerlinNoiseGeneration` chunk‑generation strategy, with multi‑threading disabled and both `LoadedChunkDistance` and `RenderChunkDistance` set to 31.
 
@@ -304,8 +303,6 @@ The following benchmarks were generated using the `Simple3DPerlinNoiseGeneration
 | CHUNK16   | 0.064 ms               | 0.051 ms         |
 | CHUNK32   | ---                    | ---              |
 
-### Chunk Mesh Cache
-
-TODO evicitions, uploads, page allocations, etc...
-
 ## License
+
+**MIT License** See [LICENSE](LICENSE) for more information
