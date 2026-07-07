@@ -132,7 +132,7 @@ The engine exposes several CMake options to customize logging, profiling, and ch
 
   ![GPU Frustum Culling Demo](../readme-assets/Demos/GPUFrustumCullingDemo.gif?raw=true)
 
-- **Quad compression & Instancing**: Quads are packed into a 2‑byte format encoding their local XYZ position, width, height, face direction, and RGBA color
+- **Quad compression & Instancing**: Quads are packed into a 8‑byte format encoding their local XYZ position, width, height, face direction, and RGBA color
 - **Face culling**: OpenGL face culling
 - **3D ring buffer**: Keeps a rotating window of chunks around the camera, loading only the incoming planes when movement crosses a chunk boundary. Avoids regenerating the full volume around the camera, preserves cache locality, and guarantees constant‑time chunk indexing.
 
