@@ -1,7 +1,7 @@
 # =============================
 # Define Project-Wide Settings
 # =============================
-cmake_minimum_required(VERSION 3.20.0 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
 
 # Enables the Visibility Property on all target types
 cmake_policy(SET CMP0063 NEW)
@@ -23,6 +23,7 @@ set(CMAKE_PROJECT_VERSION ${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION
 # Set required C++ Standard
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 # Generate the compile_commands.json file
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)
@@ -44,6 +45,7 @@ include(CMakePackageConfigHelpers)
 include(${CMAKE_SOURCE_DIR}/CMake/ConfigOptions.cmake)
 include(${CMAKE_SOURCE_DIR}/CMake/ConfigDefinitions.cmake)
 include(${CMAKE_SOURCE_DIR}/CMake/ConfigDependencies.cmake)
+include(${CMAKE_SOURCE_DIR}/CMake/ConfigCppModules.cmake)
 
 # =============================
 # Define Targets

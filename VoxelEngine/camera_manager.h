@@ -2,6 +2,7 @@
 #define CAMERA_MANAGER_H
 
 #include <vector>
+#include <cstdint>
 #include <memory>
 
 class Camera;

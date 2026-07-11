@@ -3,13 +3,19 @@
 # ============================================
 
 # Collect all source files
-file(GLOB_RECURSE VE_SOURCES
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp"
-    "${CMAKE_CURRENT_SOURCE_DIR}/*.c"
+add_library(VoxelEngineCore STATIC)   # everything except main.cpp
+ve_add_module_sources(VoxelEngineCore ${CMAKE_CURRENT_SOURCE_DIR}
+    EXCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/main.cpp
 )
+target_link_libraries(VoxelEngineCore PUBLIC glfw glad glm spdlog stb imgui)
 
-# Create the executable
-add_executable(VoxelEngine ${VE_SOURCES})
+add_executable(VoxelEngine main.cpp)
+target_link_libraries(VoxelEngine PRIVATE VoxelEngineCore)
+
+target_include_directories(VoxelEngine
+    PUBLIC
+        ${CMAKE_CURRENT_SOURCE_DIR}
+)
 
 # Collect all asset files recursively
 file(GLOB_RECURSE VE_ASSETS
@@ -32,24 +38,6 @@ foreach(asset ${VE_ASSETS})
                 "${CMAKE_CURRENT_BINARY_DIR}/${rel_dir}"
     )
 endforeach()
-
-# Include directory (your folder is flat)
-target_include_directories(VoxelEngine
-    PUBLIC
-        ${CMAKE_CURRENT_SOURCE_DIR}
-)
-
-# Link dependencies
-target_link_libraries(VoxelEngine
-    PUBLIC
-        glm
-        stb
-        glad
-        spdlog
-        glfw
-        imgui
-        ${VE_SYSTEM_LIBS}
-)
 
 # Apply compile definitions (from ConfigDefinition.cmake)
 target_compile_definitions(VoxelEngine PUBLIC

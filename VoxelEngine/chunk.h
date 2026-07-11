@@ -56,7 +56,7 @@ public:
 private:
 	T* __restrict m_OpaqueData = nullptr; // 1 for block, 0 for air (z-major order)
 	RGBAColor* __restrict m_ColorData = nullptr;
-	const VoxelObjectID k_Uid;
+	VoxelObjectID k_Uid;
 };
 
 typedef Chunk<uint8_t, 8> Chunk8;
