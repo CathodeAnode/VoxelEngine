@@ -1,11 +1,12 @@
-#ifndef MOUSE_CODES_H
-#define MOUSE_CODES_H
+module;
 
 #include <cstdint>
 
-using MouseCode = uint16_t;
+export module voxel_engine:input.mouse_codes;
 
-namespace MouseKey
+export using MouseCode = std::uint16_t;
+
+export namespace MouseKey
 {
 	enum : MouseCode
 	{
@@ -25,5 +26,3 @@ namespace MouseKey
 		ButtonMiddle = Button2
 	};
 }
-
-#endif

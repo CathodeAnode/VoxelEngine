@@ -1,11 +1,12 @@
-#ifndef JOYSTICK_CODES_H
-#define JOYSTICK_CODES_H
+module;
 
 #include <cstdint>
 
-using JoyStickCode = uint16_t;
+export module voxel_engine:input.joystick_codes;
 
-namespace JoystickKey
+export using JoyStickCode = std::uint16_t;
+
+export namespace JoystickKey
 {
 	enum : JoyStickCode
 	{
@@ -38,5 +39,3 @@ namespace JoystickKey
 		RIGHT_STICK_Y = 5,
 	};
 }
-
-#endif

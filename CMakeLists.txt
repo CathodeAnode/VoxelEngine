@@ -1,7 +1,7 @@
 # =============================
 # Define Project-Wide Settings
 # =============================
-cmake_minimum_required(VERSION 3.30 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.30...4.40 FATAL_ERROR)
 
 # Enables the Visibility Property on all target types
 cmake_policy(SET CMP0063 NEW)
@@ -9,6 +9,7 @@ cmake_policy(SET CMP0063 NEW)
 cmake_policy(SET CMP0091 NEW)
 
 # Define the Project Name and Description
+include(${CMAKE_SOURCE_DIR}/CMake/EnableCppImportStd.cmake)
 project(VoxelEngine
     LANGUAGES CXX C # C language is used to compile glad
     DESCRIPTION "GPU-Driven voxel engine using OpenGL 4.6"
@@ -22,8 +23,13 @@ set(CMAKE_PROJECT_VERSION ${CMAKE_PROJECT_VERSION_MAJOR}.${CMAKE_PROJECT_VERSION
 
 # Set required C++ Standard
 set(CMAKE_CXX_STANDARD 23)
-set(CMAKE_CXX_STANDARD_REQUIRED TRUE)
-set(CMAKE_CXX_EXTENSIONS OFF)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS ON)
+set(CMAKE_CXX_MODULE_STD ON)
+
+if (NOT CMAKE_GENERATOR STREQUAL "Ninja")
+    message(FATAL_ERROR "This project requires the Ninja generator. Refers to https://cmake.org/cmake/help/latest/manual/cmake-cxxmodules.7.html#generator-support")
+endif ()
 
 # Generate the compile_commands.json file
 set(CMAKE_EXPORT_COMPILE_COMMANDS TRUE)

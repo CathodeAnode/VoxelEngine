@@ -9,8 +9,6 @@
 
 #include "logger.h"
 #include "profiler.h"
-#include "keyboard.h"
-#include "mouse.h"
 #include "voxel_ray_cast.h"
 #include "chunk_generator_strategy.h"
 #include "voxel_mesher.h"
@@ -83,7 +81,10 @@ bool Application<ChunkT>::Init(const ApplicationConfig& cfg)
         return false;
     }
 
-    m_Screen.enableInputs();
+    m_Screen.enableInputs(Keyboard::keyCallback,
+        Mouse::cursorPosCallback,
+        Mouse::mouseButtonCallback,
+        Mouse::mouseWheelCallback);
     m_Screen.toggleCursor();
 
     m_MainJoystick.Update();

@@ -1,10 +1,16 @@
-#include "mouse.h"
+module;
 
+// TEMP to be moved to thrid_party module & logging, profiling modules
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
 #include "logger.h"
 #include "profiler.h"
+
+module voxel_engine:input.mouse.impl;
+
+import :input.mouse;
+import :input.mouse_codes;
 
 double Mouse::m_X = 0;
 double Mouse::m_Y = 0;

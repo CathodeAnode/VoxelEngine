@@ -1,10 +1,16 @@
-#include "keyboard.h"
+module;
 
+// TEMP to be moved to thrid_party module & logging, profiling modules
 #include <glad/glad.h>
-#include <glfw/glfw3.h>
+#include <GLFW/glfw3.h>
 
-#include "profiler.h"
 #include "logger.h"
+#include "profiler.h"
+
+module voxel_engine:input.keyboard.impl;
+
+import :input.keyboard;
+import :input.key_codes;
 
 // key state array (true for down, false for up)
 bool Keyboard::m_Keys[GLFW_KEY_LAST] = { 0 };

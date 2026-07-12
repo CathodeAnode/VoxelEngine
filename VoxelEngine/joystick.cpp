@@ -1,7 +1,16 @@
-#include "joystick.h"
-#include "logger.h"
+module;
 
+// TEMP to be moved to thrid_party module & logging, profiling modules
+#include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
+#include "logger.h"
+#include "profiler.h"
+
+module voxel_engine:input.joystick.impl;
+
+import :input.joystick;
+import :input.joystick_codes;
 
 // generate an instance for joystick with id i
 Joystick::Joystick(int i) 

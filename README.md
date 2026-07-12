@@ -64,13 +64,13 @@ Beyond rendering, the engine provides a pluggable world generation system via th
 
 ### Prerequisites
 
-- Compiler: C++23 capable compiler (GCC 11+, Clang 14+, MSVC 2019/2022 with C++23 support).
+- Compiler: C++23 capable compiler (GCC 13+, Clang 16+, MSVC 2019/2022 with C++23 support).
 
 - Graphics: GPU and drivers supporting OpenGL 4.6.
 
 - Libraries: GLM, GLAD, spdlog, stb (or use the bundled loader)
 
-- Tools: CMake 3.20+, a build tool (make, ninja, or MSBuild).
+- Tools: CMake 3.30+, a build tool (make, ninja, or MSBuild).
 
 ### Installations
 

@@ -1,13 +1,20 @@
-#ifndef JOYSTICK_H
-#define JOYSTICK_H
+module;
 
-#include "joystick_codes.h"
+// TEMP to be moved to thrid_party module & logging, profiling modules
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+#include "logger.h"
+#include "profiler.h"
+
+export module voxel_engine:input.joystick;
+
+import :input.joystick_codes;
 
 /*
     joystick class to handle input from joystick controller
 */
-
-class Joystick {
+export class Joystick {
 public:
     // generate an instance for joystick with id i
     Joystick(int i);
@@ -27,6 +34,8 @@ public:
 
     static int getId(int i); // static method to get enum value for joystick
 
+    //TODO: implement glfw callback
+
 private:
     int m_Present; // 1 if present, 0 if not
  
@@ -39,7 +48,3 @@ private:
     int m_ButtonCount; // number of buttons
     const unsigned char* m_Buttons; // array of button states
 };
-
-
-#endif
-

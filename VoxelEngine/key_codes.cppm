@@ -1,11 +1,12 @@
-#ifndef KEY_CODES_H
-#define KEY_CODES_H
+module;
 
 #include <cstdint>
 
-using KeyCode = uint16_t;
+export module voxel_engine:input.key_codes;
 
-namespace Key
+export using KeyCode = std::uint16_t;
+
+export namespace Key
 {
 	enum : KeyCode
 	{
@@ -142,5 +143,3 @@ namespace Key
 		Menu = 348
 	};
 }
-
-#endif

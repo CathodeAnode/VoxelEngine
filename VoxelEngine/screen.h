@@ -6,6 +6,12 @@ struct GLFWwindow;
 #define SCREEN_OPENGL_MAJOR_VERISON 4
 #define SCREEN_OPENGL_MINOR_VERISON 6
 
+using KeyCallbackFn = void(*)(GLFWwindow*, int, int, int, int);
+using CursorPosFn = void(*)(GLFWwindow*, double, double);
+using MouseButtonFn = void(*)(GLFWwindow*, int, int, int);
+using ScrollFn = void(*)(GLFWwindow*, double, double);
+
+
 class Screen {
 public:
 	Screen(unsigned int _width, unsigned int _height, const char* _title) noexcept;
@@ -13,7 +19,7 @@ public:
 
 	bool init();
 
-	void enableInputs();
+	void enableInputs(KeyCallbackFn key, CursorPosFn cursor, MouseButtonFn button, ScrollFn scroll);
 	void toggleCursor();
 
 	void Flush();

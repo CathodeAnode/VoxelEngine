@@ -23,7 +23,12 @@ function(ve_add_module_sources target source_dir)
     endif()
  
     if(CPP_FILES)
-        target_sources(${target} PRIVATE ${CPP_FILES})
+        target_sources(${target}
+            PUBLIC
+                FILE_SET CXX_MODULES
+                BASE_DIRS ${source_dir}
+                FILES ${CPP_FILES}
+        )
     endif()
  
     if(C_FILES)

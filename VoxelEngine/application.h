@@ -7,13 +7,14 @@
 #include "screen.h"
 #include "camera.h"
 #include "camera_manager.h"
-#include "joystick.h"
 #include "scene.h"
 #include "chunk_manager.h"
 #include "voxel_renderer.h"
 #include "debugging_renderer.h"
 #include "voxel_edit.h"
 #include "application_config.h"
+
+import voxel_engine;
 
 template<typename ChunkT>
 class Application

@@ -1,9 +1,15 @@
+module;
+
+// TEMP to be moved to thrid_party module & logging, profiling modules
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
+#include "logger.h"
+#include "profiler.h"
+
 export module voxel_engine:input.mouse;
 
 import :input.mouse_codes;
-
-struct GLFWwindow;
-
 
 export class Mouse 
 {

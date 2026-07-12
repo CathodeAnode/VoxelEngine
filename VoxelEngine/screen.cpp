@@ -6,9 +6,6 @@
 #include <GLFW/glfw3.h>
 
 #include "shader.h"
-#include "mouse.h"
-#include "keyboard.h"
-#include "joystick.h"
 #include "logger.h"
 #include "profiler.h"
 
@@ -80,12 +77,14 @@ bool Screen::init() {
 	return true;
 }
 
-void Screen::enableInputs() {
+void Screen::enableInputs(KeyCallbackFn key, CursorPosFn cursor, MouseButtonFn button, ScrollFn scroll)
+{
 	LOG_INFO(EngineSystem::CORE, "Enabling input callbacks");
-	glfwSetKeyCallback(m_Window, Keyboard::keyCallback);
-	glfwSetCursorPosCallback(m_Window, Mouse::cursorPosCallback);
-	glfwSetMouseButtonCallback(m_Window, Mouse::mouseButtonCallback);
-	glfwSetScrollCallback(m_Window, Mouse::mouseWheelCallback);
+	glfwSetKeyCallback(m_Window, key);
+	glfwSetCursorPosCallback(m_Window, cursor);
+	glfwSetMouseButtonCallback(m_Window, button);
+	glfwSetScrollCallback(m_Window, scroll);
+	//TODO: add joystick callback
 }
 
 void Screen::toggleCursor() {
