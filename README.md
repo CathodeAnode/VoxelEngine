@@ -9,7 +9,7 @@ A high-performance, GPU-driven voxel engine written in C++23 and using OpenGL 4.
   <img src="https://img.shields.io/badge/GLAD-Loader-orange.svg" alt="GLAD">
   <img src="https://img.shields.io/badge/GLM-Math%20Library-3DDC84.svg" alt="GLM">
   <img src="https://img.shields.io/badge/CMake-Build%20System-064F8C.svg" alt="CMake">
-  <img src="https://img.shields.io/badge/Platform-Windows-blue.svg" alt="Windows">
+  <img src="https://img.shields.io/badge/Platform-Windows%20%7C%20Linux-blue.svg" alt="Windows | Linux">
 </p>
 
 <!-- TABLE OF CONTENTS -->

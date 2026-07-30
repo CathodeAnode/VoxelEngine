@@ -1,5 +1,5 @@
-#include <glad\glad.h>
-#include <GLFW\glfw3.h>
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 
 #include <memory>
@@ -14,9 +14,11 @@
 #include "application.h"
 #include "application_config.h"
 
+#if defined(_WIN32)
 extern "C" {
 	__declspec(dllexport) unsigned long NvOptimusEnablement = 0x00000001;
 }
+#endif
 
 #if defined(VE_CHUNK_TYPE_8)
 using ChunkType = Chunk8;

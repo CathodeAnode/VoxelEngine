@@ -1,7 +1,11 @@
 #ifndef HELPERS_H
 #define HELPERS_H
 
+#ifdef _MSC_VER
 #include <intrin.h>
+#else
+#include <x86intrin.h>
+#endif
 
 
 inline constexpr unsigned long BITS_IN_ULL = sizeof(unsigned long long) * 8;

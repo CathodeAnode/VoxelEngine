@@ -1,7 +1,7 @@
 #ifndef GPU_BUFFER_LOCK_H
 #define GPU_BUFFER_LOCK_H
 
-#include <glad\glad.h>
+#include <glad/glad.h>
 #include <vector>
 #include <iostream>
 #include <concepts>
