@@ -8,12 +8,14 @@ set(VE_THIRD_PARTY_LIB_DIR     ${CMAKE_SOURCE_DIR}/Linking/lib)
 # --------------------------------------------
 # GLFW (precompiled .a)
 # --------------------------------------------
-add_library(glfw STATIC IMPORTED)
+if(WIN32)
+    add_library(glfw STATIC IMPORTED)
 
-set_target_properties(glfw PROPERTIES
-    IMPORTED_LOCATION "${VE_THIRD_PARTY_LIB_DIR}/GLFW/glfw3.a"
-    INTERFACE_INCLUDE_DIRECTORIES "${VE_THIRD_PARTY_INCLUDE_DIR}"
-)
+    set_target_properties(glfw PROPERTIES
+        IMPORTED_LOCATION "${VE_THIRD_PARTY_LIB_DIR}/GLFW/glfw3.a"
+        INTERFACE_INCLUDE_DIRECTORIES "${VE_THIRD_PARTY_INCLUDE_DIR}"
+    )
+endif()
 
 # --------------------------------------------
 # GLM (header-only)
