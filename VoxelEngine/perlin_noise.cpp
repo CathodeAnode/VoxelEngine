@@ -31,9 +31,11 @@ float PerlinNoise::Noise1D(float x)
     x -= xf;
     float sx = fade(x);
 
+    const unsigned char* P = m_PTable;
+
     unsigned char a, b;
-    a = m_PTable[xi];
-    b = m_PTable[xi + 1];
+    a = P[xi];
+    b = P[xi + 1];
 
     float avg = lerp(
         sx,
@@ -58,11 +60,13 @@ float PerlinNoise::Noise2D(float x, float y)
     float sx = fade(x);
     float sy = fade(y);
 
+    const unsigned char* P = m_PTable;
+
     unsigned char aa, ab, ba, bb;
-    aa = m_PTable[m_PTable[xi] + yi];
-    ab = m_PTable[m_PTable[xi] + yi + 1];
-    ba = m_PTable[m_PTable[xi + 1] + yi];
-    bb = m_PTable[m_PTable[xi + 1] + yi + 1];
+    aa = P[P[xi] + yi];
+    ab = P[P[xi] + yi + 1];
+    ba = P[P[xi + 1] + yi];
+    bb = P[P[xi + 1] + yi + 1];
 
     float avg = lerp(
         sy,
@@ -99,15 +103,17 @@ float PerlinNoise::Noise3D(float x, float y, float z)
     float sy = fade(y);
     float sz = fade(z);
 
+    const unsigned char* P = m_PTable;
+
     unsigned char aaa, aba, aab, abb, baa, bba, bab, bbb;
-    aaa = m_PTable[m_PTable[m_PTable[xi] + yi] + zi];
-    aba = m_PTable[m_PTable[m_PTable[xi] + yi+1] + zi];
-    aab = m_PTable[m_PTable[m_PTable[xi] + yi] + zi+1];
-    abb = m_PTable[m_PTable[m_PTable[xi] + yi+1] + zi+1];
-    baa = m_PTable[m_PTable[m_PTable[xi+1] + yi] + zi];
-    bba = m_PTable[m_PTable[m_PTable[xi+1] + yi+1] + zi];
-    bab = m_PTable[m_PTable[m_PTable[xi+1] + yi] + zi+1];
-    bbb = m_PTable[m_PTable[m_PTable[xi+1] + yi+1] + zi+1];
+    aaa = P[P[P[xi] + yi] + zi];
+    aba = P[P[P[xi] + yi+1] + zi];
+    aab = P[P[P[xi] + yi] + zi+1];
+    abb = P[P[P[xi] + yi+1] + zi+1];
+    baa = P[P[P[xi+1] + yi] + zi];
+    bba = P[P[P[xi+1] + yi+1] + zi];
+    bab = P[P[P[xi+1] + yi] + zi+1];
+    bbb = P[P[P[xi+1] + yi+1] + zi+1];
 
     float avg = lerp(
         sz,
