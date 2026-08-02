@@ -84,7 +84,7 @@ private:
 		int h = hash & 0b1111;
 
 		// if msb is set u=x else u=y
-		float u = h < 01000 ? x : y;
+		float u = h < 0b01000 ? x : y;
 
 		// if first/second bits 0, set to y
 		// if first/second bits 1, set to x
