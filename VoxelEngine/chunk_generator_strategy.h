@@ -49,11 +49,7 @@ public:
 	{
 		constexpr int totalSize = ChunkType::Size * ChunkType::Size;
 
-		// TODO: SIMD me
-		for (int i = 0; i < totalSize; ++i)
-		{
-			outChunk->m_OpaqueData[i] = 0;
-		}
+		std::memset(outChunk->m_OpaqueData, 0, totalSize);
 	}
 
 	std::string ToString() override { return "EmptyChunkGenertation"; }
@@ -90,12 +86,8 @@ public:
 			}
 		}
 
-		// TODO: SIMD me
 		auto chunkOpaqueData = outChunk->GetOpaqueSpan();
-		for (int i = 0; i < chunkOpaqueData.size(); i++)
-		{
-			chunkOpaqueData[i] = voxelFill;
-		}
+		std::fill(chunkOpaqueData.begin(), chunkOpaqueData.end(), voxelFill);
 	}
 
 	std::string ToString() override { return "FlatChunkGenertation"; }
