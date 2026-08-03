@@ -12,7 +12,7 @@ void PerlinNoise::Reseed(unsigned int seed)
 
 float PerlinNoise::Noise1D(float x)
 {
-    int xf = std::floor(x);
+    float xf = std::floor(x);
 
     int xi = static_cast<int>(xf);
     
