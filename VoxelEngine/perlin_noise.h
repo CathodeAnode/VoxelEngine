@@ -94,7 +94,7 @@ private:
 	}
 
 	// 1D hash function
-	inline unsigned int Hash1D(int x, unsigned int seed)
+	inline static unsigned int Hash1D(int x, unsigned int seed)
 	{
 		unsigned int h = static_cast<unsigned int>(x) + seed;
 		h = (h ^ 61) ^ (h >> 16);
@@ -106,7 +106,7 @@ private:
 	}
 
 	// 2D hash function
-	inline unsigned int Hash2D(int x, int y, unsigned int seed)
+	inline static unsigned int Hash2D(int x, int y, unsigned int seed)
 	{
 		unsigned int h = static_cast<unsigned int>(x * 1664525U + y * 1013904223U + seed * 0x9e3779b9U);
 		h ^= h >> 16;
@@ -118,7 +118,7 @@ private:
 	}
 
 	// 3D hash function
-	inline unsigned int Hash3D(int x, int y, int z, unsigned int seed)
+	inline static unsigned int Hash3D(int x, int y, int z, unsigned int seed)
 	{
 		unsigned int h = static_cast<unsigned int>(x * 374761393U + y * 668265263U + z * 1274126177U + seed * 0x9e3779b9U);
 		h ^= h >> 13;
