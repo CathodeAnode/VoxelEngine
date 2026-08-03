@@ -77,21 +77,56 @@ private:
 		return lerp(prop, newMin, newMax);
 	}
 
-	//calculate the dot product between the gradient vector and distance vector
-	inline static float gradient(unsigned char hash, float x, float y, float z)
+	// Calculate the dot product between the gradient vector and distance vector
+	inline static float gradient(unsigned int hash, float x, float y, float z)
 	{
-		// convert 4 lsb of hash into 1 of 12 possible gradients
-		int h = hash & 0b1111;
+	    // Use 4 bits to select one of 12 gradient directions
+		int h = hash & 0xF;
 
-		// if msb is set u=x else u=y
-		float u = h < 0b01000 ? x : y;
+		float u = (h < 8) ? x : y;
+		float v = (h < 4) ? y : ((h == 12 || h == 14) ? x : z);
+		
+		// Apply sign bits
+		if (h & 1) u = -u;
+		if (h & 2) v = -v;
+		
+		return u + v;
+	}
 
-		// if first/second bits 0, set to y
-		// if first/second bits 1, set to x
-		// else set to z
-		float v = h < 0b0100 ? y : h == 0b1100 || h == 0b1110 ? x : z;
+	// 1D hash function
+	inline unsigned int Hash1D(int x, unsigned int seed)
+	{
+		unsigned int h = static_cast<unsigned int>(x) + seed;
+		h = (h ^ 61) ^ (h >> 16);
+		h = h + (h << 3);
+		h = h ^ (h >> 4);
+		h = h * 0x27d4eb2dU;
+		h = h ^ (h >> 15);
+		return h;
+	}
 
-		return ((h & 0b0001) == 0 ? u : -u) + ((h & 0b0010) == 0 ? v : -v);
+	// 2D hash function
+	inline unsigned int Hash2D(int x, int y, unsigned int seed)
+	{
+		unsigned int h = static_cast<unsigned int>(x * 1664525U + y * 1013904223U + seed * 0x9e3779b9U);
+		h ^= h >> 16;
+		h *= 0x85ebca6bU;
+		h ^= h >> 13;
+		h *= 0xc2b2ae35U;
+		h ^= h >> 16;
+		return h;
+	}
+
+	// 3D hash function
+	inline unsigned int Hash3D(int x, int y, int z, unsigned int seed)
+	{
+		unsigned int h = static_cast<unsigned int>(x * 374761393U + y * 668265263U + z * 1274126177U + seed * 0x9e3779b9U);
+		h ^= h >> 13;
+		h *= 0xbf58476dU;
+		h ^= h >> 15;
+		h *= 0x94d049bbU;
+		h ^= h >> 16;
+		return h;
 	}
 };
 
