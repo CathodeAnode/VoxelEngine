@@ -18,7 +18,7 @@ ve_add_module_sources(VoxelEngineCore ${CMAKE_CURRENT_SOURCE_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/gizmos.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gpu_buffer_lock.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/perlin_noise.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/noise.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/shader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/profiler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/screen.cpp
@@ -39,7 +39,7 @@ file(GLOB TEMP_CPP_FILES  CONFIGURE_DEPENDS
     ${CMAKE_CURRENT_SOURCE_DIR}/gizmos.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/gpu_buffer_lock.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/logger.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/perlin_noise.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/noise.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/shader.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/profiler.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/screen.cpp

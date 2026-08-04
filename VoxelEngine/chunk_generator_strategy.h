@@ -9,7 +9,7 @@
 
 #include "stb_image.h"
 
-#include "perlin_noise.h"
+#include "noise.h"
 #include "voxel_math.h"
 #include "logger.h"
 #include "profiler.h"
@@ -144,7 +144,7 @@ class Simple3DPerlinNoiseGeneration : public ChunkGeneratorStrategy<ChunkType>
 {
 public:
 	Simple3DPerlinNoiseGeneration()
-		: m_PerlinNoise(this->p_Seed)
+		: m_Noise(this->p_Seed)
 	{}
 
 	void Generate(const glm::ivec3& chunkCoords, const std::shared_ptr<ChunkType>& outChunk) override
@@ -164,7 +164,7 @@ public:
 					int worldY = chunkCoords.y * ChunkType::Size + y;
 					int worldZ = chunkCoords.z * ChunkType::Size + z;
 
-					float noiseVal = m_PerlinNoise.Noise3D(worldX * 0.1f, worldY * 0.1f, worldZ * 0.1f);
+					float noiseVal = m_Noise.PerlinNoise3D(worldX * 0.1f, worldY * 0.1f, worldZ * 0.1f);
 
 					if (noiseVal > 0.2f)
 					{
@@ -178,7 +178,49 @@ public:
 	std::string ToString() override { return "Simple3DPerlinNoiseGeneration"; }
 
 private:
-	PerlinNoise m_PerlinNoise;
+	Noise m_Noise;
+};
+
+template<typename ChunkType>
+class Simple3DSimplexNoiseGeneration : public ChunkGeneratorStrategy<ChunkType>
+{
+public:
+	Simple3DSimplexNoiseGeneration()
+		: m_Noise(this->p_Seed)
+	{}
+
+	void Generate(const glm::ivec3& chunkCoords, const std::shared_ptr<ChunkType>& outChunk) override
+	{
+		constexpr int totalSize = ChunkType::Size * ChunkType::Size;
+
+		//TEMP
+		const int randColor = this->p_Dist(this->p_Engine);
+
+		for (int x = 0; x < ChunkType::Size; x++)
+		{
+			for (int y = 0; y < ChunkType::Size; y++)
+			{
+				for (int z = 0; z < ChunkType::Size; z++)
+				{
+					int worldX = chunkCoords.x * ChunkType::Size + x;
+					int worldY = chunkCoords.y * ChunkType::Size + y;
+					int worldZ = chunkCoords.z * ChunkType::Size + z;
+
+					float noiseVal = m_Noise.SimplexNoise3D(worldX * 0.07f, worldY * 0.07f, worldZ * 0.07f);
+
+					if (noiseVal > 0.2f)
+					{
+						outChunk->SetVoxel(x, y, z, randColor);
+					}
+				}
+			}
+		}
+	}
+
+	std::string ToString() override { return "Simple3DSimplexNoiseGeneration"; }
+
+private:
+	Noise m_Noise;
 };
 
 template<typename ChunkType>

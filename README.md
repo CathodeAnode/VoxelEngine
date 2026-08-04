@@ -224,7 +224,7 @@ Example 3D Perlin Noise:
 class Simple3DPerlinNoiseGeneration : public ChunkGeneratorStrategy<ChunkType>
 {
 public:
-    Simple3DPerlinNoiseGeneration() : m_PerlinNoise(this->p_Seed) {}
+    Simple3DPerlinNoiseGeneration() : m_Noise(this->p_Seed) {}
 
     void Generate(const glm::ivec3& chunkCoords,
                   const std::shared_ptr<ChunkType>& outChunk) override
@@ -235,7 +235,7 @@ public:
         for (int y = 0; y < ChunkType::Size; y++)
         for (int z = 0; z < ChunkType::Size; z++)
         {
-            float n = m_PerlinNoise.Noise3D(
+            float n = m_Noise.PerlinNoise3D(
                 (chunkCoords.x * ChunkType::Size + x) * 0.1f,
                 (chunkCoords.y * ChunkType::Size + y) * 0.1f,
                 (chunkCoords.z * ChunkType::Size + z) * 0.1f
@@ -249,7 +249,7 @@ public:
     std::string ToString() override { return "Simple3DPerlinNoiseGeneration"; }
 
 private:
-    PerlinNoise m_PerlinNoise;
+    Noise m_Noise;
 };
 ```
 

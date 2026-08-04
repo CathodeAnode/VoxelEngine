@@ -53,7 +53,7 @@ int main()
 	//										800.0f // max height
 	//		);
 	std::unique_ptr<ChunkGeneratorStrategy<ChunkType>> generationStratgy = std::make_unique<
-		Simple3DPerlinNoiseGeneration<ChunkType>>();
+		Simple3DSimplexNoiseGeneration<ChunkType>>();
 
 	ApplicationConfig appConfig = {
 		.ScreenWidth = 800,
