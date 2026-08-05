@@ -6,8 +6,10 @@ layout (std430, binding = 0) buffer noise {
     float value[];
 };
 
-uniform uvec3 origin;
+uniform ivec3 origin;
 uniform uint seed;
+uniform float frequency;
+uniform float amplitude;
 
 vec3 Gradient(uvec3 p)
 {
@@ -124,5 +126,5 @@ void main()
     uvec3 p = origin + id;
 
     uint index = id.x + id.y * 8 + id.z * 64;
-    value[index] = SimplexNoise3D(p);
+    value[index] = SimplexNoise3D(p * frequency) * amplitude;
 }
