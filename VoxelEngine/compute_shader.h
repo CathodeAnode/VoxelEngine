@@ -27,6 +27,8 @@ public:
     /// </summary>
     void Wait(GLbitfield barriers);
 
+    void WaitDispatchCompletion();
+
     inline unsigned int GetLocalSizeX() { return m_LocalSize.x; }
     inline unsigned int GetLocalSizeY() { return m_LocalSize.y; }
     inline unsigned int GetLocalSizeZ() { return m_LocalSize.z; }

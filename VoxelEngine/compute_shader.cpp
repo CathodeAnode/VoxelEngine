@@ -25,6 +25,18 @@ void ComputeShader::Wait(GLbitfield barriers)
 	glMemoryBarrier(barriers);
 }
 
+void ComputeShader::WaitDispatchCompletion()
+{
+	GLsync sync = glFenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+	assert(sync != 0);
+
+    // Wait indefinitely for GPU completion
+	GLenum result = glClientWaitSync(sync, GL_SYNC_FLUSH_COMMANDS_BIT, GL_TIMEOUT_IGNORED);
+	assert(result != GL_WAIT_FAILED);
+
+	glDeleteSync(sync);
+}
+
 bool ComputeShader::_ParseLocalGroupSize(const std::string& shaderSrc)
 {
     std::string src;
